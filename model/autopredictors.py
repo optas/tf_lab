@@ -6,7 +6,7 @@ Created on October 11, 2016
 
 import tensorflow as tf
 from tensorflow.python.ops import rnn, rnn_cell
-from .. tf_wrapper.basics import vgg_m_conv 
+from .. fundamentals.layers import vgg_m_conv 
 
 
 flags = tf.flags
