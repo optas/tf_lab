@@ -66,4 +66,3 @@ with tf.Session() as sess:
         training_batch = zip(range(0,len(trX),batch_size),range(batch_size,len(trX)+1,batch_size))
         for start,end in training_batch:
             sess.run(optimizer,feed_dict={X:trX[start:end],Y:trY[start:end]})
-            print(sess.run(pred,feed_dict={X:trX[start:end]}))
