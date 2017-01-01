@@ -5,6 +5,7 @@ Created on October 7, 2016
 
 import tensorflow as tf
 import numpy as np
+from .. fundamentals.layers import convolutional_layer, max_pool, dropout  
 
 def vgg_m_conv(in_signal, keep_prob, stddev = 5e-2):
     '''
