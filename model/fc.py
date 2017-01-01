@@ -38,7 +38,7 @@ def model(X,w_1,w_2,w_3,w_4,w_5):
     h2 = tf.nn.relu(tf.matmul(h1,w_2))
     h3 = tf.nn.relu(tf.matmul(h2,w_3))
     h4 = tf.nn.relu(tf.matmul(h3,w_4))
-    h5 = tf.nn.sigmoid(tf.matmul(h4,w_5))
+    h5 = tf.nn.tanh(tf.matmul(h4,w_5))
     out = tf.reshape(h5,[-1,Npoint,3])
     return out
 
@@ -70,4 +70,3 @@ with tf.Session() as sess:
         training_batch = zip(range(0,len(trX),batch_size),range(batch_size,len(trX)+1,batch_size))
         for start,end in training_batch:
             sess.run(optimizer,feed_dict={X:trX[start:end],Y:trY[start:end]})
-            print(sess.run(pred,feed_dict={X:trX[start:end]}))
