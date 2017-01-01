@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from .. fundamentals.layers import fully_connected_layer, relu     
 
 batch_size = 24
 Npoint = 2700
@@ -29,33 +30,28 @@ def load_data():
         trX.append(pointcloud)
         trY.append(pointcloud)
 
-def init_weights(shape):
-    return tf.Variable(tf.random_normal(shape,stddev=0.01))
 
-def model(X,w_1,w_2,w_3,w_4,w_5):
-    X_ = tf.reshape(X,[-1,Npoint*3])
-    h1 = tf.nn.relu(tf.matmul(X_,w_1))
-    h2 = tf.nn.relu(tf.matmul(h1,w_2))
-    h3 = tf.nn.relu(tf.matmul(h2,w_3))
-    h4 = tf.nn.relu(tf.matmul(h3,w_4))
-    h5 = tf.nn.sigmoid(tf.matmul(h4,w_5))
-    out = tf.reshape(h5,[-1,Npoint,3])
-    return out
+n_hidden = 4
+hidden_layer_sizes = [Npoint*4, Npoint, int(0.2*Npoint), Npoint, Npoint*3]
 
+def autoendoder(in_signal):
+    in_signal = tf.reshape(in_signal, [-1, Npoint*3])
+    layer = fully_connected_layer(in_signal, hidden_layer_sizes[0], stddev=0.01, name='fc_1')
+    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[1], stddev=0.01, name='fc_2')
+    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[2], stddev=0.01, name='fc_3')
+    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[3], stddev=0.01, name='fc_4')
+    layer = fully_connected_layer(layer, hidden_layer_sizes[4], stddev=0.01, name='fc_5')
+    layer = tf.tanh(layer)
+    return tf.reshape(layer, [-1, Npoint, 3])
+    
 X = tf.placeholder("float",[None, Npoint, 3])
 Y = tf.placeholder("float",[None, Npoint, 3])
 
-w_1 = init_weights([Npoint*3,Npoint*4])
-w_2 = init_weights([Npoint*4,Npoint])
-w_3 = init_weights([Npoint,int(Npoint*0.2)])
-w_4 = init_weights([int(Npoint*0.2),Npoint])
-w_5 = init_weights([Npoint,Npoint*3])
-
 # Construct a linear model
-pred = model(X,w_1,w_2,w_3,w_4,w_5)
+pred = autoendoder(X)
 
 # Mean Sequared Error
-cost = tf.reduce_mean(tf.pow(pred-Y,2)/batch_size)
+cost = tf.reduce_mean(tf.pow(pred-Y,2))
 
 # Gradient descent
 optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
