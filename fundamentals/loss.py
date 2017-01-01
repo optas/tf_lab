@@ -14,7 +14,7 @@ class Loss():
         return tf.reduce_mean(loss, name='l2_loss')
     
     @staticmethod
-    def soft_max_loss(prediction, ground_truth, sparse_gt=True):
+    def cross_entropy_loss(prediction, ground_truth, sparse_gt=True):
         '''
         If one-hot vectors are used for the ground_truth then the sparse_gt should be False.
         '''       
