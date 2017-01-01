@@ -1,7 +1,7 @@
 '''
 Created on October 7, 2016
 
-A module containing some commonly user layrs of (deep) neural networks. 
+A module containing some commonly used layers of (deep) neural networks. 
 '''
 
 import tensorflow as tf
