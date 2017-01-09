@@ -1,13 +1,14 @@
 '''
 Created on October 7, 2016
 
-A module containing some commonly used layers of (deep) neural networks. 
+A module containing some commonly used layers of (deep) neural networks.
 '''
 
 import tensorflow as tf
 import numpy as np
 
-from . nn import _flat_batch_signal,  _variable_with_weight_decay, _bias_variable 
+from . nn import _flat_batch_signal, _variable_with_weight_decay, _bias_variable
+
 
 def max_pool(in_layer, ksize, stride, name):
     ksize = [1, ksize[0], ksize[1], 1]
@@ -15,8 +16,12 @@ def max_pool(in_layer, ksize, stride, name):
     return tf.nn.max_pool(in_layer, ksize, strides, padding='SAME', name=name)
 
 
-def relu(in_layer) :
+def relu(in_layer):
     return tf.nn.relu(in_layer)
+
+
+def tanh(in_layer):
+    return tf.tanh(in_layer)
 
 
 def dropout(in_layer, keep_prob=0.0):
@@ -27,58 +32,56 @@ def dropout(in_layer, keep_prob=0.0):
 
 
 def fully_connected_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='fc'):
-    '''Implements a fully connected (fc) layer. 
-    Args:    
-        in_layer (tf.Tensor): input signal of the layer 
-        out_dim (int): output dimesnion of the fc. 
-        stddev (float): standard deviation of the gaussian that will be used to initialize the weights.       
-    '''        
+    '''Implements a fully connected (fc) layer.
+    Args:
+        in_layer (tf.Tensor): input signal of the layer
+        out_dim (int): output dimesnion of the fc.
+        stddev (float): standard deviation of the gaussian that will be used to initialize the weights.
+    '''
     in_layer, dim = _flat_batch_signal(in_layer)
-    with tf.variable_scope(name) as scope:    
-        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd) 
+    with tf.variable_scope(name):
+        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd)
         biases = _bias_variable([out_dim], init=init_bias)
-        out_signal = tf.add(tf.matmul(in_layer, weights), biases, name=scope.name+'_out')
+        out_signal = tf.add(tf.matmul(in_layer, weights), biases, name=name + '_out')
         return out_signal
 
 
-def fc_with_soft_max_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='soft_max'):    
-    in_layer, dim = _flat_batch_signal(in_layer)     
-    with tf.variable_scope(name) as scope:
-        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd) 
-        biases = _bias_variable([out_dim], init=init_bias)          
-        return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases), name='soft_max') 
-     
+def fc_with_soft_max_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='soft_max'):
+    in_layer, dim = _flat_batch_signal(in_layer)
+    with tf.variable_scope(name):
+        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd)
+        biases = _bias_variable([out_dim], init=init_bias)
+        return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases), name='soft_max')
+
 
 def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
-    ''' 
-    Args:    
+    ''' Args:
         n_filters (int): number of convolutional kernels to be used
         filter_size ([int, int]): height and width of each kernel
-        stride (int): how many pixels 'down/right' to apply next convolution.     
+        stride (int): how many pixels 'down/right' to apply next convolution.
     '''
-    with tf.variable_scope(name) as scope:
-        channels = in_layer.get_shape().as_list()[-1]        
+    with tf.variable_scope(name):
+        channels = in_layer.get_shape().as_list()[-1]
         kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], channels, n_filters], stddev=stddev)
         biases = _bias_variable([n_filters], init_bias)
-        strides = [1, stride, stride, 1] # same horizontal and vertical strides
-        conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')                
-        bias = tf.nn.bias_add(conv, biases, name='activation_in')        
-        out_signal = tf.nn.relu(bias, name=scope.name + '_out')
+        strides = [1, stride, stride, 1]    # same horizontal and vertical strides
+        conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')
+        bias = tf.nn.bias_add(conv, biases, name='activation_in')
+        out_signal = tf.nn.relu(bias, name=name + '_out')
     return out_signal
-        
-    
+
+
 def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
     '''Implements a fully connected layer -indirectly- by using only 2d convolutions.
     '''
-    with tf.variable_scope(name) as scope:
+    with tf.variable_scope(name):
         in_shape = in_layer.get_shape().as_list()
         vector_dim = np.prod(in_shape[1:])
-        batch_dim = in_shape[0]            
+        batch_dim = in_shape[0]
         in_layer = tf.reshape(in_layer, [batch_dim, 1, 1, vector_dim])
         kernel = _variable_with_weight_decay('weights', [1, 1, vector_dim, out_dim], stddev=stddev)
         conv = tf.nn.conv2d(in_layer, kernel, [1, 1, 1, 1], padding='SAME')
-        conv = tf.reshape(conv, [batch_dim, out_dim])        
+        conv = tf.reshape(conv, [batch_dim, out_dim])
         biases = _bias_variable([out_dim], init_bias)
         out_layer = tf.nn.bias_add(conv, biases, name='activation_in')
-    return out_layer    
-    
+    return out_layer

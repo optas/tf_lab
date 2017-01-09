@@ -14,10 +14,8 @@ FLAGS = flags.FLAGS
 FLAGS.use_fp16 = False
 
 
-print 10
-
 def data_type():
-        return tf.float16 if FLAGS.use_fp16 else tf.float32
+    return tf.float16 if FLAGS.use_fp16 else tf.float32
 
 class SAP_Input(object):
     """The input data."""
