@@ -2,11 +2,17 @@ import tensorflow as tf
 import numpy as np
 import os
 import sys
+import shutil
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 
 from global_variables import *
+
+# clean the logs_path
+if os.path.exists(logs_path):
+   shutil.rmtree(logs_path)
+os.mkdir(logs_path)
 
 def read_pointcloud(point_file):
     point_list = np.zeros([Npoint,3])
@@ -15,11 +21,12 @@ def read_pointcloud(point_file):
         xyz = map(float,line.strip().split())
         for k in xrange(3):
             point_list[line_count][k] = xyz[k]
+        line_count = line_count + 1
     return point_list
 
 def read_data_sets(file_name):
     modelid = [line.strip().split('_pts.txt')[0] for line in os.listdir(file_name)]
-    num_pc = len(modelid)
+    num_pc = len(modelid[0:100])
     point_data = np.zeros([num_pc,Npoint,3])
     for i in xrange(num_pc):
         point_file = os.path.join(file_name,modelid[i]+'_pts.txt')
@@ -31,14 +38,14 @@ point_data = read_data_sets(chair_file_list)
 
 weights = {
         'encoder_1_fc':tf.Variable(tf.random_normal([Npoint*3,imagelen*imagelen*nframe])),
-        'encoder_2_conv':tf.Variable(tf.random_normal([4,4,12,24])),
+        'encoder_2_conv':tf.Variable(tf.random_normal([4,4,nframe,24])),
         'encoder_3_conv':tf.Variable(tf.random_normal([4,4,24,48])),
         'encoder_4_conv':tf.Variable(tf.random_normal([4,4,48,96])),
         'encoder_5_fc':tf.Variable(tf.random_normal([96*4*4,256])),
         'decoder_1_fc':tf.Variable(tf.random_normal([256,96*4*4])),
         'decoder_2_deconv':tf.Variable(tf.random_normal([4,4,48,96])),
         'decoder_3_deconv':tf.Variable(tf.random_normal([4,4,24,48])),
-        'decoder_4_deconv':tf.Variable(tf.random_normal([4,4,12,24])),
+        'decoder_4_deconv':tf.Variable(tf.random_normal([4,4,nframe,24])),
         'decoder_5_fc':tf.Variable(tf.random_normal([nframe*imagelen*imagelen,Npoint*3]))
 }
 
@@ -51,7 +58,7 @@ biases = {
         'decoder_1_fc':tf.Variable(tf.random_normal([96*4*4])),
         'decoder_2_deconv':tf.Variable(tf.random_normal([48])),
         'decoder_3_deconv':tf.Variable(tf.random_normal([24])),
-        'decoder_4_deconv':tf.Variable(tf.random_normal([12])),
+        'decoder_4_deconv':tf.Variable(tf.random_normal([nframe])),
         'decoder_5_fc':tf.Variable(tf.random_normal([Npoint*3]))
 }
 
@@ -106,7 +113,6 @@ def decoder(x):
 # tf Graph Input
 x = tf.placeholder(tf.float32,[None,Npoint,3],name='input_data')
 
-
 encoder_op = encoder(x)
 decoder_op = decoder(encoder_op)
 
@@ -116,20 +122,42 @@ y_true = x
 
 #Define loss and optimizer, minimize the squared error
 cost = tf.reduce_mean(tf.pow(y_true - y_pred,2))
-optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(0.1).minimize(cost)
 
 #Initializing the variables
 init = tf.global_variables_initializer()
 
-with tf.Session() as sess:
+# Create a summary to monitor cost tensor
+tf.summary.scalar("cost",cost)
+
+# Create summaries to visualize weights
+#for var in tf.trainable_variables():
+#    tf.summary.histogram(var.name,var)
+
+# Merge all summaries into a single op
+merged_summary_op = tf.summary.merge_all()
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
+with tf.Session(config=config) as sess:
     sess.run(init)
 
-    for epoch in range(training_epochs):
-        total_batch = int(point_data.shape[0]/batch_size)
-        batch_x = point_data[0:batch_size]
-        _,c = sess.run([optimizer,cost],feed_dict={x:batch_x})
+    summary_writer = tf.summary.FileWriter(logs_path,graph=tf.get_default_graph())
 
+    for epoch in range(training_epochs):
+        training_batch = zip(range(0, point_data.shape[0], batch_size),range(batch_size,point_data.shape[0]+1, batch_size))
+        total_batch = len(training_batch)
+        avg_cost = 0.0
+
+        for i in xrange(total_batch):
+            start,end = training_batch[i]
+            batch_x = point_data[start:end]
+            print str(start) + ' ' + str(end)
+            _,c,summary = sess.run([optimizer,cost,merged_summary_op],feed_dict={x:batch_x})
+            summary_writer.add_summary(summary,epoch * total_batch + i)
+            avg_cost += c / total_batch * batch_size
         if epoch % display_step == 0:
-            print("Epoch:",'%04d' % (epoch+1),"cost=","{:.9f}".format(c))
+            print("Epoch:",'%04d' % (epoch+1),"cost=","{:.9f}".format(avg_cost))
 
     print("Optimization done!")
