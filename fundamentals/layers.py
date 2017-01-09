@@ -71,6 +71,28 @@ def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stdde
     return out_signal
 
 
+def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
+    ''' Args:
+        n_filters (int): number of convolutional kernels to be used
+        filter_size ([int, int]): height and width of each kernel
+        stride (int): how many pixels 'down/right' to apply next convolution.
+    '''
+
+    with tf.variable_scope(name):
+        channels = in_layer.get_shape().as_list()[-1]
+        in_shape = tf.shape(in_layer)
+        h = ((in_shape[1] - 1) * stride) + 1
+        w = ((in_shape[2] - 1) * stride) + 1
+        new_shape = [in_shape[0], h, w, n_filters]
+        output_shape = tf.pack(new_shape)
+        strides = [1, stride, stride, 1]
+        kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], n_filters, channels], stddev=stddev)
+        decon = tf.nn.conv2d_transpose(in_layer, kernels, output_shape, strides=strides, padding=padding, name='A')
+        biases = _bias_variable([n_filters], init_bias)
+        out_signal = tf.nn.bias_add(decon, biases, name='A')
+        return out_signal
+
+
 def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
     '''Implements a fully connected layer -indirectly- by using only 2d convolutions.
     '''

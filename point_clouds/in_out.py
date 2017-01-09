@@ -26,6 +26,14 @@ def load_filenames_of_input_data(top_directory):
     return tf.convert_to_tensor(res, dtype=tf.string)
 
 
+def in_out_placeholders(configuration):
+    n = configuration.n_points
+    e = configuration.original_embedding
+    b = configuration.batch_size
+    in_signal = tf.placeholder(dtype=tf.float32, shape=(b, n, e), name='input_pclouds')
+    gt_signal = tf.placeholder(dtype=tf.float32, shape=(b, n, e), name='output_pclouds')
+    return in_signal, gt_signal
+
 
 # batch_size = 24
 # Npoint = 2700
