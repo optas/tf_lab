@@ -7,10 +7,13 @@ from autopredictors.scripts.helper import points_extension
 from geo_tool.in_out.soup import load_crude_point_cloud
 
 
-def load_crude_point_clouds(top_directory):
+def load_crude_point_clouds(top_directory=None, file_names=None):
     pclouds = []
     model_names = []
-    for file_name in glob.glob(osp.join(top_directory, '*' + points_extension)):
+    if file_names is None:
+        file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
+
+    for file_name in file_names:
         pclouds.append(load_crude_point_cloud(file_name))
         model_name = osp.basename(file_name).split('_')[0]
         model_names.append(model_name)
@@ -23,7 +26,8 @@ def load_filenames_of_input_data(top_directory):
         res.append(file_name)
 
     print '%d files containing  point clouds were found.' % (len(res), )
-    return tf.convert_to_tensor(res, dtype=tf.string)
+    return res
+#     return tf.convert_to_tensor(res, dtype=tf.string)
 
 
 def in_out_placeholders(configuration):
@@ -34,6 +38,12 @@ def in_out_placeholders(configuration):
     gt_signal = tf.placeholder(dtype=tf.float32, shape=(b, n, e), name='output_pclouds')
     return in_signal, gt_signal
 
+
+def chunks(l, n):
+    '''Yield successive n-sized chunks from l.
+    '''
+    for i in xrange(0, len(l), n):
+        yield l[i:i + n]
 
 # batch_size = 24
 # Npoint = 2700

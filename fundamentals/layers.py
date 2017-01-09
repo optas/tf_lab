@@ -61,12 +61,12 @@ def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stdde
         stride (int): how many pixels 'down/right' to apply next convolution.
     '''
     with tf.variable_scope(name):
-        channels = in_layer.get_shape().as_list()[-1]
+        channels = in_layer.get_shape().as_list()[-1]   # The last dimension of the input layer.
         kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], channels, n_filters], stddev=stddev)
         biases = _bias_variable([n_filters], init_bias)
         strides = [1, stride, stride, 1]    # same horizontal and vertical strides
         conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')
-        bias = tf.nn.bias_add(conv, biases, name='activation_in')
+        bias = tf.nn.bias_add(conv, biases)
         out_signal = tf.nn.relu(bias, name=name + '_out')
     return out_signal
 
@@ -87,9 +87,9 @@ def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, st
         output_shape = tf.pack(new_shape)
         strides = [1, stride, stride, 1]
         kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], n_filters, channels], stddev=stddev)
-        decon = tf.nn.conv2d_transpose(in_layer, kernels, output_shape, strides=strides, padding=padding, name='A')
+        decon = tf.nn.conv2d_transpose(in_layer, kernels, output_shape, strides=strides, padding=padding, name='conv2d_T')
         biases = _bias_variable([n_filters], init_bias)
-        out_signal = tf.nn.bias_add(decon, biases, name='A')
+        out_signal = tf.nn.bias_add(decon, biases, name=name + '_out')
         return out_signal
 
 
@@ -105,5 +105,5 @@ def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
         conv = tf.nn.conv2d(in_layer, kernel, [1, 1, 1, 1], padding='SAME')
         conv = tf.reshape(conv, [batch_dim, out_dim])
         biases = _bias_variable([out_dim], init_bias)
-        out_layer = tf.nn.bias_add(conv, biases, name='activation_in')
+        out_layer = tf.nn.bias_add(conv, biases, name=name + '_out')
     return out_layer
