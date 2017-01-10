@@ -1,5 +1,4 @@
 import tensorflow as tf
-import numpy as np
 import os.path as osp
 import glob
 
@@ -27,7 +26,6 @@ def load_filenames_of_input_data(top_directory):
 
     print '%d files containing  point clouds were found.' % (len(res), )
     return res
-#     return tf.convert_to_tensor(res, dtype=tf.string)
 
 
 def in_out_placeholders(configuration):
@@ -44,41 +42,3 @@ def chunks(l, n):
     '''
     for i in xrange(0, len(l), n):
         yield l[i:i + n]
-
-# batch_size = 24
-# Npoint = 2700
-# learning_rate = 0.01
-# training_epochs = 1000
-# trX = []
-# trY = []
-# n_hidden = 4
-# hidden_layer_sizes = [Npoint*4, Npoint, int(0.2*Npoint), Npoint, Npoint*3]
-
-
-# segs_extension = '_segs.txt'
-# feat_extension = '_feat.txt' 
-
-
-
-# 
-# 
-# if __name__ == '__main__':        
-#     # Construct a linear model
-#     pred = autoendoder(X)
-#     
-#     # Mean Squared Error
-#     cost = tf.reduce_mean(tf.pow(pred-Y,2))
-#     
-#     # Gradient descent
-#     optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
-#     
-#     
-#     with tf.Session() as sess:
-#         # you  need to initialize all variables
-#         tf.initialize_all_variables().run()
-#     
-#         load_data()
-#         for i in range(1000):
-#             training_batch = zip(range(0, len(trX), batch_size), range(batch_size, len(trX)+1, batch_size))
-#             for start,end in training_batch:
-#                 sess.run(optimizer,feed_dict={X:trX[start:end],Y:trY[start:end]})

@@ -51,7 +51,7 @@ def fc_with_soft_max_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name=
     with tf.variable_scope(name):
         weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd)
         biases = _bias_variable([out_dim], init=init_bias)
-        return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases), name='soft_max')
+        return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases, name='pre-activation'), name='soft_max')
 
 
 def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
@@ -66,7 +66,7 @@ def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stdde
         biases = _bias_variable([n_filters], init_bias)
         strides = [1, stride, stride, 1]    # same horizontal and vertical strides
         conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')
-        bias = tf.nn.bias_add(conv, biases)
+        bias = tf.nn.bias_add(conv, biases, 'pre-activation')
         out_signal = tf.nn.relu(bias, name=name + '_out')
     return out_signal
 
