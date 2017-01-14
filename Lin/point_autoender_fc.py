@@ -1,8 +1,9 @@
 import tensorflow as tf
 import numpy as np
-from .. fundamentals.layers import fully_connected_layer, relu
-
+import os
 from global_variables import *
+import tensorflow.contrib.slim as slim
+
 
 trX = []
 trY = []
@@ -12,7 +13,7 @@ def readPointFile(filename):
     numpoint = 0
     for l in open(filename):
         if not l.startswith('#'):
-            x,y,z,leaveid = map(float,l.strip().split())
+            x,y,z= map(float,l.strip().split())
             pointlist[numpoint][0] = x
             pointlist[numpoint][1] = y
             pointlist[numpoint][2] = z
@@ -33,11 +34,15 @@ hidden_layer_sizes = [Npoint*4, Npoint, int(0.2*Npoint), Npoint, Npoint*3]
 
 def autoendoder(in_signal):
     in_signal = tf.reshape(in_signal, [-1, Npoint*3])
-    layer = fully_connected_layer(in_signal, hidden_layer_sizes[0], stddev=0.01, name='fc_1')
-    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[1], stddev=0.01, name='fc_2')
-    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[2], stddev=0.01, name='fc_3')
-    layer = fully_connected_layer(relu(layer), hidden_layer_sizes[3], stddev=0.01, name='fc_4')
-    layer = fully_connected_layer(layer, hidden_layer_sizes[4], stddev=0.01, name='fc_5')
+    layer = slim.fully_connected(in_signal, hidden_layer_sizes[0], activation_fn=None)
+    layer = tf.nn.relu(layer)
+    layer = slim.fully_connected(layer, hidden_layer_sizes[1],activation_fn=None)
+    layer = tf.nn.relu(layer)
+    layer = slim.fully_connected(layer, hidden_layer_sizes[2],activation_fn=None)
+    layer = tf.nn.relu(layer)
+    layer = slim.fully_connected(layer, hidden_layer_sizes[3],activation_fn=None)
+    layer = tf.nn.relu(layer)
+    layer = slim.fully_connected(layer, hidden_layer_sizes[4],activation_fn=None)
     layer = tf.tanh(layer)
     return tf.reshape(layer, [-1, Npoint, 3])
 
