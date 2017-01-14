@@ -8,6 +8,7 @@ import tensorflow as tf
 import numpy as np
 
 from . nn import _flat_batch_signal, _variable_with_weight_decay, _bias_variable
+from . initializations import initializer
 
 
 def max_pool(in_layer, ksize, stride, name):
@@ -40,7 +41,8 @@ def fully_connected_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='
     '''
     in_layer, dim = _flat_batch_signal(in_layer)
     with tf.variable_scope(name):
-        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd)
+        shape = [dim, out_dim]
+        weights = _variable_with_weight_decay('weights', shape, initializer(shape), wd=wd)
         biases = _bias_variable([out_dim], init=init_bias)
         out_signal = tf.add(tf.matmul(in_layer, weights), biases, name=name + '_out')
         return out_signal
@@ -49,12 +51,13 @@ def fully_connected_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='
 def fc_with_soft_max_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='soft_max'):
     in_layer, dim = _flat_batch_signal(in_layer)
     with tf.variable_scope(name):
-        weights = _variable_with_weight_decay('weights', [dim, out_dim], stddev=stddev, wd=wd)
+        shape = [dim, out_dim]
+        weights = _variable_with_weight_decay('weights', shape, initializer(shape), wd=wd)
         biases = _bias_variable([out_dim], init=init_bias)
         return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases, name='pre-activation'), name='soft_max')
 
 
-def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
+def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, init, name, init_bias=0.0):
     ''' Args:
         n_filters (int): number of convolutional kernels to be used
         filter_size ([int, int]): height and width of each kernel
@@ -62,7 +65,8 @@ def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stdde
     '''
     with tf.variable_scope(name):
         channels = in_layer.get_shape().as_list()[-1]   # The last dimension of the input layer.
-        kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], channels, n_filters], stddev=stddev)
+        shape = [filter_size[0], filter_size[1], channels, n_filters]
+        kernels = _variable_with_weight_decay('weights', shape, initializer(shape))
         biases = _bias_variable([n_filters], init_bias)
         strides = [1, stride, stride, 1]    # same horizontal and vertical strides
         conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')
@@ -86,7 +90,8 @@ def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, st
         new_shape = [in_shape[0], h, w, n_filters]
         output_shape = tf.pack(new_shape)
         strides = [1, stride, stride, 1]
-        kernels = _variable_with_weight_decay('weights', shape=[filter_size[0], filter_size[1], n_filters, channels], stddev=stddev)
+        shape = [filter_size[0], filter_size[1], n_filters, channels]
+        kernels = _variable_with_weight_decay('weights', shape, initializer(shape))
         decon = tf.nn.conv2d_transpose(in_layer, kernels, output_shape, strides=strides, padding=padding, name='conv2d_T')
         biases = _bias_variable([n_filters], init_bias)
         out_signal = tf.nn.bias_add(decon, biases, name=name + '_out')
@@ -101,7 +106,8 @@ def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
         vector_dim = np.prod(in_shape[1:])
         batch_dim = in_shape[0]
         in_layer = tf.reshape(in_layer, [batch_dim, 1, 1, vector_dim])
-        kernel = _variable_with_weight_decay('weights', [1, 1, vector_dim, out_dim], stddev=stddev)
+        kernel_shape = [1, 1, vector_dim, out_dim]
+        kernel = _variable_with_weight_decay('weights', kernel_shape, initializer(kernel_shape))
         conv = tf.nn.conv2d(in_layer, kernel, [1, 1, 1, 1], padding='SAME')
         conv = tf.reshape(conv, [batch_dim, out_dim])
         biases = _bias_variable([out_dim], init_bias)

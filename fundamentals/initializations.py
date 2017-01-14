@@ -1,0 +1,50 @@
+'''
+Created on January 13, 2017
+
+@author: optas
+#TODO Fix dispatcher. Expand.
+'''
+
+import numpy as np
+import tensorflow as tf
+
+
+def initializer(args):
+    return glorot_initializer(args[0])
+
+
+def _get_fans(shape):
+    fan_in = shape[0] if len(shape) == 2 else np.prod(shape[1:])
+    fan_out = shape[1] if len(shape) == 2 else shape[0]
+    return fan_in, fan_out
+
+
+def truncated_normal_initializer(stddev):
+    return tf.truncated_normal_initializer(stddev=stddev, dtype=np.float32)
+
+
+def glorot_initializer(shape, constant=1.0, uniform=True):   # TODO: Double-check that _get_fans() is ok.
+    ''' Reference: Glorot & Bengio, AISTATS 2010
+    SEE: https://github.com/fchollet/keras/blob/998efc04eefa0c14057c1fa87cab71df5b24bf7e/keras/initializations.py
+    '''
+    fan_in, fan_out = _get_fans(shape)
+    with tf.device('/cpu:0'):
+        if uniform:
+            init_range = constant * np.sqrt(6.0 / (fan_in + fan_out))
+            return tf.random_uniform_initializer(-init_range, init_range)
+        else:
+            stddev = constant * np.sqrt(2.0 / (fan_in + fan_out))
+            return tf.truncated_normal_initializer(stddev=stddev)
+
+
+def orthogonal_initializer(shape, scale=1.1):
+    ''' From Lasagne. Reference: Saxe et al., http://arxiv.org/abs/1312.6120
+    SEE: https://github.com/fchollet/keras/blob/998efc04eefa0c14057c1fa87cab71df5b24bf7e/keras/initializations.py
+    '''
+    flat_shape = (shape[0], np.prod(shape[1:]))
+    a = np.random.normal(0.0, 1.0, flat_shape)
+    u, _, v = np.linalg.svd(a, full_matrices=False)
+    # pick the one with the correct shape
+    q = u if u.shape == flat_shape else v
+    q = q.reshape(shape)
+    return scale * q[:shape[0], :shape[1]]

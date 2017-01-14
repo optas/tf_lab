@@ -1,21 +1,21 @@
 '''
 Created on October 7, 2016
 
-A module containing the lowest level ingredients necessary to build higher level (nn) abstractions like layers.   
+A module containing the lowest level ingredients necessary to build higher level (nn) abstractions like layers.
 '''
 
 import tensorflow as tf
 import numpy as np
 
 
-def _variable_with_weight_decay(name, shape, stddev, wd=0, dtype=tf.float32, trainable=True):
+def _variable_with_weight_decay(name, shape, init, wd=0, dtype=tf.float32, trainable=True):
     '''Creates a Tensor variable initialized with a truncated normal distribution to
     which optionally weight decay will be applied.
 
     Args:
         name        (string): name of the variable
         shape (list of ints): shape of the Tensor
-        stddev       (float): standard deviation of a truncated Gaussian to be used in initialization
+        init
         wd:          (float): L2Loss weight decay multiplied by this float. If 0, weight decay is not added for this Variable.
 
     Returns:
@@ -23,8 +23,7 @@ def _variable_with_weight_decay(name, shape, stddev, wd=0, dtype=tf.float32, tra
     '''
 
     with tf.device('/cpu:0'):
-        initializer = tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
-        var = tf.get_variable(name, shape, initializer=initializer, dtype=dtype, trainable=trainable)
+        var = tf.get_variable(name, shape, initializer=init, dtype=dtype, trainable=trainable)
 
     if wd > 0:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_decay_loss')
