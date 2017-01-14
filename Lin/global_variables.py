@@ -1,8 +1,8 @@
-learning_rate = 0.0001
-batch_size = 10
-training_epochs = 200
-display_step = 1
+filelist  = '/orions4-zfs/projects/lins2/Panos_Space/DATA/ShapeNetPointClouds/3000/no_segmentations/03001627'
+
+batch_size = 24
 Npoint = 3000
-nframe = 12
-imagelen = 32
-chair_file_list = '/orions4-zfs/projects/lins2/Panos_Space/DATA/ShapeNetPointClouds/3000/no_segmentations/03001627'
+
+# leanring parameters
+learning_rate = 0.001
+learning_epochs = 1000
