@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 def readPointFile(filename):
-    pointlist = np.zeros([Npoint,3])
+    pointlist = np.zeros([Npoint,3],dtype=np.float32)
     numpoint = 0
     for l in open(filename):
         if not l.startswith('#'):
