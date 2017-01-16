@@ -65,6 +65,5 @@ def main(argv):
   # Converts to TFRecords
   convert_to(data_sets, 'chair')
 
-
 if __name__ == '__main__':
   tf.app.run()

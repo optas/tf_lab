@@ -5,4 +5,7 @@ Npoint = 3000
 
 # leanring parameters
 learning_rate = 0.01
-training_epochs = 1000
+training_epochs = 200
+
+nframe = 12
+imagelen = 32

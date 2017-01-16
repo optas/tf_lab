@@ -66,6 +66,8 @@ def run_training():
         # Mean Sequared Error
         cost = fc_model.loss(pred,pcs)
 
+        #
+        gt = pcs
         # Create a variable to track the global step.
         global_step = tf.Variable(0,name='global_step',trainable=False)
 
@@ -79,7 +81,7 @@ def run_training():
         saver = tf.train.Saver()
 
         # The op for initializing the variables
-        init_op = tf.group(tf.initialize_all_variables(),
+        init_op = tf.group(tf.global_variables_initializer(),
                             tf.local_variables_initializer())
 
         config = tf.ConfigProto()
@@ -101,7 +103,7 @@ def run_training():
             step = 0
             while not coord.should_stop():
                 start_time = time.time()
-                _,loss_value,pred_ = sess.run([train_op,cost,pred])
+                _,loss_value,pred_,gt_ = sess.run([train_op,cost,pred,gt])
                 duration = time.time() - start_time
                 # Write the summaries and print an overview fairly often.
                 if step % 100 == 0:
@@ -112,7 +114,7 @@ def run_training():
                     summary_writer.add_summary(summary_str,step)
                     step += 1
                     gen_plot(pred_[0],'test',step)
-
+                    gen_plot(gt_[0],'gt',step)
                 # Save a checkpoint periodically.
                 if (step + 1) % 1000 == 0:
                     print('saving')
