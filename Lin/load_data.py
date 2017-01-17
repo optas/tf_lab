@@ -21,4 +21,4 @@ def load_data():
         filename = os.path.join(filelist,pc_file+'_pts.txt')
         pointcloud = readPointFile(filename)
         point_cloud_list.append(pointcloud)
-    return point_cloud_list
+    return point_cloud_list,model_list

@@ -40,12 +40,12 @@ def inputs(batch_size,num_epochs):
                 [filename],num_epochs=num_epochs)
 
         # Even when reading in multiple threads, share the filename queue
-        point_cloud = read_and_decode(filename_queue)
+        point_cloud,model_id = read_and_decode(filename_queue)
         # Shuffle the examples and collect them into batch_size batches.
         # (Internally uses a RandomShuffleQueue.)
         # We run this in two threads to avoid being a bottleneck.
         point_clouds = tf.train.shuffle_batch(
-                [point_cloud], batch_size=batch_size,num_threads=4,
+                [point_cloud,model_id], batch_size=batch_size,num_threads=4,
                 capacity=1000 + 3 * batch_size,
                 # Ensure a minimum amount of shuffling of examples
                 min_after_dequeue=100)
@@ -58,8 +58,7 @@ def run_training():
     # Tell Tensorflow that the model will be built into the default Graph.
     with tf.Graph().as_default():
         # Input point_cloud
-        pcs = inputs(batch_size=batch_size,num_epochs=training_epochs)
-
+        pcs,model_ids = inputs(batch_size=batch_size,num_epochs=training_epochs)
 
         # Construct a linear model
         pred = fc_model.autoendoder(pcs)
@@ -68,6 +67,8 @@ def run_training():
 
         #
         gt = pcs
+
+        model_ids_ = model_ids
         # Create a variable to track the global step.
         global_step = tf.Variable(0,name='global_step',trainable=False)
 
@@ -103,7 +104,7 @@ def run_training():
             step = 0
             while not coord.should_stop():
                 start_time = time.time()
-                _,loss_value,pred_,gt_ = sess.run([train_op,cost,pred,gt])
+                _,loss_value,pred_,gt_,model_ids_ = sess.run([train_op,cost,pred,gt,model_ids])
                 duration = time.time() - start_time
                 # Write the summaries and print an overview fairly often.
                 if step % 100 == 0:
@@ -113,7 +114,8 @@ def run_training():
                     summary_str = sess.run(summary_op)
                     summary_writer.add_summary(summary_str,step)
                     step += 1
-                    gen_plot(pred_[0],'test',step)
+                    model_names =  model_ids_[1]
+                    gen_plot(pred_[0],'test'+model_names[0],step)
                     gen_plot(gt_[0],'gt',step)
                 # Save a checkpoint periodically.
                 if (step + 1) % 1000 == 0:
