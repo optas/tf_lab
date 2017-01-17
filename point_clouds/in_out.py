@@ -1,10 +1,13 @@
 import tensorflow as tf
+import numpy as np
 import os.path as osp
 import glob
 
 from autopredictors.scripts.helper import points_extension
 from geo_tool.in_out.soup import load_crude_point_cloud
-from geo_tool.in_out import load_mesh_from_file 
+from geo_tool.in_out import load_mesh_from_file
+from geo_tool import Mesh, Point_Cloud
+from general_tools.rla.three_d_transforms import rand_rotation_matrix
 
 tf_record_extension = '.tfrecord'
 
@@ -103,8 +106,21 @@ def read_and_decode_meshes(filename_queue, n_samples):
 #     vertices.set_shape([ ?? ])   # LIN?
 #     triangles.set_shape([ ?? ])
 
-    # PANOS - Here I will add sampling/rotation/noise of the loaded mesh
-    in_data = []
-    out_data = []
+    in_mesh = Mesh(vertices=vertices, triangles=triangles)
+    points, _ = in_mesh.sample_faces(n_samples)
+    points = points * rand_rotation_matrix()   # Keep If you want to apply a random rotation (don't forget to git-pull the 'general-tools')
 
-    return in_data, out_data
+    # Adding Gaussian noise.
+    mu = 0
+    sigma = 0.01  # LIN How much should the sigma be?
+    gnoise = np.random.normal(mu, sigma, points.shape[0])
+    gnoise = np.tile(gnoise, (3, 1)).T
+    points += gnoise
+
+    # Center in Unit Sphere and Lex-Sort
+    pc = Point_Cloud(points=points)
+    pc.center_in_unit_sphere()
+    pc, lex_index = pc.lex_sort()
+
+    labels = points
+    return points, labels
