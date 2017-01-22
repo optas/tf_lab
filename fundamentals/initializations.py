@@ -19,11 +19,11 @@ def _get_fans(shape):
     return fan_in, fan_out
 
 
-def truncated_normal_initializer(stddev):
-    return tf.truncated_normal_initializer(stddev=stddev, dtype=np.float32)
+def truncated_normal_initializer(stddev, dtype=tf.float32):
+    return tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
 
 
-def glorot_initializer(shape, constant=1.0, uniform=True):   # TODO: Double-check that _get_fans() is ok.
+def glorot_initializer(shape, constant=1.0, uniform=True, dtype=tf.float32):   # TODO: Double-check that _get_fans() is ok.
     ''' Reference: Glorot & Bengio, AISTATS 2010
     SEE: https://github.com/fchollet/keras/blob/998efc04eefa0c14057c1fa87cab71df5b24bf7e/keras/initializations.py
     '''
@@ -31,10 +31,10 @@ def glorot_initializer(shape, constant=1.0, uniform=True):   # TODO: Double-chec
     with tf.device('/cpu:0'):
         if uniform:
             init_range = constant * np.sqrt(6.0 / (fan_in + fan_out))
-            return tf.random_uniform_initializer(-init_range, init_range)
+            return tf.random_uniform_initializer(-init_range, init_range, dtype=dtype)
         else:
             stddev = constant * np.sqrt(2.0 / (fan_in + fan_out))
-            return tf.truncated_normal_initializer(stddev=stddev)
+            return tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
 
 
 def orthogonal_initializer(shape, scale=1.1):
