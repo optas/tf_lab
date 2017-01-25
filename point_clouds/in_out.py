@@ -5,7 +5,7 @@ import glob
 
 from autopredictors.scripts.helper import points_extension
 from geo_tool.in_out.soup import load_crude_point_cloud
-from geo_tool.in_out import load_mesh_from_file
+from geo_tool.in_out.soup import load_mesh_from_file
 from geo_tool import Mesh, Point_Cloud
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
 
@@ -75,7 +75,7 @@ def _convert_mesh_to_example(mesh_file):
     return example
 
 
-def _convert_crude_point_cloud_to_example(point_cloud_file):
+def _convert_point_cloud_to_example(point_cloud_file):
     '''Build an Example proto for an example.'''
     pc_raw = load_crude_point_cloud(point_cloud_file).tostring()
     model_name = osp.basename(point_cloud_file).split('_')[0]
@@ -93,15 +93,16 @@ def _convert_crude_point_cloud_to_example(point_cloud_file):
     return example
 
 
-def convert_meshes_to_tfrecord(mesh_files, out_dir, data_name):
-    '''Converts the input mesh_files to a tfrecord file.
+def convert_data_to_tfrecord(data_files, out_dir, data_name, converter):
+    '''Converts the input data_files to a tfrecord file.
+    Example: convert_data_to_tfrecord(..., converter=_convert_point_cloud_to_example)
     '''
 
     out_file = osp.join(out_dir, data_name + tf_record_extension)
     writer = tf.python_io.TFRecordWriter(out_file)
 
-    for mesh_file in mesh_files:
-        example = _convert_mesh_to_example(mesh_file)
+    for dfile in data_files:
+        example = converter(dfile)
         # Use the proto object to serialize the example to a string.
         serialized = example.SerializeToString()
         # Write the serialized object to disk.

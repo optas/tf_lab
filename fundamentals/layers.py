@@ -98,6 +98,19 @@ def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, st
         return out_signal
 
 
+def de_convolutional_layer_1d(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
+    ''' Args:
+        n_filters (int): number of convolutional kernels to be used
+        filter_size ([int, int]): height and width of each kernel
+        stride (int): how many pixels 'down/right' to apply next convolution.
+    '''
+
+    with tf.variable_scope(name):
+        pass
+        # Lin do it with the Naive way.
+#         return out_signal
+
+
 def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
     '''Implements a fully connected layer -indirectly- by using only 2d convolutions.
     '''
