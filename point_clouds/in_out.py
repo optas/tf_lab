@@ -89,15 +89,34 @@ def _convert_mesh_to_example(mesh_file):
     return example
 
 
-def convert_meshes_to_tfrecord(mesh_files, out_dir, data_name):
-    '''Converts the input mesh_files to a tfrecord file.
+def _convert_point_cloud_to_example(point_cloud_file):
+    '''Build an Example proto for an example.'''
+    pc_raw = load_crude_point_cloud(point_cloud_file).tostring()
+    model_name = osp.basename(point_cloud_file).split('_')[0]
+    synset = osp.split(point_cloud_file)[0].split(osp.sep)[-1]
+
+    # Construct an Example proto object.
+    example = tf.train.Example(\
+        # Example contains a Features proto object.
+        features=tf.train.Features(\
+            # Features contains a map of string to Feature proto objects.
+            feature={'pc_raw': _bytes_feature(pc_raw),
+                     'model_name': _bytes_feature(model_name),
+                     'synset': _bytes_feature(synset)
+                     }))
+    return example
+
+
+def convert_data_to_tfrecord(data_files, out_dir, data_name, converter):
+    '''Converts the input data_files to a tfrecord file.
+    Example: convert_data_to_tfrecord(..., converter=_convert_point_cloud_to_example)
     '''
 
     out_file = osp.join(out_dir, data_name + tf_record_extension)
     writer = tf.python_io.TFRecordWriter(out_file)
 
-    for mesh_file in mesh_files:
-        example = _convert_mesh_to_example(mesh_file)
+    for dfile in data_files:
+        example = converter(dfile)
         # Use the proto object to serialize the example to a string.
         serialized = example.SerializeToString()
         # Write the serialized object to disk.

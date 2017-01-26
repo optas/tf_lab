@@ -10,31 +10,24 @@ import tensorflow as tf
 
 
 def initializer(args):
-    return glorot_initializer(args[0])
+    return glorot_initializer(*args)
 
 
-def _get_fans(shape):
-    fan_in = shape[0] if len(shape) == 2 else np.prod(shape[1:])
-    fan_out = shape[1] if len(shape) == 2 else shape[0]
-    return fan_in, fan_out
+def truncated_normal_initializer(stddev, dtype=tf.float32):
+    return tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
 
 
-def truncated_normal_initializer(stddev):
-    return tf.truncated_normal_initializer(stddev=stddev, dtype=np.float32)
-
-
-def glorot_initializer(shape, constant=1.0, uniform=True):   # TODO: Double-check that _get_fans() is ok.
+def glorot_initializer(fan_in, fan_out, constant=1.0, uniform=True, dtype=tf.float32):
     ''' Reference: Glorot & Bengio, AISTATS 2010
     SEE: https://github.com/fchollet/keras/blob/998efc04eefa0c14057c1fa87cab71df5b24bf7e/keras/initializations.py
     '''
-    fan_in, fan_out = _get_fans(shape)
     with tf.device('/cpu:0'):
         if uniform:
             init_range = constant * np.sqrt(6.0 / (fan_in + fan_out))
-            return tf.random_uniform_initializer(-init_range, init_range)
+            return tf.random_uniform_initializer(-init_range, init_range, dtype=dtype)
         else:
             stddev = constant * np.sqrt(2.0 / (fan_in + fan_out))
-            return tf.truncated_normal_initializer(stddev=stddev)
+            return tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
 
 def orthogonal_initializer(shape, scale=1.1):
     ''' From Lasagne. Reference: Saxe et al., http://arxiv.org/abs/1312.6120
