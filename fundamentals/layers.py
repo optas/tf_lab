@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 
 from . nn import _flat_batch_signal, _variable_with_weight_decay, _bias_variable
-from . initializations import initializer
+from . initializations import glorot_initializer
 
 
 def max_pool(in_layer, ksize, stride, name):
@@ -32,18 +32,18 @@ def dropout(in_layer, keep_prob=0.0):
         return tf.nn.dropout(in_layer, keep_prob)
 
 
-def fully_connected_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='fc'):
+def fully_connected(in_layer, out_dim, weights_initializer=glorot_initializer,wd=0.0, name='fc'):
     '''Implements a fully connected (fc) layer.
     Args:
         in_layer (tf.Tensor): input signal of the layer
         out_dim (int): output dimesnion of the fc.
-        stddev (float): standard deviation of the gaussian that will be used to initialize the weights.
+        weights_initializer: An initializer for the weights.
     '''
     in_layer, dim = _flat_batch_signal(in_layer)
     with tf.variable_scope(name):
         shape = [dim, out_dim]
-        weights = _variable_with_weight_decay('weights', shape, initializer(shape), wd=wd)
-        biases = _bias_variable([out_dim], init=init_bias)
+        weights = _variable_with_weight_decay('weights', shape, initializer(shape), weights_regularizer)
+        biases = _bias_variable([out_dim], init=initializers.)
         out_signal = tf.add(tf.matmul(in_layer, weights), biases, name=name + '_out')
         return out_signal
 

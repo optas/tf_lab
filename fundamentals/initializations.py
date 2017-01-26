@@ -36,7 +36,6 @@ def glorot_initializer(shape, constant=1.0, uniform=True):   # TODO: Double-chec
             stddev = constant * np.sqrt(2.0 / (fan_in + fan_out))
             return tf.truncated_normal_initializer(stddev=stddev)
 
-
 def orthogonal_initializer(shape, scale=1.1):
     ''' From Lasagne. Reference: Saxe et al., http://arxiv.org/abs/1312.6120
     SEE: https://github.com/fchollet/keras/blob/998efc04eefa0c14057c1fa87cab71df5b24bf7e/keras/initializations.py
