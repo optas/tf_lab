@@ -15,6 +15,7 @@ class Configuration():
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.transfer_fct = transfer_fct
+        self.is_denoising = False
 
 
 class FullyConnectedAutoEncoder(object):
@@ -29,6 +30,11 @@ class FullyConnectedAutoEncoder(object):
             self.z = self._encoder_network()
             self.x_reconstr = self._decoder_network()
 
+            if self.configuration.is_denoising:
+                self.gt = tf.placeholder(tf.float32, [None, self.configuration.n_input])    # The ground-truth (i.e. the denoised input).
+            else:
+                self.gt = self.x
+
         self._create_loss_optimizer()
         self.saver = tf.train.Saver(tf.all_variables())
         init = tf.initialize_all_variables()
@@ -36,10 +42,13 @@ class FullyConnectedAutoEncoder(object):
         self.sess = tf.Session()
         self.sess.run(init)
 
-    def partial_fit(self, X):
+    def partial_fit(self, X, GT=None):
         '''Train model based on mini-batch of input data.
         Returns cost of mini-batch.'''
-        _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X})
+        if GT is not None:
+            _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
+        else:
+            _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X})
         return cost
 
     def transform(self, X):
@@ -48,7 +57,7 @@ class FullyConnectedAutoEncoder(object):
 
     def reconstruct(self, X):
         '''Use AE to reconstruct given data.'''
-        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X})
+        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: X})
 
     def restore_model(self, model_path):
         #         r_vars = tf.trainable_variables()
@@ -82,5 +91,5 @@ class FullyConnectedAutoEncoder(object):
 
     def _create_loss_optimizer(self):
         c = self.configuration
-        self.loss = Loss.l2_loss(self.x_reconstr, self.x)
+        self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)

@@ -200,7 +200,7 @@ class PointCloudDataSet(object):
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
     '''
 
-    def __init__(self, point_clouds, labels=None):
+    def __init__(self, point_clouds, noise=None, labels=None):
         '''Construct a DataSet.'''
 
         self._num_examples = point_clouds.shape[0]
@@ -212,14 +212,29 @@ class PointCloudDataSet(object):
             self._labels = np.ones(self._num_examples)
 
         self._points_in_pcloud = point_clouds.shape[1]
-        point_clouds = point_clouds.reshape(point_clouds.shape[0], -1)
-        self._point_clouds = point_clouds
+
+        if noise is not None:
+            self._noisy_point_clouds = point_clouds.copy()
+            point_range = np.arange(self._points_in_pcloud)
+            n_distort = int(noise['frac'] * self._points_in_pcloud)   # How many points will be noised.
+            for i in xrange(self.num_examples):
+                drop_index = np.random.choice(point_range, n_distort, replace=False)
+                self._noisy_point_clouds[i, drop_index, :] = noise['filler']
+            self._noisy_point_clouds = self._noisy_point_clouds.reshape(self._num_examples, -1)
+        else:
+            self._noisy_point_clouds = None
+
+        self._point_clouds = point_clouds.reshape(self._num_examples, -1)
         self._epochs_completed = 0
         self._index_in_epoch = 0
 
     @property
     def point_clouds(self):
         return self.point_clouds
+
+    @property
+    def noisy_point_clouds(self):
+        return self.noisy_point_clouds
 
     @property
     def labels(self):
@@ -246,9 +261,15 @@ class PointCloudDataSet(object):
             np.random.shuffle(perm)
             self._point_clouds = self._point_clouds[perm]
             self._labels = self._labels[perm]
+            if self._noisy_point_clouds is not None:
+                self._noisy_point_clouds = self._noisy_point_clouds[perm]
+
             # Start next epoch
             start = 0
             self._index_in_epoch = batch_size
             assert batch_size <= self._num_examples
         end = self._index_in_epoch
-        return self._point_clouds[start:end], self._labels[start:end]
+        if self._noisy_point_clouds is not None:
+            return self._point_clouds[start:end], self._noisy_point_clouds[start:end], self._labels[start:end]
+        else:
+            return self._point_clouds[start:end], self._labels[start:end]
