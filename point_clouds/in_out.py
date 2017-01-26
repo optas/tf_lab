@@ -143,3 +143,112 @@ def read_and_decode_meshes(filename_queue, n_samples):
 
     labels = points
     return points, labels
+
+
+def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc=0.5, shuffle=True, seed=None):
+    ''' This is a memory expensive operation since by using slicing it copies the arrays.
+    '''
+
+    if not np.allclose((train_perc + test_perc + validate_perc), 1.0):
+        assert(False)
+
+    if type(arrays) is not list:
+        arrays = [arrays]
+
+    n = arrays[0].shape[0]   # n examples.
+    if len(arrays) > 1:
+        for a in arrays:
+            if a.shape[0] != n:
+                assert(False)
+
+    index = np.arange(n)
+    if shuffle:
+        if seed is not None:
+            np.random.seed(seed)
+        perm = np.random.permutation(index)
+    else:
+        perm = np.arange(n)
+
+    train_end = int(train_perc * n)
+    validate_end = int(validate_perc * n) + train_end
+
+    train_data = []
+    validate_data = []
+    test_data = []
+    for a in arrays:
+        train_data.append(a[perm[:train_end]])
+        validate_data.append(a[perm[train_end:validate_end]])
+        test_data.append(a[perm[validate_end:]])
+
+    if len(train_data) == 1:
+        return train_data[0], validate_data[0], test_data[0]
+    else:
+        return train_data, validate_data, test_data
+
+
+def dense_to_one_hot(labels_dense, num_classes=10):
+    """Convert class labels from scalars to one-hot vectors."""
+    num_labels = labels_dense.shape[0]
+    index_offset = np.arange(num_labels) * num_classes
+    labels_one_hot = np.zeros((num_labels, num_classes))
+    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+    return labels_one_hot
+
+
+class PointCloudDataSet(object):
+    '''
+    See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
+    '''
+
+    def __init__(self, point_clouds, labels=None):
+        '''Construct a DataSet.'''
+
+        self._num_examples = point_clouds.shape[0]
+
+        if labels is not None:
+            assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
+            self._labels = labels
+        else:
+            self._labels = np.ones(self._num_examples)
+
+        self._points_in_pcloud = point_clouds.shape[1]
+        point_clouds = point_clouds.reshape(point_clouds.shape[0], -1)
+        self._point_clouds = point_clouds
+        self._epochs_completed = 0
+        self._index_in_epoch = 0
+
+    @property
+    def point_clouds(self):
+        return self.point_clouds
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @property
+    def num_examples(self):
+        return self._num_examples
+
+    @property
+    def epochs_completed(self):
+        return self._epochs_completed
+
+    def next_batch(self, batch_size):
+        '''Return the next batch_size examples from this data set.
+        '''
+        start = self._index_in_epoch
+        self._index_in_epoch += batch_size
+        if self._index_in_epoch > self._num_examples:
+            # Finished epoch.
+            self._epochs_completed += 1
+            # Shuffle the data.
+            perm = np.arange(self._num_examples)
+            np.random.shuffle(perm)
+            self._point_clouds = self._point_clouds[perm]
+            self._labels = self._labels[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size
+            assert batch_size <= self._num_examples
+        end = self._index_in_epoch
+        return self._point_clouds[start:end], self._labels[start:end]
