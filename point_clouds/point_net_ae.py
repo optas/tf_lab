@@ -1,37 +1,51 @@
+'''
+Created on January 26, 2017
+
+@author: optas
+'''
+
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-import numpy as np
 
-from .. fundamentals.layers import fully_connected_layer, relu, tanh
+from .. fundamentals.layers import fully_connected_layer, relu, tanh, conv_1d
 from .. fundamentals.loss import Loss 
+
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, transfer_fct=tf.nn.relu):
 
         self.n_input = n_input
         self.training_epochs = training_epochs
-        self.encoder_sizes = [300, 200, 100]
-        self.decoder_sizes = [200, 300, n_input]
+        self.encoder_sizes = [64, 64, 64, 128, 1024]
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.transfer_fct = transfer_fct
         self.is_denoising = False
+        self.padding = 'SAME'
 
 
-class FullyConnectedAutoEncoder(object):
+class PointNetAutoEncoder(object):
     '''
-    A simple Auto-Encoder utilizing only Fully-Connected Layers.
+    An Auto-Encoder replicating the architecture of Charles and Hao paper.
     '''
 
     def __init__(self, name, configuration):
         self.configuration = configuration
+        c = self.configuration
         with tf.variable_scope(name):
-            self.x = tf.placeholder(tf.float32, [None, self.configuration.n_input])
-            self.z = self._encoder_network()
-            self.x_reconstr = self._decoder_network()
+            self.x = tf.placeholder(tf.float32, [None, self.configuration.n_input, 3])
+            layer = conv_1d(self.x, c.encoder_sizes[0], 1, 1, c.padding, name='conv-fc1')
+            layer = conv_1d(layer, c.encoder_sizes[1], 1, 1, c.padding, name='conv-fc2')
+            layer = conv_1d(layer, c.encoder_sizes[2], 1, 1, c.padding, name='conv-fc3')
+            layer = conv_1d(layer, c.encoder_sizes[3], 1, 1, c.padding, name='conv-fc4')
+            layer = conv_1d(layer, c.encoder_sizes[4], 1, 1, c.padding, name='conv-fc5')
+            self.z = tf.reduce_max(layer, reduction_indices=1)
+            layer = fully_connected_layer(self.z, self.configuration.n_input, name='decoder_fc_0')
+            layer = fully_connected_layer(layer, self.configuration.n_input * 3, name='decoder_fc_1')
+            self.x_reconstr = tf.reshape(layer, [-1, self.configuration.n_input, 3])
 
             if self.configuration.is_denoising:
-                self.gt = tf.placeholder(tf.float32, [None, self.configuration.n_input])    # The ground-truth (i.e. the denoised input).
+                self.gt = tf.placeholder(tf.float32, [None, self.configuration.n_input, 3])    # The ground-truth (i.e. the denoised input).
             else:
                 self.gt = self.x
 
