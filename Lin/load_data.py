@@ -14,11 +14,13 @@ def readPointFile(filename):
             numpoint = numpoint + 1
     return pointlist
 
-def load_data():
+def load_data(filename):
     point_cloud_list = []
-    model_list = [line.strip().split('_pts.txt')[0] for line in os.listdir(filelist)]
-    for pc_file in model_list:
-        filename = os.path.join(filelist,pc_file+'_pts.txt')
-        pointcloud = readPointFile(filename)
+    model_list = []
+    for model_path in open(filename):
+        model_path = model_path.strip()
+        pointcloud = readPointFile(model_path)
+        model_id = model_path.split('/')[-1].split('_pts.txt')[0]
         point_cloud_list.append(pointcloud)
+        model_list.append(model_id)
     return point_cloud_list,model_list

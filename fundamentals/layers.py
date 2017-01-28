@@ -32,32 +32,47 @@ def dropout(in_layer, keep_prob=0.0):
         return tf.nn.dropout(in_layer, keep_prob)
 
 
+<<<<<<< HEAD
 def fully_connected(in_layer, out_dim, weights_initializer=glorot_initializer,wd=0.0, name='fc'):
     '''Implements a fully connected (fc) layer.
     Args:
         in_layer (tf.Tensor): input signal of the layer
         out_dim (int): output dimesnion of the fc.
         weights_initializer: An initializer for the weights.
+=======
+def fully_connected_layer(in_layer, out_dim, init={'type': 'glorot'}, wd=0, init_bias=0.0, name='fc'):
+    '''Implements a fully connected (fc) layer.
+    Args:
+        in_layer (tf.Tensor): input signal of the layer
+        out_dim (int): output dimension of the fc.
+        stddev (float): standard deviation of the gaussian that will be used to initialize the weights.
+>>>>>>> 939f27018e4165d1096ee684deb04f330fd00513
     '''
-    in_layer, dim = _flat_batch_signal(in_layer)
+    in_layer, fan_in = _flat_batch_signal(in_layer)
     with tf.variable_scope(name):
+<<<<<<< HEAD
         shape = [dim, out_dim]
         weights = _variable_with_weight_decay('weights', shape, initializer(shape), weights_regularizer)
         biases = _bias_variable([out_dim], init=initializers.)
+=======
+        shape = [fan_in, out_dim]
+        weights = _variable_with_weight_decay('weights', shape, initializer(init, shape), wd=wd)
+        biases = _bias_variable([out_dim], init=init_bias)
+>>>>>>> 939f27018e4165d1096ee684deb04f330fd00513
         out_signal = tf.add(tf.matmul(in_layer, weights), biases, name=name + '_out')
         return out_signal
 
 
-def fc_with_soft_max_layer(in_layer, out_dim, stddev, wd=0, init_bias=0.0, name='soft_max'):
-    in_layer, dim = _flat_batch_signal(in_layer)
+def fc_with_soft_max_layer(in_layer, out_dim, init={'type': 'glorot'}, wd=0, init_bias=0.0, name='soft_max'):
+    in_layer, fan_in = _flat_batch_signal(in_layer)
     with tf.variable_scope(name):
-        shape = [dim, out_dim]
-        weights = _variable_with_weight_decay('weights', shape, initializer(shape), wd=wd)
+        shape = [fan_in, out_dim]
+        weights = _variable_with_weight_decay('weights', shape, initializer(init, shape), wd=wd)
         biases = _bias_variable([out_dim], init=init_bias)
         return tf.nn.softmax(tf.nn.bias_add(tf.matmul(in_layer, weights), biases, name='pre-activation'), name='soft_max')
 
 
-def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, init, name, init_bias=0.0):
+def conv_2d(in_layer, n_filters, filter_size, stride, padding, name, init={'type': 'glorot_conv2d'}, init_bias=0.0):
     ''' Args:
         n_filters (int): number of convolutional kernels to be used
         filter_size ([int, int]): height and width of each kernel
@@ -66,11 +81,28 @@ def convolutional_layer(in_layer, n_filters, filter_size, stride, padding, init,
     with tf.variable_scope(name):
         channels = in_layer.get_shape().as_list()[-1]   # The last dimension of the input layer.
         shape = [filter_size[0], filter_size[1], channels, n_filters]
-        kernels = _variable_with_weight_decay('weights', shape, initializer(shape))
+        kernels = _variable_with_weight_decay('weights', shape, initializer(init, shape))
         biases = _bias_variable([n_filters], init_bias)
         strides = [1, stride, stride, 1]    # same horizontal and vertical strides
         conv = tf.nn.conv2d(in_layer, kernels, strides, padding=padding, name='conv2d')
-        bias = tf.nn.bias_add(conv, biases, 'pre-activation')
+        bias = tf.nn.bias_add(conv, biases, name='pre-activation')
+        out_signal = tf.nn.relu(bias, name=name + '_out')
+    return out_signal
+
+
+def conv_1d(in_layer, n_filters, filter_size, stride, padding, name, init={'type': 'uniform'}, init_bias=0.0):
+    ''' Args:
+        n_filters (int): number of convolutional kernels to be used
+        filter_size (int): length of kernel
+        stride (int): how many values 'right' to apply next convolution.
+    '''
+    with tf.variable_scope(name):
+        channels = in_layer.get_shape().as_list()[-1]   # The last dimension of the input layer.
+        shape = [filter_size, channels, n_filters]
+        kernels = _variable_with_weight_decay('weights', shape, initializer(init, shape))
+        biases = _bias_variable([n_filters], init_bias)
+        conv = tf.nn.conv1d(in_layer, kernels, stride, padding=padding, name='conv1d')
+        bias = tf.nn.bias_add(conv, biases, name='pre-activation')
         out_signal = tf.nn.relu(bias, name=name + '_out')
     return out_signal
 
@@ -96,19 +128,6 @@ def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, st
         biases = _bias_variable([n_filters], init_bias)
         out_signal = tf.nn.bias_add(decon, biases, name=name + '_out')
         return out_signal
-
-
-def de_convolutional_layer_1d(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
-    ''' Args:
-        n_filters (int): number of convolutional kernels to be used
-        filter_size ([int, int]): height and width of each kernel
-        stride (int): how many pixels 'down/right' to apply next convolution.
-    '''
-
-    with tf.variable_scope(name):
-        pass
-        # Lin do it with the Naive way.
-#         return out_signal
 
 
 def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):

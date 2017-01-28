@@ -1,10 +1,9 @@
 from global_variables import *
 import matplotlib.pyplot as plt
 import os
-from mpl_toolkits.mplot3d import Axes3D
 import io
 import tensorflow as tf
-
+from mpl_toolkits.mplot3d import Axes3D
 def gen_plot(points,modelid,epoch):
     x = []
     y = []
@@ -22,5 +21,4 @@ def gen_plot(points,modelid,epoch):
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
-#    tf.summary.image("image",buf)
     return buf

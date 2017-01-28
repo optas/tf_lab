@@ -6,7 +6,7 @@ from global_variables import *
 import tensorflow.contrib.slim as slim
 from load_data import readPointFile,load_data
 from records_converter import read_and_decode
-import fc_model
+from point_net_model import autoencoder,loss
 from visualizer import gen_plot
 
 # Basic model parameters as external flags
@@ -16,9 +16,10 @@ flags.DEFINE_string('train_dir','/orions4-zfs/projects/lins2/Lin_Space/DATA/Lin_
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('num_epochs', 200, 'Number of epochs to run trainer.')
 flags.DEFINE_integer('batch_size', 10, 'Batch size.')
+flags.DEFINE_string('test_dir','/orions4-zfs/projects/lins2/Lin_Space/DATA/Lin_Data/TFRecords','Directory with the testing data')
 
-
-Chair_FILE = 'chair.tfrecords'
+Train_Chair_FILE = 'chair_train.tfrecords'
+Test_Chair_FILE = 'chair_test.tfrecords'
 
 def inputs(batch_size,num_epochs):
     """ Reads input data num_epochs times.
@@ -33,7 +34,7 @@ def inputs(batch_size,num_epochs):
     """
 
     if not num_epochs: num_epochs = None
-    filename = os.path.join(FLAGS.train_dir,Chair_FILE)
+    filename = os.path.join(FLAGS.train_dir,Train_Chair_FILE)
 
     with tf.name_scope('input'):
         filename_queue = tf.train.string_input_producer(
@@ -61,9 +62,9 @@ def run_training():
         pcs,model_ids = inputs(batch_size=batch_size,num_epochs=training_epochs)
 
         # Construct a linear model
-        pred = fc_model.autoendoder(pcs)
+        pred = autoencoder(pcs)
         # Mean Sequared Error
-        cost = fc_model.loss(pred,pcs)
+        cost = loss(pred,pcs)
 
         #
         gt = pcs

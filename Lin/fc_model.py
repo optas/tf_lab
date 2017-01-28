@@ -6,8 +6,7 @@ hidden = 4
 hidden_layer_sizes = [Npoint, int(Npoint*0.1), int(0.01*Npoint), int(0.1*Npoint), Npoint*3]
 
 
-def autoendoder(in_signal):
-#    in_signal = tf.reshape(in_signal, [-1, Npoint*3])
+def autoencoder(in_signal):
     layer = slim.fully_connected(in_signal, hidden_layer_sizes[0], activation_fn=None)
     layer = tf.nn.relu(layer)
     layer = slim.fully_connected(layer, hidden_layer_sizes[1],activation_fn=None)

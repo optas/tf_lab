@@ -63,10 +63,12 @@ def read_and_decode(filename_queue):
 
 def main(argv):
   # Get the data.
-  data_sets,model_list = load_data()
+  train_data_sets,train_model_list = load_data(train_file_list)
+  test_data_sets,test_model_list = load_data(test_file_list)
 
   # Converts to TFRecords
-  convert_to(data_sets,model_list, 'chair')
+  convert_to(train_data_sets,train_model_list, 'chair_train')
+  convert_to(test_data_sets,test_model_list,'chair_test')
 
 if __name__ == '__main__':
   tf.app.run()

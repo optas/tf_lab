@@ -1,23 +1,25 @@
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
 from global_variables import *
+import tflearn
+from tflearn.layers.conv import conv_2d,conv_2d_transpose
+from tflearn.layers.core import fully_connected
 
-
-def autoendoder(in_signal):
-    layer = slim.fully_connected(in_signal,nframe*imagelen*imagelen, activation_fn=None)
-    layer = tf.nn.relu(layer)
-    layer = tf.reshape(layer,[None,nframe,imagelen,imagelen])
-    layer = slim.conv2d(layer,24,[4,4],stride=2)
-    layer = tf.nn.relu(layer)
-    layer = slim.batch_norm(layer,)
-    layer = slim.fully_connected(layer, hidden_layer_sizes[1],activation_fn=None)
-    layer = tf.nn.relu(layer)
-    layer = slim.fully_connected(layer, hidden_layer_sizes[2],activation_fn=None)
-    layer = tf.nn.relu(layer)
-    layer = slim.fully_connected(layer, hidden_layer_sizes[3],activation_fn=None)
-    layer = tf.nn.relu(layer)
-    layer = slim.fully_connected(layer, hidden_layer_sizes[4],activation_fn=None)
-    layer = tf.tanh(layer)
+def autoencoder(in_signal):
+    layer = fully_connected(in_signal,nframe*imagelen*imagelen,weights_init='xavier')
+    layer = tf.reshape(layer,[-1,imagelen,imagelen,nframe])
+    layer = conv_2d(layer,24,4,2,activation='relu',weights_init='xavier')
+    layer = conv_2d(layer,48,4,2,activation='relu',weights_init='xavier')
+    layer = conv_2d(layer,96,4,2,activation='relu',weights_init='xavier')
+    layer = conv_2d(layer,192,4,2,activation='relu',weights_init='xavier')
+    layer = tf.reshape(layer,[-1,192*4*4])
+    layer = fully_connected(layer,192*4*4,weights_init='xavier')
+    layer = tf.reshape(layer,[-1,4,4,192])
+    layer = conv_2d_transpose(layer,96,4,[8,8],strides=2,activation='relu',weights_init='xavier')
+    layer = conv_2d_transpose(layer,48,4,[16,16],strides=2,activation='relu',weights_init='xavier')
+    layer = conv_2d_transpose(layer,24,4,[32,32],strides=2,activation='relu',weights_init='xavier')
+    layer = conv_2d_transpose(layer,nframe,4,[64,64],strides=2,activation='relu',weights_init='xavier')
+    layer = tf.reshape(layer,[-1,nframe*imagelen*imagelen])
+    layer = fully_connected(layer,Npoint*3)
     return layer
 
 

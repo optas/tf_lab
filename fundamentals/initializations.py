@@ -2,19 +2,31 @@
 Created on January 13, 2017
 
 @author: optas
-#TODO Fix dispatcher. Expand.
 '''
-
+import copy
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.layers import xavier_initializer_conv2d
+from tensorflow import random_uniform_initializer, truncated_normal_initializer
 
 
-def initializer(args):
-    return glorot_initializer(*args)
-
-
-def truncated_normal_initializer(stddev, dtype=tf.float32):
-    return tf.truncated_normal_initializer(stddev=stddev, dtype=dtype)
+def initializer(options, shape=None):
+    options = copy.deepcopy(options)
+    init_type = options.pop('type')
+    if init_type == 'glorot':
+        return glorot_initializer(shape[0], shape[1], **options)
+    elif init_type == 'truncated_normal':
+        return tf.truncated_normal_initializer(**options)
+    elif init_type == 'glorot_conv2d':
+        return xavier_initializer_conv2d(**options)
+    elif init_type == 'uniform':
+        if 'minval' not in options:
+            options['minval'] = -0.05
+        if 'maxval' not in options:
+            options['maxval'] = 0.05
+        return tf.random_uniform_initializer(**options)
+    else:
+        raise('Please specify a valid initialization of the variables.')
 
 
 def glorot_initializer(fan_in, fan_out, constant=1.0, uniform=True, dtype=tf.float32):
