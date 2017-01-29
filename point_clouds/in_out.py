@@ -34,13 +34,15 @@ def load_filenames_of_input_data(top_directory):
     print '%d files containing  point clouds were found.' % (len(res), )
     return res
 
+
 def load_mesh_filenames(top_directory):
     model_names = []
     for file_name in os.listdir(top_directory):
-        model_name = os.path.join(top_directory,file_name,'model.obj')
+        model_name = os.path.join(top_directory, file_name, 'model.obj')
         if os.path.exists(model_name):
             model_names.append(model_name)
     return model_names
+
 
 def in_out_placeholders(configuration):
     n = configuration.n_points
@@ -75,8 +77,6 @@ def _convert_mesh_to_example(mesh_file):
     num_triangles = len(mesh_data[1])
     vertices = mesh_data[0].tostring()
     triangles = mesh_data[1].tostring()
-#         model_name = osp.basename(mesh_file).split('_')[0]   # TODO-In the future we need to store those too
-#         synset = osp.split(mesh_file)[0].split(osp.sep)[-1]
 
     # Construct an Example proto object.
     example = tf.train.Example(\
@@ -84,7 +84,9 @@ def _convert_mesh_to_example(mesh_file):
         features=tf.train.Features(\
             # Features contains a map of string to Feature proto objects.
             feature={'vertices': _bytes_feature(vertices),
-                     'num_vertices': _int64_feature(num_vertices)
+                     'num_vertices': _int64_feature(num_vertices),
+                     'triangles': _bytes_feature(triangles),
+                     'num_triangles': _int64_feature(num_triangles)
                      }))
     return example
 
@@ -122,50 +124,6 @@ def convert_data_to_tfrecord(data_files, out_dir, data_name, converter):
         # Write the serialized object to disk.
         writer.write(serialized)
     writer.close()
-
-
-def read_and_decode_meshes(filename_queue, n_samples):
-    reader = tf.TFRecordReader()
-    _, serialized_example = reader.read(filename_queue)
-
-    features = tf.parse_single_example(serialized_example,
-                                       features={'vertices': tf.VarLenFeature(dtype=tf.float32),
-                                                 'num_vertices': tf.FixedLenFeature([],dtype=tf.int64)}
-                                       )
-
-    print features['vertices'].get_shape()
-  #  triangles = tf.decode_raw(features['triangles'], tf.int32)
-
-#     vertices.set_shape([ ?? ])   # LIN?
-#     triangles.set_shape([ ?? ])
-
-#    in_mesh = Mesh(vertices=vertices, triangles=triangles)
-#    points, _ = in_mesh.sample_faces(n_samples)
-#    points = points * rand_rotation_matrix()   # Keep If you want to apply a random rotation (don't forget to git-pull the 'general-tools')
-
-    # Adding Gaussian noise.
-#    mu = 0
-#    sigma = 0.01  # LIN How much should the sigma be?
-#    gnoise = np.random.normal(mu, sigma, points.shape[0])
-#    gnoise = np.tile(gnoise, (3, 1)).T
-#    points += gnoise
-
-    # Center in Unit Sphere and Lex-Sort
-#    pc = Point_Cloud(points=points)
-#    pc.center_in_unit_sphere()
-#    pc, lex_index = pc.lex_sort()
-
-#    labels = points
-    return features['vertices']
-
-<<<<<<< HEAD
-if __name__ == '__main__':
-    mesh_files = load_mesh_filenames('/orions4-zfs/projects/lins2/Panos_Space/DATA/ShapeNetManifold/20000/03001627/')
-    print mesh_files
-    convert_meshes_to_tfrecord(mesh_files, '/orions4-zfs/projects/lins2/Lin_Space/DATA/Lin_Data/mesh/','chair')
-=======
-    labels = points
-    return points, labels
 
 
 def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc=0.5, shuffle=True, seed=None):
@@ -209,7 +167,7 @@ def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc
         return train_data, validate_data, test_data
 
 
-def dense_to_one_hot(labels_dense, num_classes=10):
+def dense_to_one_hot(labels_dense, num_classes):
     """Convert class labels from scalars to one-hot vectors."""
     num_labels = labels_dense.shape[0]
     index_offset = np.arange(num_labels) * num_classes
@@ -296,4 +254,3 @@ class PointCloudDataSet(object):
             return self._point_clouds[start:end], self._noisy_point_clouds[start:end], self._labels[start:end]
         else:
             return self._point_clouds[start:end], self._labels[start:end]
->>>>>>> 402c820896fa1d7746952f942f29d250f490837f
