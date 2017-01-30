@@ -122,7 +122,7 @@ class VariationalAutoencoder(object):
 
     def train_vae(self, configuration, loss_display_step=1):
         # Training cycle
-        c = configuation
+        c = configuration
         batch_size = c.batch_size
         for epoch in range(c.training_epochs):
             cost, duration = _single_epoch_train(self, batch_size)
