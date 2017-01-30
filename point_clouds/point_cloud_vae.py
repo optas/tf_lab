@@ -13,7 +13,8 @@ class Configuration():
         self.training_epochs = training_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.save_at_epoch = save_at_epoch
+        self.saver_step = saver_step
+	self.train_dir = train_dir
         self.n_z = 40
 
 
