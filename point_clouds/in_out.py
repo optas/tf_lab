@@ -182,7 +182,11 @@ class PointCloudDataSet(object):
     '''
 
     def __init__(self, point_clouds, noise=None, labels=None):
-        '''Construct a DataSet.'''
+        '''Construct a DataSet.
+        Args:
+        noise (Dictionary, optional):   noise['frac'], fraction [0,1] of points that will be distorted in every point-cloud.
+                                        noise['filler'], the distortion value.
+        '''
 
         self._num_examples = point_clouds.shape[0]
 
@@ -250,7 +254,4 @@ class PointCloudDataSet(object):
             self._index_in_epoch = batch_size
             assert batch_size <= self._num_examples
         end = self._index_in_epoch
-        if self._noisy_point_clouds is not None:
-            return self._point_clouds[start:end], self._noisy_point_clouds[start:end], self._labels[start:end]
-        else:
-            return self._point_clouds[start:end], self._labels[start:end]
+        return self._point_clouds[start:end], self._labels[start:end], self._noisy_point_clouds[start:end]

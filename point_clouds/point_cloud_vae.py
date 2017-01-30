@@ -1,289 +1,95 @@
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
 import numpy as np
+from tflearn.layers.core import fully_connected as fc_layer
 
-from .. fundamentals.layers import fully_connected_layer, relu, tanh
-from .. fundamentals.loss import Loss 
+from .. fundamentals.loss import Loss
+from .. Lin.point_net_model import encoder, decoder
+
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, transfer_fct=tf.nn.relu):
-
         self.n_input = n_input
         self.training_epochs = training_epochs
-        self.encoder_sizes = [300, 200, 100]
-        self.decoder_sizes = [200, 300, n_input]
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.transfer_fct = transfer_fct
-        self.is_denoising = False
-
+        self.n_z = 40
 
 
 class VariationalAutoencoder(object):
     """ Variation Autoencoder (VAE) with an sklearn-like interface implemented using TensorFlow.
 
-    This implementation uses probabilistic encoders and decoders using Gaussian 
-    distributions and  realized by multi-layer perceptrons. The VAE can be learned
-    end-to-end.
+    This implementation uses probabilistic encoders and decoders using Gaussian
+    distributions and . The VAE can be learned end-to-end.
 
     See "Auto-Encoding Variational Bayes" by Kingma and Welling for more details.
     """
-    def __init__(self, network_architecture, transfer_fct=tf.nn.softplus,
-                 learning_rate=0.001, batch_size=100):
+    def __init__(self, configuation):
 
-        self.network_architecture = network_architecture
-        self.transfer_fct = transfer_fct
-        self.learning_rate = learning_rate
-        self.batch_size = batch_size
-        
         # tf Graph input
-        self.x = tf.placeholder(tf.float32, [None, network_architecture["n_input"]])
-        
-        # Create autoencoder network
-        self._create_network()
+        c = configuation
+        self.x = tf.placeholder(tf.float32, c.n_input)
+        self.in_approximator = encoder(self.x)
+        self.z_mean = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
+        self.z_log_sigma_sq = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
+        eps = tf.random_normal((c.batch_size, c.n_z), 0, 1, dtype=tf.float32)
+        # z = mu + sigma*epsilon
+        self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
+        self.x_reconstr = decoder(self.z)
 
-        # Define loss function based variational upper-bound and 
-        # corresponding optimizer
+        # Define loss function based variational upper-bound and corresponding optimizer.
         self._create_loss_optimizer()
-        
         self.saver = tf.train.Saver(tf.all_variables())
-        
+
         # Initializing the tensor flow variables
-#         init = tf.initialize_all_variables()
         init = tf.global_variables_initializer()
-        
+
         # Launch the session
         self.sess = tf.InteractiveSession()
         self.sess.run(init)
-    
+
     def restore_model(self, model_path):
         self.saver.restore(self.sess, model_path)
-                
-    def _create_network(self):
-        # Initialize autoencode network weights and biases
-        network_weights = self._initialize_weights(**self.network_architecture)
 
-        # Use recognition network to determine mean and 
-        # (log) variance of Gaussian distribution in latent
-        # space
-        self.z_mean, self.z_log_sigma_sq = \
-            self._recognition_network(network_weights["weights_recog"], 
-                                      network_weights["biases_recog"])
-
-        # Draw one sample z from Gaussian distribution
-        n_z = self.network_architecture["n_z"]
-        eps = tf.random_normal((self.batch_size, n_z), 0, 1, 
-                               dtype=tf.float32)
-        # z = mu + sigma*epsilon
-        self.z = tf.add(self.z_mean, 
-                        tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
-
-        # Use generator to determine mean of
-        # Bernoulli distribution of reconstructed input
-        self.x_reconstr_mean = \
-            self._generator_network(network_weights["weights_gener"],
-                                    network_weights["biases_gener"])
-            
-    def _initialize_weights(self, n_hidden_recog_1, n_hidden_recog_2, 
-                            n_hidden_gener_1,  n_hidden_gener_2, 
-                            n_input, n_z):
-        all_weights = dict()
-        all_weights['weights_recog'] = {
-            'h1': tf.Variable(xavier_init(n_input, n_hidden_recog_1)),
-            'h2': tf.Variable(xavier_init(n_hidden_recog_1, n_hidden_recog_2)),
-            'out_mean': tf.Variable(xavier_init(n_hidden_recog_2, n_z)),
-            'out_log_sigma': tf.Variable(xavier_init(n_hidden_recog_2, n_z))}
-        all_weights['biases_recog'] = {
-            'b1': tf.Variable(tf.zeros([n_hidden_recog_1], dtype=tf.float32)),
-            'b2': tf.Variable(tf.zeros([n_hidden_recog_2], dtype=tf.float32)),
-            'out_mean': tf.Variable(tf.zeros([n_z], dtype=tf.float32)),
-            'out_log_sigma': tf.Variable(tf.zeros([n_z], dtype=tf.float32))}
-        all_weights['weights_gener'] = {
-            'h1': tf.Variable(xavier_init(n_z, n_hidden_gener_1)),
-            'h2': tf.Variable(xavier_init(n_hidden_gener_1, n_hidden_gener_2)),
-            'out_mean': tf.Variable(xavier_init(n_hidden_gener_2, n_input)),
-            'out_log_sigma': tf.Variable(xavier_init(n_hidden_gener_2, n_input))}
-        all_weights['biases_gener'] = {
-            'b1': tf.Variable(tf.zeros([n_hidden_gener_1], dtype=tf.float32)),
-            'b2': tf.Variable(tf.zeros([n_hidden_gener_2], dtype=tf.float32)),
-            'out_mean': tf.Variable(tf.zeros([n_input], dtype=tf.float32)),
-            'out_log_sigma': tf.Variable(tf.zeros([n_input], dtype=tf.float32))}
-        return all_weights
-            
-    def _recognition_network(self, weights, biases):
-        # Generate probabilistic encoder (recognition network), which
-        # maps inputs onto a normal distribution in latent space.
-        # The transformation is parametrized and can be learned.
-        layer_1 = self.transfer_fct(tf.add(tf.matmul(self.x, weights['h1']), 
-                                           biases['b1'])) 
-        layer_2 = self.transfer_fct(tf.add(tf.matmul(layer_1, weights['h2']), 
-                                           biases['b2'])) 
-        z_mean = tf.add(tf.matmul(layer_2, weights['out_mean']),
-                        biases['out_mean'])
-        z_log_sigma_sq = \
-            tf.add(tf.matmul(layer_2, weights['out_log_sigma']), 
-                   biases['out_log_sigma'])
-        return (z_mean, z_log_sigma_sq)
-
-    def _generator_network(self, weights, biases):
-        # Generate probabilistic decoder (decoder network), which
-        # maps points in latent space onto a Bernoulli distribution in data space.
-        # The transformation is parametrized and can be learned.
-        layer_1 = self.transfer_fct(tf.add(tf.matmul(self.z, weights['h1']), 
-                                           biases['b1'])) 
-        layer_2 = self.transfer_fct(tf.add(tf.matmul(layer_1, weights['h2']), 
-                                           biases['b2'])) 
-        x_reconstr_mean = \
-            tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['out_mean']), 
-                                 biases['out_mean']))
-#         x_reconstr_mean = \
-#             tf.nn.tanh(tf.add(tf.matmul(layer_2, weights['out_mean']), 
-#                                  biases['out_mean']))
-        return x_reconstr_mean
-            
     def _create_loss_optimizer(self):
-        # The loss is composed of two terms:
-        # 1.) The reconstruction loss (the negative log probability
-        #     of the input under the reconstructed Bernoulli distribution 
-        #     induced by the decoder in the data space).
-        #     This can be interpreted as the number of "nats" required
-        #     for reconstructing the input when the activation in latent
-        #     is given.
+        # Negative log probability of the input under the reconstructed Bernoulli distribution
+        # induced by the decoder in the data space):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
         reconstr_loss = \
-            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr_mean)
-                           + (1-self.x) * tf.log(1e-10 + 1 - self.x_reconstr_mean),
-                           1)
+            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr_mean) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr_mean), 1)
 
-#         reconstr_loss = Loss.l2_loss(self.x_reconstr_mean, self.x)
-            
-            
-            
-        # 2.) The latent loss, which is defined as the Kullback Leibler divergence 
-        ##    between the distribution in latent space induced by the encoder on 
-        #     the data and some prior. This acts as a kind of regularizer.
-        #     This can be interpreted as the number of "nats" required
-        #     for transmitting the the latent space distribution given
-        #     the prior.
-        latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq 
-                                           - tf.square(self.z_mean) 
-                                           - tf.exp(self.z_log_sigma_sq), 1)
+        # Regularize posterior towards unit Gaussian prior:
+        latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
         self.cost = tf.reduce_mean(reconstr_loss + latent_loss)   # average over batch
         # Use ADAM optimizer
         self.optimizer = \
             tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
-        
+
     def partial_fit(self, X):
         """Train model based on mini-batch of input data.
-        
         Return cost of mini-batch.
         """
-        opt, cost = self.sess.run((self.optimizer, self.cost), 
-                                  feed_dict={self.x: X})
+        _, cost = self.sess.run((self.optimizer, self.cost), feed_dict={self.x: X})
         return cost
-    
+
     def transform(self, X):
         """Transform data by mapping it into the latent space."""
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
         return self.sess.run(self.z_mean, feed_dict={self.x: X})
-    
+
     def generate(self, z_mu=None):
         """ Generate data by sampling from latent space.
-        
         If z_mu is not None, data for this point in latent space is
-        generated. Otherwise, z_mu is drawn from prior in latent 
-        space.        
+        generated. Otherwise, z_mu is drawn from prior in latent
+        space.
         """
         if z_mu is None:
             z_mu = np.random.normal(size=(self.batch_size, self.network_architecture["n_z"]))
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
-        return self.sess.run(self.x_reconstr_mean, 
-                             feed_dict={self.z: z_mu})
-    
+        return self.sess.run(self.x_reconstr_mean, feed_dict={self.z: z_mu})
+
     def reconstruct(self, X):
         """ Use VAE to reconstruct given data. """
-        return self.sess.run(self.x_reconstr_mean, 
-
-                             feed_dict={self.x: X})
-
-class FullyConnectedAutoEncoder(object):
-    '''
-    A simple Auto-Encoder utilizing only Fully-Connected Layers.
-    '''
-
-    def __init__(self, name, configuration):
-        self.configuration = configuration
-        with tf.variable_scope(name):
-            self.x = tf.placeholder(tf.float32, [None, self.configuration.n_input])
-            self.z = self._encoder_network()
-            self.x_reconstr = self._decoder_network()
-
-            if self.configuration.is_denoising:
-                self.gt = tf.placeholder(tf.float32, [None, self.configuration.n_input])    # The ground-truth (i.e. the denoised input).
-            else:
-                self.gt = self.x
-
-        self._create_loss_optimizer()
-        self.saver = tf.train.Saver(tf.all_variables())
-        init = tf.initialize_all_variables()
-
-        self.sess = tf.Session()
-        self.sess.run(init)
-
-    def partial_fit(self, X, GT=None):
-        '''Train model based on mini-batch of input data.
-        Returns cost of mini-batch.'''
-        if GT is not None:
-            _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
-        else:
-            _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X})
-        return cost
-
-    def transform(self, X):
-        '''Transform data by mapping it into the latent space.'''
-        return self.sess.run(self.z, feed_dict={self.x: X})
-
-    def reconstruct(self, X):
-        '''Use AE to reconstruct given data.'''
-        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: X})
-
-    def restore_model(self, model_path):
-        #         r_vars = tf.trainable_variables()
-        self.saver.restore(self.sess, model_path)
-
-    def _encoder_network(self):
-        # Generate encoder (recognition network), which maps inputs onto a latent space.
-        c = self.configuration
-        layer_sizes = c.encoder_sizes
-        non_linearity = c.transfer_fct
-        layer = non_linearity(fully_connected_layer(self.x, layer_sizes[0], stddev=0.01, name='encoder_fc_0'))
-        layer = slim.batch_norm(layer,)
-
-        for i in xrange(1, len(c.encoder_sizes)):
-            layer = non_linearity(fully_connected_layer(layer, layer_sizes[i], stddev=0.01, name='encoder_fc_' + str(i)))
-            layer = slim.batch_norm(layer,)
-
-        return layer
-
-    def _decoder_network(self):
-        # Generate a decoder which maps points from the latent space back onto the data space.
-        c = self.configuration
-        layer_sizes = c.decoder_sizes
-        non_linearity = c.transfer_fct
-        i = 0
-        layer = non_linearity(fully_connected_layer(self.z, layer_sizes[i], stddev=0.01, name='decoder_fc_0'))
-        layer = slim.batch_norm(layer,)
-        for i in xrange(1, len(layer_sizes) - 1):
-            layer = non_linearity(fully_connected_layer(layer, layer_sizes[i], stddev=0.01, name='decoder_fc_' + str(i)))
-            layer = slim.batch_norm(layer,)
-        layer = fully_connected_layer(layer, layer_sizes[i + 1], stddev=0.01, name='decoder_fc_' + str(i + 1))  # Last decoding layer doesn't have a non-linearity.
-
-        return layer
-
-    def _create_loss_optimizer(self):
-        c = self.configuration
-        self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
+        return self.sess.run(self.x_reconstr_mean, feed_dict={self.x: X})
