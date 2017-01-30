@@ -8,11 +8,12 @@ from .. Lin.point_net_model import encoder, decoder
 
 
 class Configuration():
-    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, transfer_fct=tf.nn.relu):
+    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, saver_step=None, train_dir=None, transfer_fct=tf.nn.relu):
         self.n_input = n_input
         self.training_epochs = training_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        self.save_at_epoch = save_at_epoch
         self.n_z = 40
 
 
@@ -120,9 +121,13 @@ class VariationalAutoencoder(object):
 
     def train_vae(self, configuration, loss_display_step=1):
         # Training cycle
-        batch_size = configuration.batch_size
-        for epoch in range(configuration.training_epochs):
+        c = configuation
+        batch_size = c.batch_size
+        for epoch in range(c.training_epochs):
             cost, duration = _single_epoch_train(self, batch_size)
             if epoch % loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
-
+            # Save the model checkpoint periodically.
+            if c.saver_step is not None and epoch % saver_step == 0:
+                checkpoint_path = osp.join(c.train_dir, 'model.ckpt')
+                self.saver.save(self.sess, checkpoint_path, global_step=epoch)
