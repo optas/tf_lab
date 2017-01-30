@@ -28,6 +28,7 @@ class VariationalAutoencoder(object):
 
         # tf Graph input
         c = configuation
+        self.conf = c
         self.x = tf.placeholder(tf.float32, [None] + c.n_input)
         self.in_approximator = encoder(self.x)
         self.z_mean = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
@@ -57,7 +58,7 @@ class VariationalAutoencoder(object):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
         reconstr_loss = \
-            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr_mean) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr_mean), 1)
+            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
@@ -65,7 +66,7 @@ class VariationalAutoencoder(object):
         self.cost = tf.reduce_mean(reconstr_loss + latent_loss)   # average over batch
         # Use ADAM optimizer
         self.optimizer = \
-            tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
+            tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
 
     def partial_fit(self, X):
         """Train model based on mini-batch of input data.
@@ -90,11 +91,11 @@ class VariationalAutoencoder(object):
             z_mu = np.random.normal(size=(self.batch_size, self.network_architecture["n_z"]))
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
-        return self.sess.run(self.x_reconstr_mean, feed_dict={self.z: z_mu})
+        return self.sess.run(self.x_reconstr, feed_dict={self.z: z_mu})
 
     def reconstruct(self, X):
         """ Use VAE to reconstruct given data. """
-        return self.sess.run(self.x_reconstr_mean, feed_dict={self.x: X})
+        return self.sess.run(self.x_reconstr, feed_dict={self.x: X})
 
     def _single_epoch_train(model, train_data, configuration):
         n_examples = train_data.num_examples

@@ -19,7 +19,7 @@ def encoder(in_signal):
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = tf.reduce_max(layer, 1)
-
+    return layer
 
 def decoder(latent_signal):
     layer = fully_connected(latent_signal, 1024, activation='relu', weights_init='xavier')
@@ -51,7 +51,7 @@ def decoder(latent_signal):
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = conv_1d(layer,3,1)
-
+    return layer
 
 def autoencoder(in_signal):
     latent = encoder(in_signal)
