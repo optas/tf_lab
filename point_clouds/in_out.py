@@ -176,6 +176,34 @@ def dense_to_one_hot(labels_dense, num_classes):
     return labels_one_hot
 
 
+def read_and_decode_point_cloud(filename_queue, points_per_cloud):
+    reader = tf.TFRecordReader()
+    _, serialized_example = reader.read(filename_queue)
+
+    features = tf.parse_single_example(serialized_example,
+                                       features={'pcloud_raw': tf.FixedLenFeature(shape=[], dtype=tf.string),
+                                                 'model_name': tf.VarLenFeature(dtype=tf.string),
+                                                 'class_name': tf.VarLenFeature(dtype=tf.string)
+                                                 })
+
+    pcloud = tf.decode_raw(features['pcloud_raw'], tf.float32)
+    pcloud.set_shape([points_per_cloud])
+    return pcloud, features['model_name'], features['class_name']
+
+
+def input_pcloud_data(filenames, batch_size, points_per_cloud, shuffle=True, num_epochs=None):
+    with tf.name_scope('input'):
+        filename_queue = tf.train.string_input_producer([filenames], num_epochs=num_epochs, shuffle=shuffle)
+        example, model_name, _ = read_and_decode_point_cloud(filename_queue, points_per_cloud)
+        min_after_dequeue = 10000
+        capacity = min_after_dequeue + 3 * batch_size
+
+        example_batch = tf.train.shuffle_batch(
+            [example, model_name], batch_size=batch_size, capacity=capacity, min_after_dequeue=min_after_dequeue)
+
+    return example_batch
+
+
 class PointCloudDataSet(object):
     '''
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
