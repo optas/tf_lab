@@ -28,7 +28,7 @@ class VariationalAutoencoder(object):
 
         # tf Graph input
         c = configuation
-        self.x = tf.placeholder(tf.float32, c.n_input)
+        self.x = tf.placeholder(tf.float32, [None] + c.n_input)
         self.in_approximator = encoder(self.x)
         self.z_mean = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
@@ -96,33 +96,32 @@ class VariationalAutoencoder(object):
         """ Use VAE to reconstruct given data. """
         return self.sess.run(self.x_reconstr_mean, feed_dict={self.x: X})
 
+    def _single_epoch_train(model, train_data, configuration):
+        n_examples = train_data.num_examples
+        epoch_cost = 0.
+        batch_size = configuration.batch_size
+        n_batches = int(n_examples / batch_size)
+        start_time = time.time()
 
-def single_epoch_train(model, train_data, configuration):
-    n_examples = train_data.num_examples
-    epoch_cost = 0.
-    batch_size = configuration.batch_size
-    n_batches = int(n_examples / batch_size)
-    start_time = time.time()
+         # Loop over all batches
+        for i in xrange(n_batches):
+            batch_i, _, _ = train_data.next_batch(batch_size)
+            batch_i = batch_i.reshape(batch_size, configuration.n_input)
+            batch_i += .5
+            batch_i = np.max(1e-10, batch_i)
+            cost = model.partial_fit(batch_i)
+            # Compute average loss
+            epoch_cost += cost
 
-    # Loop over all batches
-    for i in xrange(n_batches):
-        batch_i, _, _ = train_data.next_batch(batch_size)
-        batch_i = batch_i.reshape(batch_size, configuration.n_input)
-        batch_i += .5
-        batch_i = np.max(1e-10, batch_i)
-        cost = model.partial_fit(batch_i)
-        # Compute average loss
-        epoch_cost += cost
+        epoch_cost /= (n_batches * batch_size)
+        duration = time.time() - start_time
+        return epoch_cost, duration
 
-    epoch_cost /= (n_batches * batch_size)
-    duration = time.time() - start_time
-    return epoch_cost, duration
+    def train_vae(self, configuration, loss_display_step=1):
+        # Training cycle
+        batch_size = configuration.batch_size
+        for epoch in range(configuration.training_epochs):
+            cost, duration = _single_epoch_train(self, batch_size)
+            if epoch % loss_display_step == 0:
+                print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
 
-
-def train_vae(model, configuration, loss_display_step=1):
-    # Training cycle
-    batch_size = configuration.batch_size
-    for epoch in range(configuration.training_epochs):
-        cost, duration = single_epoch_train(model, batch_size)
-        if epoch % loss_display_step == 0:
-            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
