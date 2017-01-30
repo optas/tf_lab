@@ -119,7 +119,7 @@ def single_epoch_train(model, train_data, configuration):
     return epoch_cost, duration
 
 
-def train(model, configuration, loss_display_step=1):
+def train_vae(model, configuration, loss_display_step=1):
     # Training cycle
     batch_size = configuration.batch_size
     for epoch in range(configuration.training_epochs):
