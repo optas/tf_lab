@@ -5,7 +5,7 @@ import time
 
 from .. fundamentals.loss import Loss
 from .. Lin.point_net_model import encoder, decoder
-
+from nn_distance
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, saver_step=None, train_dir=None, transfer_fct=tf.nn.relu):
@@ -59,7 +59,9 @@ class VariationalAutoencoder(object):
         # induced by the decoder in the data space):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
-        reconstr_loss = \
+
+        reconstr_loss =
+        \
             -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
 
         # Regularize posterior towards unit Gaussian prior:
@@ -109,9 +111,9 @@ class VariationalAutoencoder(object):
          # Loop over all batches
         for i in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
-            batch_i = batch_i.reshape([batch_size] + configuration.n_input)
+            batch_i = batch_i.reshape(batch_size, configuration.n_input)
             batch_i += .5
-            batch_i = np.maximum(1e-10, batch_i)
+            batch_i = np.max(1e-10, batch_i)
             cost = model.partial_fit(batch_i)
             # Compute average loss
             epoch_cost += cost
@@ -120,12 +122,12 @@ class VariationalAutoencoder(object):
         duration = time.time() - start_time
         return epoch_cost, duration
 
-    def train_vae(self, train_data, configuration, loss_display_step=1):
+    def train_vae(self, train_data ,configuration, loss_display_step=1):
         # Training cycle
         c = configuration
         batch_size = c.batch_size
         for epoch in range(c.training_epochs):
-            cost, duration = self._single_epoch_train(train_data,c)
+            cost, duration = self._single_epoch_train(self,train_data,c)
             if epoch % loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
             # Save the model checkpoint periodically.

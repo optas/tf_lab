@@ -282,4 +282,7 @@ class PointCloudDataSet(object):
             self._index_in_epoch = batch_size
             assert batch_size <= self._num_examples
         end = self._index_in_epoch
-        return self._point_clouds[start:end], self._labels[start:end], self._noisy_point_clouds[start:end]
+        if self._noisy_point_clouds is None:
+            return self._point_clouds[start:end], self._labels[start:end], None
+        else:
+            return self._point_clouds[start:end], self._labels[start:end], self._noisy_point_clouds[start:end]
