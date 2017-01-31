@@ -85,7 +85,7 @@ class VariationalAutoencoder(object):
         """Train model based on mini-batch of input data.
         Return cost of mini-batch.
         """
-        _, cost,rec = self.sess.run((self.optimizer, self.cost,self.x_reconstr), feed_dict={self.x: X})
+        _, cost, rec = self.sess.run((self.optimizer, self.cost,self.x_reconstr), feed_dict={self.x: X})
         return cost
 
     def transform(self, X):
