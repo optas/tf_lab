@@ -69,8 +69,6 @@ class VariationalAutoencoder(object):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
 
-        tf.assert_positive(1e-10 + 1 - self.x_reconstr)
-        tf.assert_positive(1e-10 + self.x_reconstr)
         reconstr_loss = \
             -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
 
@@ -88,8 +86,6 @@ class VariationalAutoencoder(object):
         Return cost of mini-batch.
         """
         _, cost,rec = self.sess.run((self.optimizer, self.cost,self.x_reconstr), feed_dict={self.x: X})
-        print("reconstruct")
-        print(rec[0])
         return cost
 
     def transform(self, X):
@@ -130,8 +126,6 @@ class VariationalAutoencoder(object):
             batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
             cost = self.partial_fit(batch_i_tmp)
             # Compute average loss
-            print("cost_within batch")
-            print cost
             epoch_cost += cost
 
         epoch_cost /= (n_batches * batch_size)
