@@ -2,20 +2,22 @@ import tensorflow as tf
 import numpy as np
 from tflearn.layers.core import fully_connected as fc_layer
 import time
+import os
 
 from .. fundamentals.loss import Loss
 from .. Lin.point_net_model import encoder, decoder
-from nn_distance
+from tf_nndistance import nn_distance
 
 class Configuration():
-    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, saver_step=None, train_dir=None, transfer_fct=tf.nn.relu):
+    def __init__(self, n_input,n_z, training_epochs, batch_size, learning_rate=0.001, saver_step=None, train_dir=None, transfer_fct=tf.nn.relu,loss_display_step=10):
         self.n_input = n_input
+        self.n_z = n_z
         self.training_epochs = training_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.saver_step = saver_step
 	self.train_dir = train_dir
-        self.n_z = 40
+        self.loss_display_step = loss_display_step
 
 
 class VariationalAutoencoder(object):
@@ -36,7 +38,6 @@ class VariationalAutoencoder(object):
         self.z_mean = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
         eps = tf.random_normal((c.batch_size, c.n_z), 0, 1, dtype=tf.float32)
-        # z = mu + sigma*epsilon
         self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
         self.x_reconstr = decoder(self.z)
 
@@ -47,8 +48,12 @@ class VariationalAutoencoder(object):
         # Initializing the tensor flow variables
         init = tf.global_variables_initializer()
 
+        #GPU configuration
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+
         # Launch the session
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.InteractiveSession(config=config)
         self.sess.run(init)
 
     def restore_model(self, model_path):
@@ -60,14 +65,13 @@ class VariationalAutoencoder(object):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
 
-        reconstr_loss =
-        \
-            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
+        _1,_2,_3,_4 = nn_distance(self.x_reconstr,self.x)
+        reconstr_loss = tf.reduce_sum(_1) + tf.reduce_sum(_3)
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.cost = tf.reduce_mean(reconstr_loss + latent_loss)   # average over batch
+        self.cost = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(latent_loss)   # average over batch
         # Use ADAM optimizer
         self.optimizer = \
             tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
@@ -111,9 +115,9 @@ class VariationalAutoencoder(object):
          # Loop over all batches
         for i in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
-            batch_i = batch_i.reshape(batch_size, configuration.n_input)
-            batch_i += .5
-            batch_i = np.max(1e-10, batch_i)
+            batch_i = batch_i.reshape([batch_size] + configuration.n_input)
+            #batch_i += .5
+            #batch_i = np.max(1e-10, batch_i)
             cost = model.partial_fit(batch_i)
             # Compute average loss
             epoch_cost += cost
@@ -127,10 +131,10 @@ class VariationalAutoencoder(object):
         c = configuration
         batch_size = c.batch_size
         for epoch in range(c.training_epochs):
-            cost, duration = self._single_epoch_train(self,train_data,c)
+            cost, duration = self._single_epoch_train(train_data,c)
             if epoch % loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
             # Save the model checkpoint periodically.
-            if c.saver_step is not None and epoch % saver_step == 0:
-                checkpoint_path = osp.join(c.train_dir, 'model.ckpt')
+            if c.saver_step is not None and epoch % c.saver_step == 0:
+                checkpoint_path = os.path.join(c.train_dir, 'model.ckpt')
                 self.saver.save(self.sess, checkpoint_path, global_step=epoch)

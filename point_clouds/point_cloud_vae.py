@@ -43,7 +43,7 @@ class VariationalAutoencoder(object):
 
         # z = mu + sigma*epsilon
         self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
-        self.x_reconstr = decoder(self.z)
+        self.x_reconstr = tf.sigmoid(decoder(self.z))
 
         # Define loss function based variational upper-bound and corresponding optimizer.
         self._create_loss_optimizer()
@@ -52,8 +52,12 @@ class VariationalAutoencoder(object):
         # Initializing the tensor flow variables
         init = tf.global_variables_initializer()
 
+        # GPU configuration
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+
         # Launch the session
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.InteractiveSession(config=config)
         self.sess.run(init)
 
     def restore_model(self, model_path):
@@ -64,13 +68,17 @@ class VariationalAutoencoder(object):
         # induced by the decoder in the data space):
 
         # Adding 1e-10 to avoid evaluation of log(0.0)
+
+        tf.assert_positive(1e-10 + 1 - self.x_reconstr)
+        tf.assert_positive(1e-10 + self.x_reconstr)
         reconstr_loss = \
             -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.cost = tf.reduce_mean(reconstr_loss + latent_loss)   # average over batch
+        self.cost = tf.reduce_mean(reconstr_loss)# + tf.reduce_mean(latent_loss) # average over batch
+
         # Use ADAM optimizer
         self.optimizer = \
             tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
@@ -79,7 +87,9 @@ class VariationalAutoencoder(object):
         """Train model based on mini-batch of input data.
         Return cost of mini-batch.
         """
-        _, cost = self.sess.run((self.optimizer, self.cost), feed_dict={self.x: X})
+        _, cost,rec = self.sess.run((self.optimizer, self.cost,self.x_reconstr), feed_dict={self.x: X})
+        print("reconstruct")
+        print(rec[0])
         return cost
 
     def transform(self, X):
@@ -115,10 +125,13 @@ class VariationalAutoencoder(object):
         for _ in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
-            batch_i += .5   # Add to ensure point clouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
-            batch_i = np.maximum(1e-10, batch_i)
-            cost = self.partial_fit(batch_i)
+            batch_i_tmp = batch_i.copy()    # Add to ensure point clouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
+            batch_i_tmp += .5
+            batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
+            cost = self.partial_fit(batch_i_tmp)
             # Compute average loss
+            print("cost_within batch")
+            print cost
             epoch_cost += cost
 
         epoch_cost /= (n_batches * batch_size)
