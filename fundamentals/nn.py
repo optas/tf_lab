@@ -1,7 +1,7 @@
 '''
 Created on October 7, 2016
 
-A module containing the lowest level ingredients necessary to build higher level (nn) abstractions like layers.
+A module containing the lowest level ingredients necessary to build higher level (NN) abstractions like layers.
 '''
 
 import tensorflow as tf

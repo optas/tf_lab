@@ -1,16 +1,26 @@
+'''
+Created on February 1, 2017
+
+@author: optas
+'''
+
 import tensorflow as tf
 import numpy as np
 from tflearn.layers.core import fully_connected as fc_layer
 import time
 import os.path as osp
 
-from .. fundamentals.loss import Loss
-from .. Lin.point_net_model import encoder, decoder
+from .. models.point_net_based_AE import encoder, decoder
+
+try:
+    from tf_nndistance import nn_distance
+except:
+    pass
 
 
 class Configuration():
     def __init__(self, n_input, n_z, training_epochs, batch_size, learning_rate=0.001,
-                 saver_step=None, train_dir=None, transfer_fct=tf.nn.relu,
+                 saver_step=None, train_dir=None, loss='Bernoulli', transfer_fct=tf.nn.relu,
                  loss_display_step=1):
 
         self.n_input = n_input
@@ -20,6 +30,7 @@ class Configuration():
         self.learning_rate = learning_rate
         self.saver_step = saver_step
         self.train_dir = train_dir
+        self.loss = loss
         self.loss_display_step = loss_display_step
 
 
@@ -32,7 +43,7 @@ class VariationalAutoencoder(object):
     See "Auto-Encoding Variational Bayes" by Kingma and Welling for more details.
     """
     def __init__(self, configuation):
-
+        # Define the Tensor-Flow graph.
         c = configuation
         self.conf = c
         self.x = tf.placeholder(tf.float32, [None] + c.n_input)
@@ -43,7 +54,10 @@ class VariationalAutoencoder(object):
 
         # z = mu + sigma*epsilon
         self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
-        self.x_reconstr = tf.sigmoid(decoder(self.z))
+        self.x_reconstr = decoder(self.z)
+
+        if c.loss == 'Bernoulli':
+            self.x_reconstr = tf.sigmoid(self.x_reconstr)   # Force Output to be in [0,1]
 
         # Define loss function based variational upper-bound and corresponding optimizer.
         self._create_loss_optimizer()
@@ -64,29 +78,32 @@ class VariationalAutoencoder(object):
         self.saver.restore(self.sess, model_path)
 
     def _create_loss_optimizer(self):
-        # Negative log probability of the input under the reconstructed Bernoulli distribution
-        # induced by the decoder in the data space):
-
-        # Adding 1e-10 to avoid evaluation of log(0.0)
-
-        reconstr_loss = \
-            -tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) + (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
+        if self.c.loss == 'Chamfer':
+            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.x)
+            reconstr_loss = tf.reduce_sum(cost_p1_p2) + tf.reduce_sum(cost_p2_p1)
+        elif self.c.loss == 'Bernoulli':
+            # Negative log probability of the input under the reconstructed Bernoulli distribution
+            # induced by the decoder in the data space. Adding 1e-10 to avoid evaluation of log(0.0)
+            reconstr_loss = - tf.reduce_sum(self.x * tf.log(1e-10 + self.x_reconstr) +
+                                            (1 - self.x) * tf.log(1e-10 + 1 - self.x_reconstr), 1)
+        else:
+            raise ValueError('Wrong loss was specified.')
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.cost = tf.reduce_mean(reconstr_loss)# + tf.reduce_mean(latent_loss) # average over batch
+        self.cost = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(latent_loss)
 
         # Use ADAM optimizer
         self.optimizer = \
             tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
 
     def partial_fit(self, X):
-        """Train model based on mini-batch of input data.
+        """Train models based on mini-batch of input data.
         Return cost of mini-batch.
         """
-        _, cost, rec = self.sess.run((self.optimizer, self.cost,self.x_reconstr), feed_dict={self.x: X})
-        return cost
+        _, cost, recon = self.sess.run((self.optimizer, self.cost, self.x_reconstr), feed_dict={self.x: X})
+        return cost, recon
 
     def transform(self, X):
         """Transform data by mapping it into the latent space."""
@@ -101,7 +118,7 @@ class VariationalAutoencoder(object):
         space.
         """
         if z_mu is None:
-            z_mu = np.random.normal(size=(self.batch_size, self.network_architecture["n_z"]))
+            z_mu = np.random.normal(size=(self.conf.batch_size, self.conf.n_z))
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
         return self.sess.run(self.x_reconstr, feed_dict={self.z: z_mu})
@@ -121,10 +138,15 @@ class VariationalAutoencoder(object):
         for _ in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
-            batch_i_tmp = batch_i.copy()    # Add to ensure point clouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
-            batch_i_tmp += .5
-            batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
-            cost = self.partial_fit(batch_i_tmp)
+
+            if configuration.loss == 'Bernoulli':
+                batch_i_tmp = batch_i.copy()
+                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
+                batch_i_tmp += .5
+                batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
+                batch_i = batch_i_tmp
+
+            cost, _ = self.partial_fit(batch_i_tmp)
             # Compute average loss
             epoch_cost += cost
 
@@ -136,10 +158,10 @@ class VariationalAutoencoder(object):
         # Training cycle
         c = configuration
         for epoch in xrange(c.training_epochs):
-            cost, _ = self._single_epoch_train(train_data, configuration)
+            cost, _ = self._single_epoch_train(train_data, c)
             if epoch % c.loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(cost))
-            # Save the model checkpoint periodically.
+            # Save the models checkpoint periodically.
             if c.saver_step is not None and epoch % c.saver_step == 0:
-                checkpoint_path = osp.join(c.train_dir, 'model.ckpt')
+                checkpoint_path = osp.join(c.train_dir, 'models.ckpt')
                 self.saver.save(self.sess, checkpoint_path, global_step=epoch)

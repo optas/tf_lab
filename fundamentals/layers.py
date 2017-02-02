@@ -3,12 +3,12 @@ Created on October 7, 2016
 
 A module containing some commonly used layers of (deep) neural networks.
 '''
+# TODO: Default initializations are OK, but for convolutions some other initializations will not work.
 
 import tensorflow as tf
-import numpy as np
 
 from . nn import _flat_batch_signal, _variable_with_weight_decay, _bias_variable
-from . initializations import glorot_initializer
+from . initializations import initializer
 
 
 def max_pool(in_layer, ksize, stride, name):
@@ -30,7 +30,6 @@ def dropout(in_layer, keep_prob=0.0):
         return in_layer
     else:
         return tf.nn.dropout(in_layer, keep_prob)
-
 
 
 def fully_connected_layer(in_layer, out_dim, init={'type': 'glorot'}, wd=0, init_bias=0.0, name='fc'):
@@ -114,20 +113,3 @@ def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, st
         biases = _bias_variable([n_filters], init_bias)
         out_signal = tf.nn.bias_add(decon, biases, name=name + '_out')
         return out_signal
-
-
-def fully_conected_via_convolutions(in_layer, out_dim, stddev, init_bias, name):
-    '''Implements a fully connected layer -indirectly- by using only 2d convolutions.
-    '''
-    with tf.variable_scope(name):
-        in_shape = in_layer.get_shape().as_list()
-        vector_dim = np.prod(in_shape[1:])
-        batch_dim = in_shape[0]
-        in_layer = tf.reshape(in_layer, [batch_dim, 1, 1, vector_dim])
-        kernel_shape = [1, 1, vector_dim, out_dim]
-        kernel = _variable_with_weight_decay('weights', kernel_shape, initializer(kernel_shape))
-        conv = tf.nn.conv2d(in_layer, kernel, [1, 1, 1, 1], padding='SAME')
-        conv = tf.reshape(conv, [batch_dim, out_dim])
-        biases = _bias_variable([out_dim], init_bias)
-        out_layer = tf.nn.bias_add(conv, biases, name=name + '_out')
-    return out_layer
