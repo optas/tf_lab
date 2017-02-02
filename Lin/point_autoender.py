@@ -6,10 +6,10 @@ from global_variables import *
 import tensorflow.contrib.slim as slim
 from load_data import readPointFile,load_data
 from records_converter import read_and_decode
-from point_net_model import autoencoder,loss
+from models.point_net_based_AE import autoencoder,loss
 from visualizer import gen_plot
 
-# Basic model parameters as external flags
+# Basic models parameters as external flags
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('train_dir','/orions4-zfs/projects/lins2/Lin_Space/DATA/Lin_Data/TFRecords','Directory with the training data.')
@@ -56,12 +56,12 @@ def inputs(batch_size,num_epochs):
 def run_training():
     """Train for a number of steps."""
 
-    # Tell Tensorflow that the model will be built into the default Graph.
+    # Tell Tensorflow that the models will be built into the default Graph.
     with tf.Graph().as_default():
         # Input point_cloud
         pcs,model_ids = inputs(batch_size=batch_size,num_epochs=training_epochs)
 
-        # Construct a linear model
+        # Construct a linear models
         pred = autoencoder(pcs)
         # Mean Sequared Error
         cost = loss(pred,pcs)

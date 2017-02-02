@@ -5,7 +5,7 @@ import time
 import os
 
 from .. fundamentals.loss import Loss
-from .. Lin.point_net_model import encoder, decoder
+from .Lin.point_net_based_AE import encoder, decoder
 from tf_nndistance import nn_distance
 
 class Configuration():
@@ -77,7 +77,7 @@ class VariationalAutoencoder(object):
             tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
 
     def partial_fit(self, X):
-        """Train model based on mini-batch of input data.
+        """Train models based on mini-batch of input data.
         Return cost of mini-batch.
         """
         _, cost = self.sess.run((self.optimizer, self.cost), feed_dict={self.x: X})
@@ -134,7 +134,7 @@ class VariationalAutoencoder(object):
             cost, duration = self._single_epoch_train(train_data,c)
             if epoch % loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(cost))
-            # Save the model checkpoint periodically.
+            # Save the models checkpoint periodically.
             if c.saver_step is not None and epoch % c.saver_step == 0:
-                checkpoint_path = os.path.join(c.train_dir, 'model.ckpt')
+                checkpoint_path = os.path.join(c.train_dir, 'models.ckpt')
                 self.saver.save(self.sess, checkpoint_path, global_step=epoch)

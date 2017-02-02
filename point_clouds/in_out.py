@@ -38,7 +38,7 @@ def load_filenames_of_input_data(top_directory):
 def load_mesh_filenames(top_directory):
     model_names = []
     for file_name in os.listdir(top_directory):
-        model_name = os.path.join(top_directory, file_name, 'model.obj')
+        model_name = os.path.join(top_directory, file_name, 'models.obj')
         if os.path.exists(model_name):
             model_names.append(model_name)
     return model_names

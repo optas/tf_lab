@@ -57,7 +57,7 @@ class PointNetAutoEncoder(object):
         self.sess.run(init)
 
     def partial_fit(self, X, GT=None):
-        '''Train model based on mini-batch of input data.
+        '''Train models based on mini-batch of input data.
         Returns cost of mini-batch.'''
         if GT is not None:
             _, cost = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
