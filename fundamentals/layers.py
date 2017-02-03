@@ -75,24 +75,7 @@ def conv_2d(in_layer, n_filters, filter_size, stride, padding, name, init={'type
     return out_signal
 
 
-def conv_1d(in_layer, n_filters, filter_size, stride, padding, name, init={'type': 'uniform'}, init_bias=0.0):
-    ''' Args:
-        n_filters (int): number of convolutional kernels to be used
-        filter_size (int): length of kernel
-        stride (int): how many values 'right' to apply next convolution.
-    '''
-    with tf.variable_scope(name):
-        channels = in_layer.get_shape().as_list()[-1]   # The last dimension of the input layer.
-        shape = [filter_size, channels, n_filters]
-        kernels = _variable_with_weight_decay('weights', shape, initializer(init, shape))
-        biases = _bias_variable([n_filters], init_bias)
-        conv = tf.nn.conv1d(in_layer, kernels, stride, padding=padding, name='conv1d')
-        bias = tf.nn.bias_add(conv, biases, name='pre-activation')
-        out_signal = tf.nn.relu(bias, name=name + '_out')
-    return out_signal
-
-
-def de_convolutional_layer(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
+def conv_2d_transpose(in_layer, n_filters, filter_size, stride, padding, stddev, name, init_bias=0.0):
     ''' Args:
         n_filters (int): number of convolutional kernels to be used
         filter_size ([int, int]): height and width of each kernel

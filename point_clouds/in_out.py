@@ -261,7 +261,7 @@ class PointCloudDataSet(object):
     def epochs_completed(self):
         return self._epochs_completed
 
-    def next_batch(self, batch_size):
+    def next_batch(self, batch_size, seed=None):
         '''Return the next batch_size examples from this data set.
         '''
         start = self._index_in_epoch
@@ -270,6 +270,8 @@ class PointCloudDataSet(object):
             # Finished epoch.
             self._epochs_completed += 1
             # Shuffle the data.
+            if seed is not None:
+                np.random.seed(seed)
             perm = np.arange(self._num_examples)
             np.random.shuffle(perm)
             self._point_clouds = self._point_clouds[perm]
