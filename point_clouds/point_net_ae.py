@@ -29,7 +29,7 @@ from .. fundamentals.loss import Loss
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, loss_display_step=1):
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1):
 
         self.n_input = n_input
         self.training_epochs = training_epochs
@@ -46,6 +46,7 @@ class Configuration():
         self.loss = loss
         self.decoder = decoder
         self.encoder = encoder
+        self.saver_max_to_keep = saver_max_to_keep
 
 
 class PointNetAutoEncoder(AutoEncoder):
@@ -54,14 +55,17 @@ class PointNetAutoEncoder(AutoEncoder):
     '''
 
     def __init__(self, name, configuration, graph=None):
-        AutoEncoder.__init__(self, name)
-
         if graph is None:
             self.graph = tf.get_default_graph()
 
+        AutoEncoder.__init__(self, name)
+
         self.configuration = configuration
         c = self.configuration
+
         with tf.variable_scope(name):
+            with tf.device('/cpu:0'):
+                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
             self.x = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
 
@@ -80,19 +84,19 @@ class PointNetAutoEncoder(AutoEncoder):
             else:
                 self.gt = self.x
 
-        self._create_loss_optimizer()
-        self.saver = tf.train.Saver(tf.global_variables())
+            self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
+            self._create_loss_optimizer()
 
-        # Initializing the tensor flow variables
-        init = tf.global_variables_initializer()
+            # Initializing the tensor flow variables
+            init = tf.global_variables_initializer()
 
-        # GPU configuration
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
+            # GPU configuration
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
 
-        # Launch the session
-        self.sess = tf.InteractiveSession(config=config)
-        self.sess.run(init)
+            # Launch the session
+            self.sess = tf.Session(config=config)
+            self.sess.run(init)
 
     def _encoder_network(self):
         '''Generate encoder (recognition network), which maps inputs onto a latent space.
