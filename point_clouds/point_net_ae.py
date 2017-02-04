@@ -5,7 +5,6 @@ Created on January 26, 2017
 '''
 
 import time
-import os.path as osp
 import tensorflow as tf
 
 # import tensorflow.contrib.slim as slim
@@ -22,7 +21,7 @@ from .. fundamentals.loss import Loss
 
 
 class Configuration():
-    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, transfer_fct=tf.nn.relu,
+    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
                  saver_step=None, train_dir=None, loss_display_step=1):
 
         self.n_input = n_input
@@ -30,9 +29,7 @@ class Configuration():
         self.encoder_sizes = [64, 128, 1024]
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.transfer_fct = transfer_fct
-        self.is_denoising = denoising
-        self.padding = 'SAME'
+        self.non_linearity = non_linearity
         self.is_denoising = denoising
         self.loss_display_step = loss_display_step
         self.saver_step = saver_step
@@ -91,9 +88,10 @@ class PointNetAutoEncoder(AutoEncoder):
         '''Generate a decoder which maps points from the latent space back onto the data space.
         '''
         c = self.configuration
+
         layer = fully_connected(self.z, c.n_input[0], name='decoder_fc_0')
-#         layer = batch_normalization(layer)
-#         layer = slim.batch_norm(layer)
+        layer = batch_normalization(layer)
+        layer = c.non_linearity(layer)
         layer = fully_connected(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
 #         layer = slim.batch_norm(layer)
         layer = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
@@ -115,6 +113,13 @@ class PointNetAutoEncoder(AutoEncoder):
         for _ in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
+
+#             if configuration.gauss_augment is not None:
+#                 mu = configuration.gauss_augment['mu']
+#                 sigma = configuration.gauss_augment['sigma']
+#                 batch_i 
+
+
             loss, _ = self.partial_fit(batch_i)
             # Compute average loss
             epoch_loss += loss
