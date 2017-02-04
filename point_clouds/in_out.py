@@ -36,6 +36,13 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
     return pclouds, model_names
 
 
+def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
+    gnoise = np.random.normal(mu, sigma, pcloud.shape[0])
+    gnoise = np.tile(gnoise, (3, 1)).T
+    pcloud += gnoise
+    return pcloud
+
+
 def load_filenames_of_input_data(top_directory):
     res = []
     for file_name in glob.glob(osp.join(top_directory, '*' + points_extension)):
