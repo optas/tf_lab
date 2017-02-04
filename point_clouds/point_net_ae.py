@@ -7,7 +7,9 @@ Created on January 26, 2017
 import time
 import os.path as osp
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+
+# import tensorflow.contrib.slim as slim
+from tflearn.layers.normalization import batch_normalization
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
@@ -90,6 +92,7 @@ class PointNetAutoEncoder(AutoEncoder):
         '''
         c = self.configuration
         layer = fully_connected(self.z, c.n_input[0], name='decoder_fc_0')
+#         layer = batch_normalization(layer)
 #         layer = slim.batch_norm(layer)
         layer = fully_connected(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
 #         layer = slim.batch_norm(layer)

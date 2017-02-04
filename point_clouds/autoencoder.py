@@ -23,7 +23,6 @@ class AutoEncoder(object):
         '''Restore all the variables of the auto-encoder.
         '''
         self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(epoch)))
-#         print self.global_step
 
     def partial_fit(self, X, GT=None):
         '''Train models based on mini-batch of input data.
