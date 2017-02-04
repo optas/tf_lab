@@ -29,7 +29,7 @@ from .. fundamentals.loss import Loss
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, loss_display_step=1):
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, loss_display_step=1):
 
         self.n_input = n_input
         self.training_epochs = training_epochs
@@ -44,6 +44,9 @@ class Configuration():
         self.gauss_augment = gauss_augment
         self.z_rotate = z_rotate
         self.loss = loss
+        self.decoder = decoder
+        self.encoder = encoder
+
 
 
 class PointNetAutoEncoder(AutoEncoder):
@@ -60,9 +63,18 @@ class PointNetAutoEncoder(AutoEncoder):
         self.configuration = configuration
         c = self.configuration
         with tf.variable_scope(name):
+
             self.x = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
-            self.z = self._encoder_network()
-            self.x_reconstr = self._decoder_network()
+
+            if c.encoder is None:
+                self.z = self._encoder_network()
+            else:
+                self.z = c.encoder(self.x)
+
+            if c.decoder is None:
+                self.x_reconstr = self._decoder_network()
+            else:
+                self.x_reconstr = c.decoder_network(self.z)
 
             if self.configuration.is_denoising:
                 self.gt = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
@@ -98,12 +110,9 @@ class PointNetAutoEncoder(AutoEncoder):
         '''Generate a decoder which maps points from the latent space back onto the data space.
         '''
         c = self.configuration
-
         layer = fully_connected(self.z, c.n_input[0], name='decoder_fc_0')
-#         layer = batch_normalization(layer)
         layer = c.non_linearity(layer)
         layer = fully_connected(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
-#         layer = slim.batch_norm(layer)
         layer = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
         return layer
 
@@ -135,7 +144,6 @@ class PointNetAutoEncoder(AutoEncoder):
                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
-                print "rotating"
                 r_rotation = rand_rotation_matrix()
                 r_rotation[0, 2] = 0
                 r_rotation[2, 0] = 0
