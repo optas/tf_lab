@@ -3,12 +3,10 @@ Created on February 2, 2017
 
 @author: optas
 '''
-import tensorflow as tf
 
 
 class AutoEncoder(object):
     '''
-    classdocs
     '''
 
     def restore_model(self, model_path):
