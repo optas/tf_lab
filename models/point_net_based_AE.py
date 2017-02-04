@@ -12,13 +12,13 @@ except:
 def encoder(in_signal):
     layer = in_signal
     layer = conv_1d(layer, nb_filter=64, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = tf.reduce_max(layer, axis=1)
     return layer
@@ -33,17 +33,17 @@ def decoder(latent_signal):
 
     # Up-sample signal in an 8 x 8 x 8 voxel-space, with 16 channels.
     layer = conv_3d_transpose(layer, nb_filter=16, filter_size=4, output_shape=[8, 8, 8], strides=2)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
     # Up-sample signal in an 16 x 16 x 16 voxel-space, with 8 channels.
     layer = conv_3d_transpose(layer, nb_filter=8, filter_size=4, output_shape=[16, 16, 16], strides=2)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
     # Up-sample signal in an 32 x 32 x 32 voxel-space, with 4 channels.
     layer = conv_3d_transpose(layer, nb_filter=4, filter_size=4, output_shape=[32, 32, 32], strides=2)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
     # Push back signal into a linear 1D vector.
@@ -51,23 +51,15 @@ def decoder(latent_signal):
 
     # Convolve every 32 values via 1024 filters.
     layer = conv_1d(layer, nb_filter=1024, filter_size=32, strides=32)
-#     layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    layer = conv_1d(layer, nb_filter=512, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    layer = conv_1d(layer, nb_filter=218, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
     layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
-    layer = conv_1d(layer, nb_filter=32, filter_size=1, strides=1)
-#     layer = batch_normalization(layer)
+    layer = conv_1d(layer, nb_filter=64, filter_size=1, strides=1)
+    layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
     layer = conv_1d(layer, nb_filter=3, filter_size=1, strides=1)
