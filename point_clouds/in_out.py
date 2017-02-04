@@ -1,8 +1,9 @@
-import tensorflow as tf
+import os
+import glob
 import numpy as np
 import os.path as osp
-import glob
-import os
+import tensorflow as tf
+from multiprocessing import Pool
 
 from autopredictors.scripts.helper import points_extension
 from geo_tool.in_out.soup import load_crude_point_cloud
@@ -13,16 +14,25 @@ from general_tools.rla.three_d_transforms import rand_rotation_matrix
 tf_record_extension = '.tfrecord'
 
 
-def load_crude_point_clouds(top_directory=None, file_names=None):
-    pclouds = []
-    model_names = []
+def _load_pcloud_and_model_id(f_name):
+        return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
+
+
+def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
     if file_names is None:
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
-    for file_name in file_names:
-        pclouds.append(load_crude_point_cloud(file_name))
-        model_name = osp.basename(file_name).split('_')[0]
-        model_names.append(model_name)
+    pc = load_crude_point_cloud(file_names[0])
+    pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]])
+    model_names = dict()
+    pool = Pool(n_threads)
+
+    for i, data in enumerate(pool.imap(_load_pcloud_and_model_id, file_names)):
+        pclouds[i, :, :], model_names[i] = data
+
+    pool.close()
+    pool.join()
+
     return pclouds, model_names
 
 
@@ -261,7 +271,7 @@ class PointCloudDataSet(object):
     def epochs_completed(self):
         return self._epochs_completed
 
-    def next_batch(self, batch_size):
+    def next_batch(self, batch_size, seed=None):
         '''Return the next batch_size examples from this data set.
         '''
         start = self._index_in_epoch
@@ -270,6 +280,8 @@ class PointCloudDataSet(object):
             # Finished epoch.
             self._epochs_completed += 1
             # Shuffle the data.
+            if seed is not None:
+                np.random.seed(seed)
             perm = np.arange(self._num_examples)
             np.random.shuffle(perm)
             self._point_clouds = self._point_clouds[perm]

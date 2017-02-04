@@ -1,54 +1,76 @@
 import tensorflow as tf
 from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
-from tflearn.layers.conv import conv_1d, conv_2d, conv_3d, conv_3d_transpose
+from tflearn.layers.conv import conv_1d
+
+try:
+    from tflearn.layers.conv import conv_3d_transpose
+except:
+    from .. fundamentals.conv import conv_3d_transpose
 
 
 def encoder(in_signal):
     layer = in_signal
-    layer = conv_1d(layer, 64, 1, 1)
-    layer = batch_normalization(layer)
+    layer = conv_1d(layer, nb_filter=64, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 128, 1, 1)
-    layer = batch_normalization(layer)
+    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 1024, 1, 1)
-    layer = batch_normalization(layer)
+    layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = tf.reduce_max(layer, 1)
+    layer = tf.reduce_max(layer, axis=1)
     return layer
 
 
 def decoder(latent_signal):
     layer = fully_connected(latent_signal, 1024, activation='relu', weights_init='xavier')
     layer = fully_connected(layer, 32 * 4 * 4 * 4, activation='relu', weights_init='xavier')
+
+    # Virtually treat the signal as 4 x 4 x 4 Voxels, each having 32 channels.
     layer = tf.reshape(layer, [-1, 4, 4, 4, 32])
-    layer = conv_3d_transpose(layer, 16, 4, [8, 8, 8], strides=2, activation='relu')
-    layer = batch_normalization(layer)
+
+    # Up-sample signal in an 8 x 8 x 8 voxel-space, with 16 channels.
+    layer = conv_3d_transpose(layer, nb_filter=16, filter_size=4, output_shape=[8, 8, 8], strides=2)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_3d_transpose(layer, 8, 4, [16, 16, 16], strides=2, activation='relu')
-    layer = batch_normalization(layer)
+
+    # Up-sample signal in an 16 x 16 x 16 voxel-space, with 8 channels.
+    layer = conv_3d_transpose(layer, nb_filter=8, filter_size=4, output_shape=[16, 16, 16], strides=2)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_3d_transpose(layer, 4, 4, [32, 32, 32], strides=2, activation='relu')
-    layer = batch_normalization(layer)
+
+    # Up-sample signal in an 32 x 32 x 32 voxel-space, with 4 channels.
+    layer = conv_3d_transpose(layer, nb_filter=4, filter_size=4, output_shape=[32, 32, 32], strides=2)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
+
+    # Push back signal into a linear 1D vector.
     layer = tf.reshape(layer, [-1, 32 * 32 * 32, 4])
-    layer = conv_1d(layer, 1024, 32, strides=32)
-    layer = batch_normalization(layer)
+
+    # Convolve every 32 values via 1024 filters.
+    layer = conv_1d(layer, nb_filter=1024, filter_size=32, strides=32)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 512, 1)
-    layer = batch_normalization(layer)
+
+    layer = conv_1d(layer, nb_filter=512, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 218, 1)
-    layer = batch_normalization(layer)
+
+    layer = conv_1d(layer, nb_filter=218, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 128, 1)
-    layer = batch_normalization(layer)
+
+    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 32, 1)
-    layer = batch_normalization(layer)
+
+    layer = conv_1d(layer, nb_filter=32, filter_size=1, strides=1)
+#     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
-    layer = conv_1d(layer, 3, 1)
+
+    layer = conv_1d(layer, nb_filter=3, filter_size=1, strides=1)
     return layer
 
 

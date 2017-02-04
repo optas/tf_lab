@@ -4,12 +4,13 @@ Created on February 1, 2017
 @author: optas
 '''
 
-import tensorflow as tf
 import numpy as np
-from tflearn.layers.core import fully_connected as fc_layer
 import time
 import os.path as osp
+import tensorflow as tf
+from tflearn.layers.core import fully_connected as fc_layer
 
+from general_tools.in_out.basics import create_dir
 from .. models.point_net_based_AE import encoder, decoder
 
 try:
@@ -61,7 +62,7 @@ class VariationalAutoencoder(object):
 
         # Define loss function based variational upper-bound and corresponding optimizer.
         self._create_loss_optimizer()
-        self.saver = tf.train.Saver(tf.all_variables())
+        self.saver = tf.train.Saver(tf.global_variables())
 
         # Initializing the tensor flow variables
         init = tf.global_variables_initializer()
@@ -109,7 +110,7 @@ class VariationalAutoencoder(object):
         """Transform data by mapping it into the latent space."""
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
-        return self.sess.run(self.z_mean, feed_dict={self.x: X})
+        return self.sess.run(self.z_mean, feed_dict={self.x: X})    # TODO _ think if z is a more reasonable transformation.
 
     def generate(self, z_mu=None):
         """ Generate data by sampling from latent space.
@@ -157,6 +158,8 @@ class VariationalAutoencoder(object):
     def train(self, train_data, configuration):
         # Training cycle
         c = configuration
+        if c.saver_step is not None:
+            create_dir(c.train_dir)
         for epoch in xrange(c.training_epochs):
             cost, _ = self._single_epoch_train(train_data, c)
             if epoch % c.loss_display_step == 0:
