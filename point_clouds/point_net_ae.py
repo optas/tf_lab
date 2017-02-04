@@ -46,8 +46,6 @@ class Configuration():
         self.loss = loss
 
 
-
-
 class PointNetAutoEncoder(AutoEncoder):
     '''
     An Auto-Encoder replicating the architecture of Charles and Hao paper.
@@ -90,17 +88,7 @@ class PointNetAutoEncoder(AutoEncoder):
         '''
         c = self.configuration
         nb_filters = c.encoder_sizes
-
-        if c.gauss_augment is not None:
-            mu = c.gauss_augment['mu']
-            sigma = c.gauss_augment['sigma']
-            shape = [c.batch_size, c.n_input[0], c.n_input[1]]
-            gnoise = tf.Variable(tf.random_normal(shape, mean=mu, stddev=sigma, dtype=tf.float32))
-            layer = tf.add(self.x, gnoise)
-        else:
-            layer = self.x
-
-        layer = conv_1d(layer, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
+        layer = conv_1d(self.x, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
         layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
         layer = conv_1d(layer, nb_filter=nb_filters[2], filter_size=1, strides=1, name='conv-fc3')
         layer = tf.reduce_max(layer, axis=1)
@@ -141,12 +129,10 @@ class PointNetAutoEncoder(AutoEncoder):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
 
-#             if configuration.gauss_augment is not None:
-#                 mu = configuration.gauss_augment['mu']
-#                 sigma = configuration.gauss_augment['sigma']
-#                 gnoise = tf.Variable(tf.random_normal(batch_i.shape, mean=mu, stddev=sigma, dtype=tf.float32))
-#                 batch_i = tf.add(batch_i, gnoise)
-#                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
+            if configuration.gauss_augment is not None:
+                mu = configuration.gauss_augment['mu']
+                sigma = configuration.gauss_augment['sigma']
+                batch_i += np.random.normal(mu, sigma, batch_i.shape)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 print "rotating"
