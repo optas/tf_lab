@@ -132,9 +132,13 @@ class PointNetAutoEncoder(AutoEncoder):
             if configuration.gauss_augment is not None:
                 mu = configuration.gauss_augment['mu']
                 sigma = configuration.gauss_augment['sigma']
-                batch_i += np.random.normal(mu, sigma, batch_i.shape)
+                gnoise = tf.Variable(tf.random_normal(batch_i.shape, mean=mu, stddev=sigma, dtype=tf.float32))
+                batch_i = tf.add(batch_i, gnoise)
+
+#                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
+                print "rotating"
                 r_rotation = rand_rotation_matrix()
                 r_rotation[0, 2] = 0
                 r_rotation[2, 0] = 0
