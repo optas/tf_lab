@@ -23,7 +23,7 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
     pc = load_crude_point_cloud(file_names[0])
-    pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]])
+    pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = dict()
     pool = Pool(n_threads)
 
