@@ -48,7 +48,6 @@ class Configuration():
         self.encoder = encoder
 
 
-
 class PointNetAutoEncoder(AutoEncoder):
     '''
     An Auto-Encoder replicating the architecture of Charles and Hao paper.

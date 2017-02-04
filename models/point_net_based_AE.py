@@ -10,8 +10,7 @@ except:
 
 
 def encoder(in_signal):
-    layer = in_signal
-    layer = conv_1d(layer, nb_filter=64, filter_size=1, strides=1)
+    layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1)
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
