@@ -46,6 +46,13 @@ class Configuration():
         self.loss = loss
 
 
+# if configuration.gauss_augment is not None:
+#                 mu = configuration.gauss_augment['mu']
+#                 sigma = configuration.gauss_augment['sigma']
+#                 shape = [c.batch_size, c.n_input[0], c.n_input[1]]
+#                 gnoise = tf.Variable(tf.random_normal(shape, mean=mu, stddev=sigma, dtype=tf.float32))
+#                 self.x = tf.add(self.x, gnoise)
+
 class PointNetAutoEncoder(AutoEncoder):
     '''
     An Auto-Encoder replicating the architecture of Charles and Hao paper.
@@ -61,14 +68,6 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
-
-            if configuration.gauss_augment is not None:
-                mu = configuration.gauss_augment['mu']
-                sigma = configuration.gauss_augment['sigma']
-                shape = [c.batch_size, c.n_input[0], c.n_input[1]]
-                gnoise = tf.Variable(tf.random_normal(shape, mean=mu, stddev=sigma, dtype=tf.float32))
-                self.x = tf.add(self.x, gnoise)
-
             self.z = self._encoder_network()
             self.x_reconstr = self._decoder_network()
 
@@ -137,12 +136,11 @@ class PointNetAutoEncoder(AutoEncoder):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
 
-            if configuration.gauss_augment is not None:
-                mu = configuration.gauss_augment['mu']
-                sigma = configuration.gauss_augment['sigma']
-                gnoise = tf.Variable(tf.random_normal(batch_i.shape, mean=mu, stddev=sigma, dtype=tf.float32))
-                batch_i = tf.add(batch_i, gnoise)
-
+#             if configuration.gauss_augment is not None:
+#                 mu = configuration.gauss_augment['mu']
+#                 sigma = configuration.gauss_augment['sigma']
+#                 gnoise = tf.Variable(tf.random_normal(batch_i.shape, mean=mu, stddev=sigma, dtype=tf.float32))
+#                 batch_i = tf.add(batch_i, gnoise)
 #                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
