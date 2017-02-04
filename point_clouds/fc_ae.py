@@ -42,6 +42,8 @@ class FullyConnectedAutoEncoder(AutoEncoder):
     '''
 
     def __init__(self, name, configuration, graph=None):
+        AutoEncoder.__init__(self, name)
+
         if graph is None:
             self.graph = tf.get_default_graph()
 
@@ -73,8 +75,8 @@ class FullyConnectedAutoEncoder(AutoEncoder):
 
     def _create_loss_optimizer(self):
         c = self.configuration
-        self.cost = Loss.l2_loss(self.x_reconstr, self.gt)
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.cost)
+        self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def _encoder_network(self):
         # Generate encoder (recognition network), which maps inputs onto a latent space.
@@ -107,7 +109,7 @@ class FullyConnectedAutoEncoder(AutoEncoder):
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
-        epoch_cost = 0.
+        epoch_loss = 0.
         batch_size = configuration.batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
@@ -115,25 +117,11 @@ class FullyConnectedAutoEncoder(AutoEncoder):
         # Loop over all batches
         for _ in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
-            cost, _ = self.partial_fit(batch_i)
+            loss, _ = self.partial_fit(batch_i)
             # Compute average loss
-            epoch_cost += cost
+            epoch_loss += loss
 
-        epoch_cost /= n_batches
+        epoch_loss /= n_batches
 #                        * batch_size)
         duration = time.time() - start_time
-        return epoch_cost, duration
-
-    def train(self, train_data, configuration):
-        # Training cycle
-        c = configuration
-        if c.saver_step is not None:
-            create_dir(c.train_dir)
-        for epoch in xrange(c.training_epochs):
-            cost, _ = self._single_epoch_train(train_data, c)
-            if epoch % c.loss_display_step == 0:
-                print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(cost))
-            # Save the models checkpoint periodically.
-            if c.saver_step is not None and epoch % c.saver_step == 0:
-                checkpoint_path = osp.join(c.train_dir, 'models.ckpt')
-                self.saver.save(self.sess, checkpoint_path, global_step=epoch)
+        return epoch_loss, duration

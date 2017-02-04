@@ -8,13 +8,15 @@ import time
 import os.path as osp
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+
 from tflearn.layers.conv import conv_1d
+from tflearn.layers.core import fully_connected
 
 from general_tools.in_out.basics import create_dir
 
 from . autoencoder import AutoEncoder
-from .. fundamentals.layers import fully_connected_layer, relu, tanh
-from .. fundamentals.loss import Loss 
+from .. fundamentals.layers import relu, tanh
+from .. fundamentals.loss import Loss
 
 
 class Configuration():
@@ -41,6 +43,8 @@ class PointNetAutoEncoder(AutoEncoder):
     '''
 
     def __init__(self, name, configuration, graph=None):
+        AutoEncoder.__init__(self, name)
+
         if graph is None:
             self.graph = tf.get_default_graph()
 
@@ -71,22 +75,26 @@ class PointNetAutoEncoder(AutoEncoder):
         self.sess.run(init)
 
     def _encoder_network(self):
-        # Generate encoder (recognition network), which maps inputs onto a latent space.
+        '''Generate encoder (recognition network), which maps inputs onto a latent space.
+        '''
         c = self.configuration
-        layer = conv_1d(self.x, c.encoder_sizes[0], 1, 1, c.padding, name='conv-fc1')
-        layer = conv_1d(layer, c.encoder_sizes[1], 1, 1, c.padding, name='conv-fc2')
-        layer = conv_1d(layer, c.encoder_sizes[2], 1, 1, c.padding, name='conv-fc3')
-        tf.reduce_max(layer, axis=1)
+        nb_filters = c.encoder_sizes
+        layer = conv_1d(self.x, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
+        layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
+        layer = conv_1d(layer, nb_filter=nb_filters[2], filter_size=1, strides=1, name='conv-fc3')
+        layer = tf.reduce_max(layer, axis=1)
         return layer
 
     def _decoder_network(self):
-        # Generate a decoder which maps points from the latent space back onto the data space.
+        '''Generate a decoder which maps points from the latent space back onto the data space.
+        '''
         c = self.configuration
-        layer = fully_connected_layer(self.z, c.n_input[0], name='decoder_fc_0')
-        layer = slim.batch_norm(layer)
-        layer = fully_connected_layer(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
-        layer = slim.batch_norm(layer)
-        return tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
+        layer = fully_connected(self.z, c.n_input[0], name='decoder_fc_0')
+#         layer = slim.batch_norm(layer)
+        layer = fully_connected(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
+#         layer = slim.batch_norm(layer)
+        layer = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
+        return layer
 
     def _create_loss_optimizer(self):
         c = self.configuration
@@ -111,17 +119,3 @@ class PointNetAutoEncoder(AutoEncoder):
     #                        * batch_size)
         duration = time.time() - start_time
         return epoch_loss, duration
-
-    def train(self, train_data, configuration):
-        # Training cycle
-        c = configuration
-        if c.saver_step is not None:
-            create_dir(c.train_dir)
-        for epoch in xrange(c.training_epochs):
-            loss, _ = self._single_epoch_train(train_data, c)
-            if epoch % c.loss_display_step == 0:
-                print("Epoch:", '%04d' % (epoch + 1), "loss=", "{:.9f}".format(loss))
-            # Save the models checkpoint periodically.
-            if c.saver_step is not None and epoch % c.saver_step == 0:
-                checkpoint_path = osp.join(c.train_dir, 'models.ckpt')
-                self.saver.save(self.sess, checkpoint_path, global_step=epoch)
