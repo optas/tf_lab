@@ -46,12 +46,7 @@ class Configuration():
         self.loss = loss
 
 
-# if configuration.gauss_augment is not None:
-#                 mu = configuration.gauss_augment['mu']
-#                 sigma = configuration.gauss_augment['sigma']
-#                 shape = [c.batch_size, c.n_input[0], c.n_input[1]]
-#                 gnoise = tf.Variable(tf.random_normal(shape, mean=mu, stddev=sigma, dtype=tf.float32))
-#                 self.x = tf.add(self.x, gnoise)
+
 
 class PointNetAutoEncoder(AutoEncoder):
     '''
@@ -95,7 +90,17 @@ class PointNetAutoEncoder(AutoEncoder):
         '''
         c = self.configuration
         nb_filters = c.encoder_sizes
-        layer = conv_1d(self.x, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
+
+        if c.gauss_augment is not None:
+            mu = c.gauss_augment['mu']
+            sigma = c.gauss_augment['sigma']
+            shape = [c.batch_size, c.n_input[0], c.n_input[1]]
+            gnoise = tf.Variable(tf.random_normal(shape, mean=mu, stddev=sigma, dtype=tf.float32))
+            layer = tf.add(self.x, gnoise)
+        else:
+            layer = self.x
+
+        layer = conv_1d(layer, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
         layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
         layer = conv_1d(layer, nb_filter=nb_filters[2], filter_size=1, strides=1, name='conv-fc3')
         layer = tf.reduce_max(layer, axis=1)
