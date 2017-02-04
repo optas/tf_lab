@@ -44,6 +44,9 @@ class Configuration():
         self.gauss_augment = gauss_augment
         self.z_rotate = z_rotate
         self.loss = loss
+        self.decoder = decoder
+        self.encoder = encoder
+
 
 
 class PointNetAutoEncoder(AutoEncoder):
