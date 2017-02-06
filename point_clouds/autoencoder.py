@@ -6,14 +6,14 @@ Created on February 2, 2017
 
 import os.path as osp
 import tensorflow as tf
+
 from general_tools.in_out.basics import create_dir
 
 model_saver_id = 'models.ckpt'
 
 
 class AutoEncoder(object):
-    '''
-    '''
+
     def __init__(self, name):
         self.nane = name
 #         with tf.device('/cpu:0'), tf.name_scope(name):

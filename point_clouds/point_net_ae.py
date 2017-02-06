@@ -88,7 +88,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self._create_loss_optimizer()
 
             # Initializing the tensor flow variables
-            init = tf.global_variables_initializer()
+            self.init = tf.global_variables_initializer()
 
             # GPU configuration
             config = tf.ConfigProto()
@@ -96,7 +96,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
             # Launch the session
             self.sess = tf.Session(config=config)
-            self.sess.run(init)
+            self.sess.run(self.init)
 
     def _encoder_network(self):
         '''Generate encoder (recognition network), which maps inputs onto a latent space.
