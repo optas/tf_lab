@@ -24,6 +24,14 @@ class AutoEncoder(object):
         '''
 #         self.sess.run(tf.global_variables_initializer())
         self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(epoch)))
+#         print tf.get_variable('epoch')
+#             all_vars = tf.get_collection('vars')
+# for v in all_vars:
+#     v_ = sess.run(v)
+#     print(v_)
+
+
+#         self.epoch = .eval(self.sess)
 
     def partial_fit(self, X, GT=None):
         '''Train models based on mini-batch of input data.

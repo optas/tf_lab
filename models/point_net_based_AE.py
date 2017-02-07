@@ -24,8 +24,12 @@ def encoder(in_signal):
 
 
 def decoder(latent_signal):
-    layer = fully_connected(latent_signal, 1024, activation='relu', weights_init='xavier')
-    layer = fully_connected(layer, 32 * 4 * 4 * 4, activation='relu', weights_init='xavier')
+    layer = fully_connected(latent_signal, 1024, activation='linear', weights_init='xavier')
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+    layer = fully_connected(layer, 32 * 4 * 4 * 4, activation='linear', weights_init='xavier')
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
 
     # Virtually treat the signal as 4 x 4 x 4 Voxels, each having 32 channels.
     layer = tf.reshape(layer, [-1, 4, 4, 4, 32])

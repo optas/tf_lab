@@ -10,7 +10,6 @@ import tensorflow as tf
 
 # import tensorflow.contrib.slim as slim
 from tflearn.layers.normalization import batch_normalization
-
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 
@@ -23,7 +22,6 @@ except:
     pass
 
 from . autoencoder import AutoEncoder
-from .. fundamentals.layers import relu, tanh
 from .. fundamentals.loss import Loss
 
 

@@ -11,6 +11,7 @@ import tensorflow as tf
 from tflearn.layers.core import fully_connected as fc_layer
 
 from general_tools.in_out.basics import create_dir
+from . autoencoder import AutoEncoder
 from .. models.point_net_based_AE import encoder, decoder
 
 try:
@@ -21,21 +22,29 @@ except:
 
 class Configuration():
     def __init__(self, n_input, n_z, training_epochs, batch_size, learning_rate=0.001,
-                 saver_step=None, train_dir=None, loss='Bernoulli', transfer_fct=tf.nn.relu,
-                 loss_display_step=1):
+                 saver_step=None, train_dir=None, loss='Bernoulli', gauss_augment=None,
+                 z_rotate=False, non_linearity=tf.nn.relu, saver_max_to_keep=None,
+                 loss_display_step=1, encoder=encoder, decoder=decoder):
 
         self.n_input = n_input
         self.n_z = n_z
+        self.non_linearity = non_linearity
+        self.loss_display_step = loss_display_step
+        self.saver_step = saver_step
+        self.train_dir = train_dir
+        self.gauss_augment = gauss_augment
+#         self.is_denoising = denoising
+        self.z_rotate = z_rotate
+        self.loss = loss
+        self.saver_max_to_keep = saver_max_to_keep
         self.training_epochs = training_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.saver_step = saver_step
-        self.train_dir = train_dir
-        self.loss = loss
-        self.loss_display_step = loss_display_step
+        self.decoder = decoder
+        self.encoder = encoder
 
 
-class VariationalAutoencoder(object):
+class VariationalAutoencoder(AutoEncoder):
     """ Variation Autoencoder (VAE) with an sklearn-like interface implemented using TensorFlow.
 
     This implementation uses probabilistic encoders and decoders using Gaussian
@@ -43,40 +52,46 @@ class VariationalAutoencoder(object):
 
     See "Auto-Encoding Variational Bayes" by Kingma and Welling for more details.
     """
-    def __init__(self, configuation):
+    def __init__(self, name, configuation):
+        AutoEncoder.__init__(self, name)
+
         # Define the Tensor-Flow graph.
         c = configuation
         self.conf = c
-        self.x = tf.placeholder(tf.float32, [None] + c.n_input)
-        self.in_approximator = encoder(self.x)
-        self.z_mean = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
-        self.z_log_sigma_sq = fc_layer(self.in_approximator, c.n_z, activation='relu', weights_init='xavier')
-        eps = tf.random_normal((c.batch_size, c.n_z), 0, 1, dtype=tf.float32)
+        encoder = c.encoder
+        decoder = c.decoder
 
-        # z = mu + sigma*epsilon
-        self.z = tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
-        self.x_reconstr = decoder(self.z)
+        with tf.variable_scope(name):
+            self.x = tf.placeholder(tf.float32, [None] + c.n_input)
+            self.z = self._encoded_to_latent(encoder(self.x))
+            self.x_reconstr = decoder(self.z)
 
-        if c.loss == 'Bernoulli':
-            self.x_reconstr = tf.sigmoid(self.x_reconstr)   # Force Output to be in [0,1]
+            if c.loss == 'Bernoulli':
+                self.x_reconstr = tf.sigmoid(self.x_reconstr)   # Force Output to be in [0,1]
 
-        # Define loss function based variational upper-bound and corresponding optimizer.
-        self._create_loss_optimizer()
-        self.saver = tf.train.Saver(tf.global_variables())
+            # Define loss function based variational upper-bound and corresponding optimizer.
+            self._create_loss_optimizer()
 
-        # Initializing the tensor flow variables
-        init = tf.global_variables_initializer()
+            self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
 
-        # GPU configuration
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
+            self.init = tf.global_variables_initializer()
 
-        # Launch the session
-        self.sess = tf.InteractiveSession(config=config)
-        self.sess.run(init)
+            # GPU configuration
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
 
-    def restore_model(self, model_path):
-        self.saver.restore(self.sess, model_path)
+            # Launch the session
+            self.sess = tf.Session(config=config)
+            self.sess.run(self.init)
+
+    def _encoded_to_latent(self, encoded):
+        n_z = self.conf.n_z
+        batch_size = self.conf.batch_size
+        self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
+        self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
+        eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
+        # z = mu + sigma * epsilon
+        return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
     def _create_loss_optimizer(self):
         if self.c.loss == 'Chamfer':
@@ -93,18 +108,11 @@ class VariationalAutoencoder(object):
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.cost = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(latent_loss)
+        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(latent_loss)
 
         # Use ADAM optimizer
         self.optimizer = \
-            tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.cost)
-
-    def partial_fit(self, X):
-        """Train models based on mini-batch of input data.
-        Return cost of mini-batch.
-        """
-        _, cost, recon = self.sess.run((self.optimizer, self.cost, self.x_reconstr), feed_dict={self.x: X})
-        return cost, recon
+            tf.train.AdamOptimizer(learning_rate=self.conf.learning_rate).minimize(self.loss)
 
     def transform(self, X):
         """Transform data by mapping it into the latent space."""

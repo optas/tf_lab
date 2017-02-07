@@ -35,6 +35,10 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
 
     return pclouds, model_names
 
+# def load_cc_parts_of_model(model_path):
+    
+    
+
 
 def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     gnoise = np.random.normal(mu, sigma, pcloud.shape[0])
