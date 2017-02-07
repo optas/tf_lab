@@ -43,7 +43,7 @@ class Configuration():
         self.z_rotate = z_rotate
         self.loss = loss
         self.decoder = decoder
-        self.encoder = encoder
+        self._encoder = encoder
         self.saver_max_to_keep = saver_max_to_keep
 
 
@@ -75,7 +75,7 @@ class PointNetAutoEncoder(AutoEncoder):
             if c.decoder is None:
                 self.x_reconstr = self._decoder_network()
             else:
-                self.x_reconstr = c.decoder_network(self.z)
+                self.x_reconstr = c.decoder(self.z)
 
             if self.configuration.is_denoising:
                 self.gt = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
