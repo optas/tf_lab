@@ -43,7 +43,7 @@ class Configuration():
         self.z_rotate = z_rotate
         self.loss = loss
         self.decoder = decoder
-        self._encoder = encoder
+        self.encoder = encoder
         self.saver_max_to_keep = saver_max_to_keep
 
 
