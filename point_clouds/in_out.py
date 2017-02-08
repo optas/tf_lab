@@ -48,12 +48,12 @@ def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     return pcloud
 
 
-def load_filenames_of_input_data(top_directory, ):
+
+def load_filenames_of_input_data(top_directory):
     res = []
     for file_name in files_in_subdirs(top_directory, points_extension + '$'):
         res.append(file_name)
-#     for file_name in glob.glob(osp.join(top_directory, '*' + points_extension)):
-#         res.append(file_name)
+        
     print '%d files containing  point clouds were found.' % (len(res), )
     return res
 
