@@ -8,8 +8,7 @@ import time
 import numpy as np
 import tensorflow as tf
 
-# import tensorflow.contrib.slim as slim
-from tflearn.layers.normalization import batch_normalization
+
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 
@@ -102,7 +101,9 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         nb_filters = c.encoder_sizes
         layer = conv_1d(self.x, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
+        layer = c.non_linearity(layer)
         layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
+        layer = c.non_linearity(layer)
         layer = conv_1d(layer, nb_filter=nb_filters[2], filter_size=1, strides=1, name='conv-fc3')
         layer = tf.reduce_max(layer, axis=1)
         return layer
@@ -157,6 +158,7 @@ class PointNetAutoEncoder(AutoEncoder):
             loss, _ = self.partial_fit(batch_i)
             # Compute average loss
             epoch_loss += loss
+
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
