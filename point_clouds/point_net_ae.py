@@ -157,6 +157,7 @@ class PointNetAutoEncoder(AutoEncoder):
             loss, _ = self.partial_fit(batch_i)
             # Compute average loss
             epoch_loss += loss
+
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration

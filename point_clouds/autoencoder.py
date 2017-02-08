@@ -53,8 +53,8 @@ class AutoEncoder(object):
         return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: X})
 
     def train(self, train_data, configuration):
-        # Training cycle
         c = configuration
+        stats = []
 
         if c.saver_step is not None:
             create_dir(c.train_dir)
@@ -63,6 +63,7 @@ class AutoEncoder(object):
             loss, duration = self._single_epoch_train(train_data, c)
             self.epoch = self.epoch + tf.constant(1.0)
             epoch = self.epoch.eval(session=self.sess)
+            stats.append((epoch, loss, duration))
             if epoch % c.loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
 
@@ -70,3 +71,24 @@ class AutoEncoder(object):
             if c.saver_step is not None and epoch % c.saver_step == 0:
                 checkpoint_path = osp.join(c.train_dir, model_saver_id)
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
+        return stats
+
+    def evaluate(self, in_data, configuration, get_original=True):
+        n_examples = in_data.num_examples
+        data_loss = 0.
+        batch_size = configuration.batch_size
+        n_batches = int(n_examples / batch_size)
+        reconstructions = []
+        original = []
+        # Loop over all batches
+        for _ in xrange(n_batches):
+            batch_i, _, _ = in_data.next_batch(batch_size)
+            batch_i = batch_i.reshape([batch_size] + configuration.n_input)
+            rec_i, loss = self.reconstruct(batch_i)
+            reconstructions.append(rec_i)
+            if get_original:
+                original.append(batch_i)
+            # Compute average loss
+            data_loss += loss
+        data_loss /= n_batches
+        return reconstructions, data_loss, original
