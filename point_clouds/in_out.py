@@ -10,6 +10,7 @@ from geo_tool.in_out.soup import load_crude_point_cloud
 from geo_tool.in_out.soup import load_mesh_from_file
 from geo_tool import Mesh, Point_Cloud
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
+from general_tools.in_out.basics import files_in_subdirs
 
 tf_record_extension = '.tfrecord'
 
@@ -35,9 +36,9 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
 
     return pclouds, model_names
 
-# def load_cc_parts_of_model(model_path):
-    
-    
+
+def load_cc_parts_of_model(model_path):
+    raise NotImplementedError()
 
 
 def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
@@ -47,11 +48,12 @@ def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     return pcloud
 
 
-def load_filenames_of_input_data(top_directory):
+def load_filenames_of_input_data(top_directory, ):
     res = []
-    for file_name in glob.glob(osp.join(top_directory, '*' + points_extension)):
+    for file_name in files_in_subdirs(top_directory, points_extension + '$'):
         res.append(file_name)
-
+#     for file_name in glob.glob(osp.join(top_directory, '*' + points_extension)):
+#         res.append(file_name)
     print '%d files containing  point clouds were found.' % (len(res), )
     return res
 
