@@ -138,6 +138,7 @@ class PointNetAutoEncoder(AutoEncoder):
         for _ in xrange(n_batches):
             batch_i, _, _ = train_data.next_batch(batch_size)
             batch_i = batch_i.reshape([batch_size] + configuration.n_input)
+            batch_i = batch_i.copy()
 
             if configuration.gauss_augment is not None:
                 mu = configuration.gauss_augment['mu']
