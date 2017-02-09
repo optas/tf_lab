@@ -13,30 +13,31 @@ model_saver_id = 'models.ckpt'
 
 
 class AutoEncoder(object):
+    '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
+    '''
 
     def __init__(self, name):
-        self.nane = name
-#         with tf.device('/cpu:0'), tf.name_scope(name):
-#                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+        self.name = name
+        with tf.variable_scope(name):
+            with tf.device('/cpu:0'):
+                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
     def restore_model(self, model_path, epoch):
-        '''Restore all the variables of the auto-encoder.
+        '''Restore all the variables of a saved auto-encoder model.
         '''
-#         self.sess.run(tf.global_variables_initializer())
-        self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(epoch)))
-#         print tf.get_variable('epoch')
-#             all_vars = tf.get_collection('vars')
-# for v in all_vars:
-#     v_ = sess.run(v)
-#     print(v_)
+        self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(int(epoch))))
 
-
-#         self.epoch = .eval(self.sess)
+        if self.epoch.eval(session=self.sess) != epoch:
+            raise IOError('Loading model failed.')
+        else:
+            print 'Model restored in epoch %d.' % (epoch,)
 
     def partial_fit(self, X, GT=None):
-        '''Train models based on mini-batch of input data.
-        Returns cost of mini-batch.
+        '''Trains the model with mini-batches of input data.
         If the AE is de-noising the GT needs to be provided.
+        Returns:
+            The loss of the mini-batch.
+            The reconstructed (output) point-clouds.
         '''
         if GT is not None:
             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
@@ -61,9 +62,9 @@ class AutoEncoder(object):
 
         for _ in xrange(c.training_epochs):
             loss, duration = self._single_epoch_train(train_data, c)
-            self.epoch = self.epoch + tf.constant(1.0)
-            epoch = self.epoch.eval(session=self.sess)
+            epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
             stats.append((epoch, loss, duration))
+
             if epoch % c.loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
 

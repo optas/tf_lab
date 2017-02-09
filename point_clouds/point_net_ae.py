@@ -8,7 +8,6 @@ import time
 import numpy as np
 import tensorflow as tf
 
-
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 
@@ -61,9 +60,6 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
 
         with tf.variable_scope(name):
-            with tf.device('/cpu:0'):
-                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
-
             self.x = tf.placeholder(tf.float32, [None, c.n_input[0], c.n_input[1]])
 
             if c.encoder is None:

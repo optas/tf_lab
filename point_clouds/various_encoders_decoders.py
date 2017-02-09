@@ -27,6 +27,7 @@ def encoder_1dcovnv_5_points(in_signal):
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
     layer = tf.reduce_max(layer, axis=1)
+    return layer
 
 
 def decoder_only_with_fc(latent_signal):
