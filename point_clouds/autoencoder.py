@@ -17,9 +17,19 @@ class AutoEncoder(object):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
-    def __init__(self, name):
+    def __init__(self, name, n_input, is_denoising):
         self.name = name
+        self.is_denoising = is_denoising
+
+        in_shape = [None, n_input[0], n_input[1]]
+
         with tf.variable_scope(name):
+            self.x = tf.placeholder(tf.float32, in_shape)
+            if self.is_denoising:
+                self.gt = tf.placeholder(tf.float32, in_shape)
+            else:
+                self.gt = self.x
+
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
@@ -35,7 +45,8 @@ class AutoEncoder(object):
 
     def partial_fit(self, X, GT=None):
         '''Trains the model with mini-batches of input data.
-        If the AE is de-noising the GT needs to be provided.
+        If GT is not None, then the reconstruction loss compares the output of the net that is fed X, with the GT.
+        This can be useful when training for instance a de-noising auto-encoder.
         Returns:
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
@@ -46,13 +57,13 @@ class AutoEncoder(object):
             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X})
         return loss, recon
 
-    def transform(self, X):
-        '''Transform data by mapping it into the latent space.'''
-        return self.sess.run(self.z, feed_dict={self.x: X})
-
     def reconstruct(self, X):
         '''Use AE to reconstruct given data.'''
         return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: X})
+
+    def transform(self, X):
+        '''Transform data by mapping it into the latent space.'''
+        return self.sess.run(self.z, feed_dict={self.x: X})
 
     def train(self, train_data, configuration):
         c = configuration
@@ -75,7 +86,10 @@ class AutoEncoder(object):
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
         return stats
 
-    def evaluate(self, in_data, configuration, get_original=True):
+    def evaluate(self, in_data, configuration, return_original=True):
+        '''
+        return_original if True, return also input data of each batch.
+        '''
         n_examples = in_data.num_examples
         data_loss = 0.
         batch_size = configuration.batch_size
@@ -84,11 +98,18 @@ class AutoEncoder(object):
         original = []
         # Loop over all batches
         for _ in xrange(n_batches):
-            batch_i, _, _ = in_data.next_batch(batch_size)
-            batch_i = batch_i.reshape([batch_size] + configuration.n_input)
-            rec_i, loss = self.reconstruct(batch_i)
+            original_data, _, noisy_data = in_data.next_batch(batch_size)
+            original_data = original_data.reshape([batch_size] + configuration.n_input)
+            if self.is_denoising:
+                noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
+                batch_i = noisy_data
+                rec_i, loss = self.reconstruct(batch_i, original_data)
+            else:
+                batch_i = original_data
+                rec_i, loss = self.reconstruct(batch_i)
+
             reconstructions.append(rec_i)
-            if get_original:
+            if return_original:
                 original.append(batch_i)
             # Compute average loss
             data_loss += loss
