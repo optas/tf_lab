@@ -6,6 +6,7 @@ Created on February 2, 2017
 
 import os.path as osp
 import tensorflow as tf
+import warnings
 
 from general_tools.in_out.basics import create_dir
 
@@ -28,7 +29,7 @@ class AutoEncoder(object):
         self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(int(epoch))))
 
         if self.epoch.eval(session=self.sess) != epoch:
-            raise IOError('Loading model failed.')
+            warnings.warn('Loaded model\'s epoch doesn\'t match the requested one.')
         else:
             print 'Model restored in epoch %d.' % (epoch,)
 
