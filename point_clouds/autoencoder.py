@@ -57,9 +57,12 @@ class AutoEncoder(object):
             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X})
         return loss, recon
 
-    def reconstruct(self, X):
-        '''Use AE to reconstruct given data.'''
-        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: X})
+    def reconstruct(self, X, GT=None):
+        '''Use AE to reconstruct given data.
+        GT will be used to measure the loss (e.g., if X is a noisy version of the GT)'''
+        if GT is None:
+            GT = X
+        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
