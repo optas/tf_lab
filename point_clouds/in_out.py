@@ -25,7 +25,7 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
 
     pc = load_crude_point_cloud(file_names[0])
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
-    model_names = dict()
+    model_names = np.empty([len(file_names)], dtype=object)
     pool = Pool(n_threads)
 
     for i, data in enumerate(pool.imap(_load_pcloud_and_model_id, file_names)):
