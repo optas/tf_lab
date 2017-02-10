@@ -101,7 +101,7 @@ class AutoEncoder(object):
         original = []
         # Loop over all batches
         for _ in xrange(n_batches):
-            original_data, _, noisy_data = in_data.next_batch(batch_size)
+            original_data, labels, noisy_data = in_data.next_batch(batch_size)
             original_data = original_data.reshape([batch_size] + configuration.n_input)
             if self.is_denoising:
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
@@ -111,9 +111,9 @@ class AutoEncoder(object):
                 batch_i = original_data
                 rec_i, loss = self.reconstruct(batch_i)
 
-            reconstructions.append(rec_i)
+            reconstructions.append((rec_i, labels))
             if return_original:
-                original.append(batch_i)
+                original.append((batch_i, labels))
             # Compute average loss
             data_loss += loss
         data_loss /= n_batches

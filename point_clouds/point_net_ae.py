@@ -132,10 +132,13 @@ class PointNetAutoEncoder(AutoEncoder):
         batch_size = configuration.batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-
         # Loop over all batches
-        for _ in xrange(n_batches):
-            original_data, _, noisy_data = train_data.next_batch(batch_size)
+        for i in xrange(n_batches):
+            original_data, labels, noisy_data = train_data.next_batch(batch_size)
+
+            if not set(labels).issubset(self.train_names):      # TODO - Delete.
+                assert(False)
+
             original_data = original_data.reshape([batch_size] + configuration.n_input)
 
             if self.is_denoising:
@@ -167,7 +170,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
             # Compute average loss
             epoch_loss += loss
-
+        print i
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration

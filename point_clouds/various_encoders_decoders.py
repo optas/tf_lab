@@ -40,11 +40,13 @@ def decoder_only_with_fc(latent_signal):
 
 
 def decoder_fc_and_1ddeconv(latent_signal):
+    # TODO - Check tile.
     layer = fully_connected(latent_signal, 1024, activation='relu', weights_init='xavier')
     layer = fully_connected(layer, 1024, activation='relu', weights_init='xavier')
 
-    layer = tf.tile(layer, [1, 1024])
-    layer = tf.reshape(layer, [-1, 1024, 1024])
+    layer = tf.tile(layer, [1, 3])
+    layer = tf.transpose(layer, perm=[0, 2, 1])
+    layer = tf.reshape(layer, [-1, 1024, 3])
 
     layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
     layer = batch_normalization(layer)

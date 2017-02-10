@@ -139,6 +139,43 @@ def convert_data_to_tfrecord(data_files, out_dir, data_name, converter):
     writer.close()
 
 
+def dense_to_one_hot(labels_dense, num_classes):
+    """Convert class labels from scalars to one-hot vectors."""
+    num_labels = labels_dense.shape[0]
+    index_offset = np.arange(num_labels) * num_classes
+    labels_one_hot = np.zeros((num_labels, num_classes))
+    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+    return labels_one_hot
+
+
+def read_and_decode_point_cloud(filename_queue, points_per_cloud):
+    reader = tf.TFRecordReader()
+    _, serialized_example = reader.read(filename_queue)
+
+    features = tf.parse_single_example(serialized_example,
+                                       features={'pcloud_raw': tf.FixedLenFeature(shape=[], dtype=tf.string),
+                                                 'model_name': tf.VarLenFeature(dtype=tf.string),
+                                                 'class_name': tf.VarLenFeature(dtype=tf.string)
+                                                 })
+
+    pcloud = tf.decode_raw(features['pcloud_raw'], tf.float32)
+    pcloud.set_shape([points_per_cloud])
+    return pcloud, features['model_name'], features['class_name']
+
+
+def input_pcloud_data(filenames, batch_size, points_per_cloud, shuffle=True, num_epochs=None):
+    with tf.name_scope('input'):
+        filename_queue = tf.train.string_input_producer([filenames], num_epochs=num_epochs, shuffle=shuffle)
+        example, model_name, _ = read_and_decode_point_cloud(filename_queue, points_per_cloud)
+        min_after_dequeue = 10000
+        capacity = min_after_dequeue + 3 * batch_size
+
+        example_batch = tf.train.shuffle_batch(
+            [example, model_name], batch_size=batch_size, capacity=capacity, min_after_dequeue=min_after_dequeue)
+
+    return example_batch
+
+
 def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc=0.5, shuffle=True, seed=None):
     ''' This is a memory expensive operation since by using slicing it copies the arrays.
     '''
@@ -178,43 +215,6 @@ def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc
         return train_data[0], validate_data[0], test_data[0]
     else:
         return train_data, validate_data, test_data
-
-
-def dense_to_one_hot(labels_dense, num_classes):
-    """Convert class labels from scalars to one-hot vectors."""
-    num_labels = labels_dense.shape[0]
-    index_offset = np.arange(num_labels) * num_classes
-    labels_one_hot = np.zeros((num_labels, num_classes))
-    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-    return labels_one_hot
-
-
-def read_and_decode_point_cloud(filename_queue, points_per_cloud):
-    reader = tf.TFRecordReader()
-    _, serialized_example = reader.read(filename_queue)
-
-    features = tf.parse_single_example(serialized_example,
-                                       features={'pcloud_raw': tf.FixedLenFeature(shape=[], dtype=tf.string),
-                                                 'model_name': tf.VarLenFeature(dtype=tf.string),
-                                                 'class_name': tf.VarLenFeature(dtype=tf.string)
-                                                 })
-
-    pcloud = tf.decode_raw(features['pcloud_raw'], tf.float32)
-    pcloud.set_shape([points_per_cloud])
-    return pcloud, features['model_name'], features['class_name']
-
-
-def input_pcloud_data(filenames, batch_size, points_per_cloud, shuffle=True, num_epochs=None):
-    with tf.name_scope('input'):
-        filename_queue = tf.train.string_input_producer([filenames], num_epochs=num_epochs, shuffle=shuffle)
-        example, model_name, _ = read_and_decode_point_cloud(filename_queue, points_per_cloud)
-        min_after_dequeue = 10000
-        capacity = min_after_dequeue + 3 * batch_size
-
-        example_batch = tf.train.shuffle_batch(
-            [example, model_name], batch_size=batch_size, capacity=capacity, min_after_dequeue=min_after_dequeue)
-
-    return example_batch
 
 
 class PointCloudDataSet(object):
@@ -295,8 +295,8 @@ class PointCloudDataSet(object):
             # Start next epoch
             start = 0
             self._index_in_epoch = batch_size
-            assert batch_size <= self._num_examples
         end = self._index_in_epoch
+
         if self._noisy_point_clouds is None:
             return self._point_clouds[start:end], self._labels[start:end], None
         else:
