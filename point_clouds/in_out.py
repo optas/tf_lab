@@ -66,15 +66,6 @@ def load_mesh_filenames(top_directory):
     return model_names
 
 
-def in_out_placeholders(configuration):
-    n = configuration.n_points
-    e = configuration.original_embedding
-    b = configuration.batch_size
-    in_signal = tf.placeholder(dtype=tf.float32, shape=(b, n, e), name='input_pclouds')
-    gt_signal = tf.placeholder(dtype=tf.float32, shape=(b, n, e), name='output_pclouds')
-    return in_signal, gt_signal
-
-
 def chunks(l, n):
     '''Yield successive n-sized chunks from l.
     '''
