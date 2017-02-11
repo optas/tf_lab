@@ -20,12 +20,15 @@ except:
     pass
 
 from . autoencoder import AutoEncoder
+from . spatial_transformer import transformer as pcloud_spn
+
 from .. fundamentals.loss import Loss
 
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1, debug=False):
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1,
+                 spatial_trans=False, debug=False):
 
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -44,6 +47,7 @@ class Configuration():
         self.loss = loss.lower()
         self.decoder = decoder
         self.encoder = encoder
+        self.spatial_trans = spatial_trans
         self.debug = debug
 
         def __str__(self):
@@ -71,9 +75,9 @@ class PointNetAutoEncoder(AutoEncoder):
 
         with tf.variable_scope(name):
             if c.encoder is None:
-                self.z = self._encoder_network()
+                self.z = self._encoder_network(self.c.spatial_trans)
             else:
-                self.z = c.encoder(self.x)
+                self.z = c.encoder(self.x, self.c.spatial_trans)
 
             if c.decoder is None:
                 self.x_reconstr = self._decoder_network()
@@ -94,12 +98,16 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
 
-    def _encoder_network(self):
+    def _encoder_network(self, spn=False):
         '''Generate encoder (recognition network), which maps inputs onto a latent space.
         '''
         c = self.configuration
         nb_filters = c.encoder_sizes
-        layer = conv_1d(self.x, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
+        if spn:
+            layer = pcloud_spn(self.x)
+        else:
+            layer = self.x
+        layer = conv_1d(layer, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
         layer = c.non_linearity(layer)
         layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
         layer = c.non_linearity(layer)
