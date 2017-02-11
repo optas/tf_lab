@@ -229,75 +229,55 @@ class PointCloudDataSet(object):
                                         noise['filler'], the distortion value.
         '''
 
-        self._num_examples = point_clouds.shape[0]
+        self.num_examples = point_clouds.shape[0]
 
         if labels is not None:
             assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
-            self._labels = labels
+            self.labels = labels
         else:
-            self._labels = np.ones(self._num_examples)
+            self.labels = np.ones(self.num_examples)
 
-        self._points_in_pcloud = point_clouds.shape[1]
+        self.n_points = point_clouds.shape[1]
 
         if noise is not None:
-            self._noisy_point_clouds = point_clouds.copy()
-            point_range = np.arange(self._points_in_pcloud)
-            n_distort = int(noise['frac'] * self._points_in_pcloud)   # How many points will be noised.
+            self.noisy_point_clouds = point_clouds.copy()
+            point_range = np.arange(self.n_points)
+            n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
             for i in xrange(self.num_examples):
                 drop_index = np.random.choice(point_range, n_distort, replace=False)
-                self._noisy_point_clouds[i, drop_index, :] = noise['filler']
-            self._noisy_point_clouds = self._noisy_point_clouds.reshape(self._num_examples, -1)
+                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+            self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
-            self._noisy_point_clouds = None
+            self.noisy_point_clouds = None
 
-        self._point_clouds = point_clouds.reshape(self._num_examples, -1)
-        self._epochs_completed = 0
+        self.point_clouds = point_clouds.reshape(self.num_examples, -1)
+        self.epochs_completed = 0
         self._index_in_epoch = 0
-
-    @property
-    def point_clouds(self):
-        return self.point_clouds
-
-    @property
-    def noisy_point_clouds(self):
-        return self.noisy_point_clouds
-
-    @property
-    def labels(self):
-        return self._labels
-
-    @property
-    def num_examples(self):
-        return self._num_examples
-
-    @property
-    def epochs_completed(self):
-        return self._epochs_completed
 
     def next_batch(self, batch_size, seed=None):
         '''Return the next batch_size examples from this data set.
         '''
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
-        if self._index_in_epoch > self._num_examples:
+        if self._index_in_epoch > self.num_examples:
             # Finished epoch.
-            self._epochs_completed += 1
+            self.epochs_completed += 1
             # Shuffle the data.
             if seed is not None:
                 np.random.seed(seed)
-            perm = np.arange(self._num_examples)
+            perm = np.arange(self.num_examples)
             np.random.shuffle(perm)
-            self._point_clouds = self._point_clouds[perm]
-            self._labels = self._labels[perm]
-            if self._noisy_point_clouds is not None:
-                self._noisy_point_clouds = self._noisy_point_clouds[perm]
+            self.point_clouds = self.point_clouds[perm]
+            self.labels = self.labels[perm]
+            if self.noisy_point_clouds is not None:
+                self.noisy_point_clouds = self.noisy_point_clouds[perm]
 
             # Start next epoch
             start = 0
             self._index_in_epoch = batch_size
         end = self._index_in_epoch
 
-        if self._noisy_point_clouds is None:
-            return self._point_clouds[start:end], self._labels[start:end], None
+        if self.noisy_point_clouds is None:
+            return self.point_clouds[start:end], self.labels[start:end], None
         else:
-            return self._point_clouds[start:end], self._labels[start:end], self._noisy_point_clouds[start:end]
+            return self.point_clouds[start:end], self.labels[start:end], self.noisy_point_clouds[start:end]

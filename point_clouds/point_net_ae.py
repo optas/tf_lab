@@ -25,7 +25,7 @@ from .. fundamentals.loss import Loss
 
 class Configuration():
     def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1):
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1, debug=False):
 
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -41,9 +41,10 @@ class Configuration():
         self.encoder_sizes = [64, 128, 1024]
         self.non_linearity = non_linearity
         self.is_denoising = denoising
-        self.loss = loss
+        self.loss = loss.lower()
         self.decoder = decoder
         self.encoder = encoder
+        self.debug = debug
 
         def __str__(self):
             keys = self.__dict__.keys()
@@ -120,7 +121,7 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         if c.loss == 'l2':
             self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
-        elif c.loss == 'Chamfer':
+        elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
 
@@ -133,10 +134,10 @@ class PointNetAutoEncoder(AutoEncoder):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         # Loop over all batches
-        for i in xrange(n_batches):
+        for _ in xrange(n_batches):
             original_data, labels, noisy_data = train_data.next_batch(batch_size)
 
-            if not set(labels).issubset(self.train_names):      # TODO - Delete.
+            if self.configuration.debug and not set(labels).issubset(self.train_names):
                 assert(False)
 
             original_data = original_data.reshape([batch_size] + configuration.n_input)
@@ -170,7 +171,6 @@ class PointNetAutoEncoder(AutoEncoder):
 
             # Compute average loss
             epoch_loss += loss
-        print i
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
