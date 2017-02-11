@@ -240,12 +240,14 @@ class PointCloudDataSet(object):
         self.n_points = point_clouds.shape[1]
 
         if noise is not None:
-            self.noisy_point_clouds = point_clouds.copy()
-            point_range = np.arange(self.n_points)
-            n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
-            for i in xrange(self.num_examples):
-                drop_index = np.random.choice(point_range, n_distort, replace=False)
-                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+            self.noisy_point_clouds = noise
+#             self.noisy_point_clouds = point_clouds.copy()
+#             point_range = np.arange(self.n_points)
+#             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
+#             for i in xrange(self.num_examples):
+#                 drop_index = np.random.choice(point_range, n_distort, replace=False)
+#                 self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+
             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
             self.noisy_point_clouds = None
