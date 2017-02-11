@@ -75,9 +75,9 @@ class PointNetAutoEncoder(AutoEncoder):
 
         with tf.variable_scope(name):
             if c.encoder is None:
-                self.z = self._encoder_network(self.c.spatial_trans)
+                self.z = self._encoder_network(c.spatial_trans)
             else:
-                self.z = c.encoder(self.x, self.c.spatial_trans)
+                self.z = c.encoder(self.x, c.spatial_trans)
 
             if c.decoder is None:
                 self.x_reconstr = self._decoder_network()
