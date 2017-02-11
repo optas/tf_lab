@@ -1,22 +1,22 @@
 '''
 Created on February 2, 2017
-
+ 
 @author: optas
 '''
-
+ 
 import tensorflow as tf
 from tflearn import initializations
 from . import utils
 from . import nn
-
-
+ 
+ 
 def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
                       strides=1, padding='same',
                       bias=True, weights_init='uniform_scaling',
                       bias_init='zeros', regularizer=None, weight_decay=0.001,
                       trainable=True, restore=True, reuse=False, scope=None,
                       name="Conv3DTranspose"):
-
+ 
     """ Convolution 3D Transpose.
     This operation is sometimes called "deconvolution" after (Deconvolutional
     Networks)[http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf], but is
@@ -64,23 +64,23 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
     """
     input_shape = utils.get_incoming_shape(incoming)
     assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
-
+ 
     filter_size = utils.autoformat_filter_conv3d(filter_size,
                                                  nb_filter,
                                                  input_shape[-1])
     strides = utils.autoformat_stride_3d(strides)
     padding = utils.autoformat_padding(padding)
-
+ 
     # Variable Scope fix for older TF
     try:
         vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
                                    reuse=reuse)
     except Exception:
         vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
+ 
     with vscope as scope:
         name = scope.name
-
+ 
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
@@ -90,25 +90,25 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
 #         W = vs.variable('W', shape=filter_size,
 #                         regularizer=W_regul, initializer=W_init,
 #                         trainable=trainable, restore=restore)
-
+ 
         wd = 0
         W = nn._variable_with_weight_decay('W', filter_size, W_init, wd, trainable=trainable)
-
+ 
 #         Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
-
+ 
 #         b = None
 #         if bias:
 #             if isinstance(bias_init, str):
 #                 bias_init = initializations.get(bias_init)()
-
+ 
 #             b = vs.variable('b', shape=nb_filter, initializer=bias_init,
 #                             trainable=trainable, restore=restore)
-
+ 
         b = nn._bias_variable(shape=nb_filter)
         # Track per layer variables
 #             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
-
+ 
         # Determine the complete shape of the output tensor.
         batch_size = tf.gather(tf.shape(incoming), tf.constant([0]))
         if len(output_shape) == 3:
@@ -116,31 +116,31 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         elif len(output_shape) != 4:
             raise Exception("output_shape length error: " + str(len(output_shape)) + ", only a length of 3 or 4 is supported.")
         complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
-
+ 
         inference = tf.nn.conv3d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
-
+ 
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
-
+ 
         if b: inference = tf.nn.bias_add(inference, b)
-
+ 
 #         if isinstance(activation, str):
 #             inference = activations.get(activation)(inference)
 #         elif hasattr(activation, '__call__'):
 #             inference = activation(inference)
 #         else:
 #             raise ValueError("Invalid Activation.")
-
+ 
         # Track activations.
 #         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
+ 
     # Add attributes to Tensor to easy access weights.
     inference.scope = scope
     inference.W = W
     inference.b = b
-
+ 
     # Track output tensor.
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
-
+ 
     return inference

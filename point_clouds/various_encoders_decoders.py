@@ -9,7 +9,7 @@ import tensorflow as tf
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    from .. fundamentals.conv import conv_3d_transpose
+    from .fundamentals.conv_ import conv_3d_transpose
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected

@@ -25,11 +25,19 @@ def _activation_summary(x):
     tf.contrib.deprecated.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
 
 
-def hist_summary_of_trainable():
+def trainable_variables(in_graph=None):
+    if in_graph is None:
+        return tf.trainable_variables()
+    else:
+        return in_graph.get_collection('trainable_variables')
+
+
+def hist_summary_of_trainable(in_graph=None):
     summaries = []
     with tf.device('/cpu:0'):
-        for var in tf.trainable_variables():
-            summaries.append(tf.histogram_summary(var.op.name, var))
+        for var in trainable_variables(in_graph):
+#             summaries.append(tf.histogram_summary(var.op.name, var))
+            summaries.append(tf.summary.histogram(var.op.name, var))
     return summaries
 
 

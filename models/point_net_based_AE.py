@@ -6,7 +6,7 @@ from tflearn.layers.conv import conv_1d
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    from .. fundamentals.conv import conv_3d_transpose
+    from .fundamentals.conv_ import conv_3d_transpose
 
 
 def encoder(in_signal):
