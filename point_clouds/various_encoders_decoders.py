@@ -6,11 +6,11 @@ Created on February 4, 2017
 
 import tensorflow as tf
 
-from . spatial_transformer import transformer as pcloud_spn
-
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
+
+from . spatial_transformer import transformer as pcloud_spn
 
 try:
     from tflearn.layers.conv import conv_3d_transpose
@@ -22,7 +22,6 @@ except:
 def encoder_1dcovnv_5_points(in_signal, spn=False):
     if spn:
         in_signal = pcloud_spn(in_signal)
-
     layer = conv_1d(in_signal, nb_filter=64, filter_size=5, strides=2, name='conv-fc1')
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)

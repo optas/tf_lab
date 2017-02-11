@@ -3,13 +3,18 @@ from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.conv import conv_1d
 
+from .. point_clouds.spatial_transformer import transformer as pcloud_spn
+
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    from .fundamentals.conv_ import conv_3d_transpose
+    print 'Loading manual conv_3d_transpose.'
+    from tf_lab.fundamentals.conv import conv_3d_transpose
 
 
-def encoder(in_signal):
+def encoder(in_signal, spn=False):
+    if spn:
+        in_signal = pcloud_spn(in_signal)
     layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1)
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
