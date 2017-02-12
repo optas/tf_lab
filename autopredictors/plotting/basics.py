@@ -8,25 +8,28 @@ from geo_tool import Point_Cloud
 
 def plot_original_pclouds_vs_reconstructed(original_batches, recon_batches, save_dir, max_plot=None):
     '''Example:
-        ae.restore_model(conf.train_dir, epoch)
-        reconstructed, loss, original = ae.evaluate(train_data, conf)
-        original_pclouds_vs_reconstructed(original, reconstructed, out_dir)
+    ae.restore_model(conf.train_dir, epoch)
+    reconstructed, loss, original = ae.evaluate(train_data, conf)
+    original_pclouds_vs_reconstructed(original, reconstructed, out_dir)
     '''
     counter = 0
     plt.ioff()
     create_dir(save_dir)
-    for ob, rb in zip(original_batches, recon_batches):
-        for oi, ri in zip(ob, rb):
+
+    for ob, rb in zip(original_batches, recon_batches):     # Iterate over batches.
+        for oi, ol, ri, rl in zip(ob[0], ob[1], rb[0], rb[1]):      # Iterate over pclouds inside batch (pcloud-label).
+            if ol != rl:
+                raise ValueError()
             counter += 1
             if max_plot and counter > max_plot:
                 return
 
-            fig = Point_Cloud(points=oi[0]).plot(show=False)
-            fig.savefig(osp.join(save_dir, '%s_original.png' % (oi[1], )))
+            fig = Point_Cloud(points=oi).plot(show=False)
+            fig.savefig(osp.join(save_dir, '%s_original.png' % (ol, )))
             plt.close()
 
-            fig = Point_Cloud(points=ri[0]).plot(show=False)
-            fig.savefig(osp.join(save_dir, '%s_reconstructed.png' % (ri[1], )))
+            fig = Point_Cloud(points=ri).plot(show=False)
+            fig.savefig(osp.join(save_dir, '%s_reconstructed.png' % (rl, )))
             plt.close()
 
 
