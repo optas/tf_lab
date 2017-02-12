@@ -20,7 +20,11 @@ def _load_pcloud_and_model_id(f_name):
         return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
 
 
-def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
+def _load_kinect_pcloud_and_model_id(f_name):
+        return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
+
+
+def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_pcloud_and_model_id):
     if file_names is None:
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
@@ -29,7 +33,7 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1):
     model_names = np.empty([len(file_names)], dtype=object)
     pool = Pool(n_threads)
 
-    for i, data in enumerate(pool.imap(_load_pcloud_and_model_id, file_names)):
+    for i, data in enumerate(pool.imap(loader, file_names)):
         pclouds[i, :, :], model_names[i] = data
 
     pool.close()
