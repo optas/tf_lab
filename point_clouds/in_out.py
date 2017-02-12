@@ -1,5 +1,6 @@
 import os
 import glob
+import warnings
 import numpy as np
 import os.path as osp
 import tensorflow as tf
@@ -217,6 +218,34 @@ def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc
         return train_data, validate_data, test_data
 
 
+def shuffle_two_pcloud_datasets(a, b, seed=None):
+    n_a = a.num_examples
+    n_b = b.num_examples
+    frac_a = n_a / (n_a + n_b + 0.0)
+    frac_b = n_b / (n_a + n_b + 0.0)
+
+    a = a.point_clouds
+    b = b.point_clouds
+    joint = np.vstack((a, b))
+    _, new_a, new_b = train_validate_test_split([joint], train_perc=0, validate_perc=frac_a, test_perc=frac_b, seed=seed)
+
+    new_a = PointCloudDataSet(new_a)
+    new_b = PointCloudDataSet(new_b)
+    if (new_a.num_examples != n_a) or (new_b.num_examples != n_b):
+        warnings.warn('The size of the resulting datasets have changed (+-1) due to rounding.')
+
+    return new_a, new_b
+
+
+# TODO -> Make Noise Class 
+#             self.noisy_point_clouds = point_clouds.copy()
+#             point_range = np.arange(self.n_points)
+#             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
+#             for i in xrange(self.num_examples):
+#                 drop_index = np.random.choice(point_range, n_distort, replace=False)
+#                 self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+
+
 class PointCloudDataSet(object):
     '''
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
@@ -240,14 +269,8 @@ class PointCloudDataSet(object):
         self.n_points = point_clouds.shape[1]
 
         if noise is not None:
-            self.noisy_point_clouds = noise  # TODO -> Make Noise Class 
-#             self.noisy_point_clouds = point_clouds.copy()
-#             point_range = np.arange(self.n_points)
-#             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
-#             for i in xrange(self.num_examples):
-#                 drop_index = np.random.choice(point_range, n_distort, replace=False)
-#                 self.noisy_point_clouds[i, drop_index, :] = noise['filler']
-
+            assert (type(noise) is np.array)
+            self.noisy_point_clouds = noise
             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
             self.noisy_point_clouds = None

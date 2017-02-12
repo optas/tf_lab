@@ -13,12 +13,16 @@ from tflearn.layers.core import fully_connected
 
 from general_tools.in_out.basics import create_dir
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
-from tf_nndistance import nn_distance
+
 
 from . autoencoder import AutoEncoder
 from . spatial_transformer import transformer as pcloud_spn
-
 from .. fundamentals.loss import Loss
+
+try:
+    from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+except:
+    print 'nn_distance module cannot be loaded.'
 
 
 class Configuration():

@@ -1,5 +1,4 @@
 import glob
-import matplotlib.pyplot as plt
 import os.path as osp
 import numpy as np
 
