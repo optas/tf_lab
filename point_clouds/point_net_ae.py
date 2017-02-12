@@ -13,11 +13,7 @@ from tflearn.layers.core import fully_connected
 
 from general_tools.in_out.basics import create_dir
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
-
-try:
-    from tf_nndistance import nn_distance
-except:
-    pass
+from tf_nndistance import nn_distance
 
 from . autoencoder import AutoEncoder
 from . spatial_transformer import transformer as pcloud_spn
