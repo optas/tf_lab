@@ -112,6 +112,7 @@ class AutoEncoder(object):
                 rec_i, loss = self.reconstruct(batch_i)
 
             reconstructions.append((rec_i, labels))
+
             if return_original:
                 original.append((batch_i, labels))
             # Compute average loss
