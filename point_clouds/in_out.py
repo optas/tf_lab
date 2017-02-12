@@ -21,7 +21,7 @@ def _load_pcloud_and_model_id(f_name):
 
 
 def _load_kinect_pcloud_and_model_id(f_name):
-        return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
+        return [load_crude_point_cloud(f_name), f_name.split('/')[-2]]
 
 
 def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_pcloud_and_model_id):
