@@ -16,7 +16,7 @@ from general_tools.in_out.basics import files_in_subdirs
 tf_record_extension = '.tfrecord'
 
 
-def _load_pcloud_and_model_id(f_name):
+def _load_crude_pcloud_and_model_id(f_name):
         return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
 
 
@@ -24,11 +24,12 @@ def _load_kinect_pcloud_and_model_id(f_name):
         return [load_crude_point_cloud(f_name), f_name.split('/')[-2]]
 
 
-def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_pcloud_and_model_id):
+def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_crude_pcloud_and_model_id):
     if file_names is None:
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
-    pc = load_crude_point_cloud(file_names[0])
+    pc, _ = _load_crude_pcloud_and_model_id(file_names[0])
+
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = np.empty([len(file_names)], dtype=object)
     pool = Pool(n_threads)
