@@ -37,7 +37,7 @@ def _load_blensor_incomplete_pcloud(f_name):
 def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024):
     pc = Point_Cloud(ply_file=f_name)
     pc.permute_points([0, 2, 1])
-    pc.sample(n_samples)
+    pc = pc.sample(n_samples)
     pc.lex_sort()
     pc.center_in_unit_sphere()
     tokens = f_name.split('/')
