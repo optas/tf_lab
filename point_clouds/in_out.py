@@ -28,7 +28,7 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, lo
     if file_names is None:
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
-    pc, _ = _load_crude_pcloud_and_model_id(file_names[0])
+    pc, _ = loader(file_names[0])
 
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = np.empty([len(file_names)], dtype=object)
