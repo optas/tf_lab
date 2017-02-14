@@ -86,7 +86,7 @@ class VariationalAutoencoder(AutoEncoder):
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.loss = tf.reduce_mean(reconstr_loss) + (c.latent_vs_recon * tf.reduce_mean(latent_loss))
+        self.loss = tf.reduce_mean(reconstr_loss) + (tf.multiply(tf.constant(c.latent_vs_recon), tf.reduce_mean(latent_loss)))  # TODO reverse to simpler.
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
@@ -102,7 +102,7 @@ class VariationalAutoencoder(AutoEncoder):
         space.
         """
         if z_mu is None:
-            z_mu = np.random.normal(size=(self.conf.batch_size, self.conf.n_z))
+            z_mu = np.random.normal(size=(self.configuration.batch_size, self.configuration.n_z))
         # Note: This maps to mean of distribution, we could alternatively
         # sample from Gaussian distribution
         return self.sess.run(self.x_reconstr, feed_dict={self.z: z_mu})
@@ -129,16 +129,17 @@ class VariationalAutoencoder(AutoEncoder):
                 batch_i = original_data
 
             batch_i = batch_i.copy()    # TODO -> only necessary if you do augmentations
-            if configuration.loss == 'bernoulli':
-                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
-                batch_i += .5
-                batch_i = np.maximum(1e-10, batch_i)
-                batch_i = np.minimum(batch_i, 1 + 1e-10)
 
             if configuration.gauss_augment is not None:
                 mu = configuration.gauss_augment['mu']
                 sigma = configuration.gauss_augment['sigma']
                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
+
+            if configuration.loss == 'bernoulli':
+                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
+                batch_i += .5
+                batch_i = np.maximum(1e-10, batch_i)
+                batch_i = np.minimum(batch_i, 1.0 - 1e-10)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 r_rotation = rand_rotation_matrix()
@@ -148,8 +149,8 @@ class VariationalAutoencoder(AutoEncoder):
                 r_rotation[2, 1] = 0
                 r_rotation[2, 2] = 1
                 batch_i = batch_i.dot(r_rotation)
-            
-	    if self.is_denoising:
+
+            if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
                 loss, _ = self.partial_fit(batch_i)
