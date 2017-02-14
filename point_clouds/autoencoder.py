@@ -4,13 +4,53 @@ Created on February 2, 2017
 @author: optas
 '''
 
+import warnings
 import os.path as osp
 import tensorflow as tf
-import warnings
+import numpy as np
 
 from general_tools.in_out.basics import create_dir
 
 model_saver_id = 'models.ckpt'
+
+
+class Configuration():
+    def __init__(self, n_input, training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1,
+                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0):
+        # Training related parameters
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.loss_display_step = loss_display_step
+        self.saver_step = saver_step
+        self.train_dir = train_dir
+        self.gauss_augment = gauss_augment
+        self.z_rotate = z_rotate
+        self.saver_max_to_keep = saver_max_to_keep
+        self.training_epochs = training_epochs
+        # Params for any AE
+        self.n_input = n_input
+        self.encoder_sizes = [64, 128, 1024]
+        self.non_linearity = non_linearity
+        self.is_denoising = denoising
+        self.loss = loss.lower()
+        self.decoder = decoder
+        self.encoder = encoder
+        self.spatial_trans = spatial_trans
+        self.debug = debug
+        # Used in VAE
+        self.latent_vs_recon = latent_vs_recon
+        self.n_z = n_z
+
+        def __str__(self):
+            keys = self.__dict__.keys()
+            vals = self.__dict__.values()
+            index = np.argsort(keys)
+            res = ''
+            for i in index:
+                res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
+            return res
+
 
 
 class AutoEncoder(object):

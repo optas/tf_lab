@@ -1,6 +1,3 @@
-import sys
-import glob
-import os.path as osp
 import numpy as np
 from scipy.io import loadmat
 

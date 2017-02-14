@@ -25,41 +25,6 @@ except:
     print 'nn_distance module cannot be loaded.'
 
 
-class Configuration():
-    def __init__(self, n_input, training_epochs, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1,
-                 spatial_trans=False, debug=False):
-
-        self.batch_size = batch_size
-        self.learning_rate = learning_rate
-        self.loss_display_step = loss_display_step
-        self.saver_step = saver_step
-        self.train_dir = train_dir
-        self.gauss_augment = gauss_augment
-        self.z_rotate = z_rotate
-        self.saver_max_to_keep = saver_max_to_keep
-        self.training_epochs = training_epochs
-
-        self.n_input = n_input
-        self.encoder_sizes = [64, 128, 1024]
-        self.non_linearity = non_linearity
-        self.is_denoising = denoising
-        self.loss = loss.lower()
-        self.decoder = decoder
-        self.encoder = encoder
-        self.spatial_trans = spatial_trans
-        self.debug = debug
-
-        def __str__(self):
-            keys = self.__dict__.keys()
-            vals = self.__dict__.values()
-            index = np.argsort(keys)
-            res = ''
-            for i in index:
-                res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
-            return res
-
-
 class PointNetAutoEncoder(AutoEncoder):
     '''
     An Auto-Encoder replicating the architecture of Charles and Hao paper.
