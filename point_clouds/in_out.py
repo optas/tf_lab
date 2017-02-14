@@ -14,33 +14,55 @@ from general_tools.rla.three_d_transforms import rand_rotation_matrix
 from general_tools.in_out.basics import files_in_subdirs
 
 tf_record_extension = '.tfrecord'
+vscan_search_pattern = '__0__.ply'
+blensor_search_pattern = '0_noisy00000.txt'
 
 
 def _load_crude_pcloud_and_model_id(f_name):
-        return [load_crude_point_cloud(f_name), osp.basename(f_name).split('_')[0]]
+    tokens = f_name.split('/')
+    model_id = tokens[-1].split('_')[0]
+    class_id = tokens[-2]
+    return load_crude_point_cloud(f_name), model_id, class_id
 
 
-def _load_kinect_pcloud_and_model_id(f_name):
-        return [load_crude_point_cloud(f_name), f_name.split('/')[-2]]
+def _load_blensor_incomplete_pcloud(f_name):
+    points = load_crude_point_cloud(f_name, permute=[0, 2, 1])
+    pc = Point_Cloud(points=points)
+    pc.lex_sort()
+    pc.center_in_unit_sphere()
+    tokens = f_name.split('/')
+    return pc.points, tokens[-2], tokens[-3]
+
+
+def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024):
+    pc = Point_Cloud(ply_file=f_name)
+    pc.permute_points([0, 2, 1])
+    pc.sample(n_samples)
+    pc.lex_sort()
+    pc.center_in_unit_sphere()
+    tokens = f_name.split('/')
+    model_id = tokens[-1][:-len(vscan_search_pattern)]
+    class_id = tokens[-2]
+    return pc.points, model_id, class_id
 
 
 def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_crude_pcloud_and_model_id):
     if file_names is None:
         file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
 
-    pc, _ = loader(file_names[0])
-
+    pc = loader(file_names[0])[0]
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = np.empty([len(file_names)], dtype=object)
+    class_ids = np.empty([len(file_names)], dtype=object)
     pool = Pool(n_threads)
 
     for i, data in enumerate(pool.imap(loader, file_names)):
-        pclouds[i, :, :], model_names[i] = data
+        pclouds[i, :, :], model_names[i], class_ids[i] = data
 
     pool.close()
     pool.join()
 
-    return pclouds, model_names
+    return pclouds, model_names, class_ids
 
 
 def load_cc_parts_of_model(model_path):
