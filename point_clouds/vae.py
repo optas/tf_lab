@@ -129,7 +129,6 @@ class VariationalAutoencoder(AutoEncoder):
                 batch_i = original_data
 
             batch_i = batch_i.copy()    # TODO -> only necessary if you do augmentations
-
             if configuration.loss == 'bernoulli':
                 # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
                 batch_i += .5
@@ -149,8 +148,8 @@ class VariationalAutoencoder(AutoEncoder):
                 r_rotation[2, 1] = 0
                 r_rotation[2, 2] = 1
                 batch_i = batch_i.dot(r_rotation)
-
-            if self.is_denoising:
+            
+	    if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
                 loss, _ = self.partial_fit(batch_i)
