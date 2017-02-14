@@ -28,7 +28,7 @@ class Configuration():
         self.z_rotate = z_rotate
         self.saver_max_to_keep = saver_max_to_keep
         self.training_epochs = training_epochs
-        # Params for any AE
+        # Parameteres for any AE
         self.n_input = n_input
         self.encoder_sizes = [64, 128, 1024]
         self.non_linearity = non_linearity
@@ -50,7 +50,6 @@ class Configuration():
             for i in index:
                 res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
             return res
-
 
 
 class AutoEncoder(object):

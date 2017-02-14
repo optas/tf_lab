@@ -204,7 +204,7 @@ def input_pcloud_data(filenames, batch_size, points_per_cloud, shuffle=True, num
     return example_batch
 
 
-def train_validate_test_split(arrays, train_perc=0, validate_perc=0.5, test_perc=0.5, shuffle=True, seed=None):
+def train_validate_test_split(arrays, train_perc=0, validate_perc=0, test_perc=0, shuffle=True, seed=None):
     ''' This is a memory expensive operation since by using slicing it copies the arrays.
     '''
 
