@@ -296,7 +296,7 @@ class PointCloudDataSet(object):
         self.n_points = point_clouds.shape[1]
 
         if noise is not None:
-            assert (type(noise) is np.array)
+            assert (type(noise) is np.ndarray)
             self.noisy_point_clouds = noise
             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
