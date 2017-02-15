@@ -158,7 +158,7 @@ class VariationalAutoencoder(AutoEncoder):
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
-                epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
+                epoch = int(self.sess.run(self.epoch))
                 print self.sess.run(self.eps)[0][0:1]
                 if epoch > 10:
                     pickle_data('test_degub.np', batch_i)
