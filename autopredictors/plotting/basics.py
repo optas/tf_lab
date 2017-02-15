@@ -77,6 +77,7 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
         tag = 'train-test-val-curves.png'
     else:
         tag = 'train-test-curves.png'
+
     fig.savefig(osp.join(save_dir, tag))
 
 
