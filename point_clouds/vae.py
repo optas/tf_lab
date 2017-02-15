@@ -21,7 +21,7 @@ except:
 
 
 from general_tools.in_out.basics import pickle_data
-debug = []
+
 
 class VariationalAutoencoder(AutoEncoder):
     """ Variation Autoencoder (VAE) with an sklearn-like interface implemented using TensorFlow.
@@ -42,7 +42,9 @@ class VariationalAutoencoder(AutoEncoder):
 
         encoder = c.encoder
         decoder = c.decoder
-
+        
+        self.debug_data = []
+        
         with tf.variable_scope(name):
             self.z = self._encoded_to_latent(encoder(self.x))
             self.x_reconstr = decoder(self.z)
@@ -70,9 +72,8 @@ class VariationalAutoencoder(AutoEncoder):
         batch_size = self.configuration.batch_size
         self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
-        eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
-        global debug
-        debug.append(eps)
+        eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.        
+        self.debug_data.append(eps)
         # z = mu + sigma * epsilon
         return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
@@ -163,8 +164,7 @@ class VariationalAutoencoder(AutoEncoder):
 
                 if epoch > 1:
                     pickle_data('test_degub.np', batch_i)
-                    global debug
-                    pickle_data('test_degub_eps.', debug)
+                    pickle_data('test_degub_eps.', self.debug_data)
                     print 'done debugging'
                     return
 
