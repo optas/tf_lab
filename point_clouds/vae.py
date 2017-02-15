@@ -11,16 +11,14 @@ from tflearn.layers.core import fully_connected as fc_layer
 
 from general_tools.in_out.basics import create_dir
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
-
-from . autoencoder import AutoEncoder
+from general_tools.in_out.basics import pickle_data
 
 try:
-    from tf_nndistance import nn_distance
+    from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
 except:
-    pass
+    print 'nn_distance module cannot be loaded.'
 
-
-from general_tools.in_out.basics import pickle_data
+from . autoencoder import AutoEncoder
 
 
 class VariationalAutoencoder(AutoEncoder):
@@ -155,20 +153,13 @@ class VariationalAutoencoder(AutoEncoder):
                 batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
                 batch_i_tmp = np.minimum(batch_i_tmp, 1.0 - 1e-10)
                 if np.max(batch_i_tmp) > 1 or np.min(batch_i_tmp) < 0:
-                    print '%.10f' %(np.max(batch_i_tmp))
-                    print '%.10f' %(np.min(batch_i_tmp))
+                    print '%.10f' % (np.max(batch_i_tmp))
+                    print '%.10f' % (np.min(batch_i_tmp))
                     raise ValueError()
-
 
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i_tmp, original_data)
             else:
-                epoch = int(self.sess.run(self.epoch))
-                if epoch > 30:
-                    pickle_data('test_degub.np', batch_i_tmp)
-                    print 'done debugging'
-                    return
-
                 loss, _ = self.partial_fit(batch_i_tmp)
 
             # Compute average loss
