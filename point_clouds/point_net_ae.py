@@ -55,12 +55,12 @@ class PointNetAutoEncoder(AutoEncoder):
             # Initializing the tensor flow variables
             self.init = tf.global_variables_initializer()
 
-            # GPU configuration
+#             # GPU configuration
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
 
             # Launch the session
-            self.sess = tf.Session(config=config)
+            self.sess = tf.Session(config=config)            
             self.sess.run(self.init)
 
     def _encoder_network(self, spn=False):

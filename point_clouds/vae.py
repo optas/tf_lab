@@ -88,8 +88,7 @@ class VariationalAutoencoder(AutoEncoder):
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
-
-        self.loss = tf.reduce_mean(reconstr_loss) + (tf.multiply(tf.constant(c.latent_vs_recon), tf.reduce_mean(latent_loss)))  # TODO reverse to simpler.
+        self.loss = tf.reduce_mean(reconstr_loss) + (tf.multiply(tf.constant(c.latent_vs_recon), tf.reduce_mean(latent_loss)))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
