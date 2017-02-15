@@ -140,12 +140,6 @@ class VariationalAutoencoder(AutoEncoder):
                 sigma = configuration.gauss_augment['sigma']
                 batch_i += np.random.normal(mu, sigma, batch_i.shape)
 
-            if configuration.loss == 'bernoulli':
-                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
-                batch_i += .5
-                batch_i = np.maximum(1e-10, batch_i)
-                batch_i = np.minimum(batch_i, 1.0 - 1e-10)
-
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 r_rotation = rand_rotation_matrix()
                 r_rotation[0, 2] = 0
@@ -155,11 +149,16 @@ class VariationalAutoencoder(AutoEncoder):
                 r_rotation[2, 2] = 1
                 batch_i = batch_i.dot(r_rotation)
 
+            if configuration.loss == 'bernoulli':
+                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
+                batch_i += .5
+                batch_i = np.maximum(1e-10, batch_i)
+                batch_i = np.minimum(batch_i, 1.0 - 1e-10)
+
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
                 epoch = int(self.sess.run(self.epoch))
-                print self.sess.run(self.eps)[0][0:1]
                 if epoch > 10:
                     pickle_data('test_degub.np', batch_i)
                     print 'done debugging'
