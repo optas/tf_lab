@@ -34,12 +34,12 @@ def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_ba
         counter = 0
         if gt_of_batches is not None:
             for batch in gt_of_batches:
-                for pc in batch:
+                for pc, l in zip(batch[0], batch[1]):
                     counter += 1
                     if max_plot and counter > max_plot:
                         return
-                    fig = Point_Cloud(points=pc[0]).plot(show=False)
-                    fig.savefig(osp.join(save_dir, '%s_gt_feed.png' % (pc[1], )))
+                    fig = Point_Cloud(points=pc).plot(show=False)
+                    fig.savefig(osp.join(save_dir, '%s_gt_feed.png' % (l, )))
                     plt.close()
 
     plt.ioff()
