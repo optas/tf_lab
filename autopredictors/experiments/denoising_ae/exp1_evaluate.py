@@ -35,9 +35,9 @@ all_pclouds, model_names = load_crude_point_clouds(file_names=file_names, n_thre
 train_data, val_data, test_data = train_validate_test_split(all_pclouds, train_perc=0.8,
                                                             validate_perc=0.1, test_perc=0.1, seed=seed)
 
-train_data = PointCloudDataSet(train_data, noise={'frac':0.20, 'filler':0.0})
-val_data = PointCloudDataSet(val_data, noise={'frac':0.20, 'filler':0.0})
-test_data = PointCloudDataSet(test_data, noise={'frac':0.20, 'filler':0.0})
+train_data = PointCloudDataSet(train_data, noise={'frac': 0.20, 'filler': 0.0})
+val_data = PointCloudDataSet(val_data, noise={'frac': 0.20, 'filler': 0.0})
+test_data = PointCloudDataSet(test_data, noise={'frac': 0.20, 'filler': 0.0})
 
 conf = PN_Conf(n_input = [1024, 3],
                training_epochs = 1000,
