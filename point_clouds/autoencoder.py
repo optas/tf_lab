@@ -39,7 +39,7 @@ class Configuration():
         self.spatial_trans = spatial_trans
         self.debug = debug
         # Used in VAE
-        self.latent_vs_recon = latent_vs_recon
+        self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
 
         def __str__(self):
