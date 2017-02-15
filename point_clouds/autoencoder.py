@@ -156,7 +156,7 @@ class AutoEncoder(object):
             reconstructions.append([rec_i, labels])
 
             if return_feed:
-                feed.append((batch_i, labels))
+                feed.append([batch_i, labels])
                 if self.is_denoising:
                     gt_feed.append([gt_data, labels])
 
