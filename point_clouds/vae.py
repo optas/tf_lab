@@ -140,7 +140,7 @@ class VariationalAutoencoder(AutoEncoder):
                 batch_i += .5
                 batch_i = np.maximum(1e-10, batch_i)
                 batch_i = np.minimum(batch_i, 1.0 - 1e-10)
-
+              
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 r_rotation = rand_rotation_matrix()
                 r_rotation[0, 2] = 0
