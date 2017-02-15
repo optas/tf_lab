@@ -60,7 +60,7 @@ class PointNetAutoEncoder(AutoEncoder):
             config.gpu_options.allow_growth = True
 
             # Launch the session
-            self.sess = tf.Session(config=config)            
+            self.sess = tf.Session(config=config)
             self.sess.run(self.init)
 
     def _encoder_network(self, spn=False):

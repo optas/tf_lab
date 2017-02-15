@@ -69,7 +69,6 @@ class VariationalAutoencoder(AutoEncoder):
         self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
-        self.eps = eps
         # z = mu + sigma * epsilon
         return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
@@ -88,7 +87,7 @@ class VariationalAutoencoder(AutoEncoder):
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
-        self.loss = tf.reduce_mean(reconstr_loss) + (tf.multiply(tf.constant(c.latent_vs_recon), tf.reduce_mean(latent_loss)))
+        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean((tf.multiply(tf.constant(c.latent_vs_recon), latent_loss)))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
