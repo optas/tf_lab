@@ -164,7 +164,8 @@ class VariationalAutoencoder(AutoEncoder):
 
                 if epoch > 1:
                     pickle_data('test_degub.np', batch_i)
-                    pickle_data('test_degub_eps.', self.debug_data)
+                    a = self.debug_data
+                    pickle_data('test_degub_eps', a)
                     print 'done debugging'
                     return
 
