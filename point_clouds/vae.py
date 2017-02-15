@@ -43,8 +43,6 @@ class VariationalAutoencoder(AutoEncoder):
         encoder = c.encoder
         decoder = c.decoder
 
-        self.debug_data = []
-
         with tf.variable_scope(name):
             self.z = self._encoded_to_latent(encoder(self.x))
             self.x_reconstr = decoder(self.z)
@@ -71,10 +69,9 @@ class VariationalAutoencoder(AutoEncoder):
         n_z = self.configuration.n_z
         batch_size = self.configuration.batch_size
         self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
-        self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')        
+        self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
         self.eps = eps
-        self.debug_data.append(eps)
         # z = mu + sigma * epsilon
         return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
@@ -162,16 +159,13 @@ class VariationalAutoencoder(AutoEncoder):
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
                 epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
-                print self.sess.run(self.eps)
-                if epoch > 1:
+                print self.sess.run(self.eps)[0][0:1]
+                if epoch > 10:
                     pickle_data('test_degub.np', batch_i)
-#                     a = self.debug_data
-#                     pickle_data('test_degub_eps', a)
                     print 'done debugging'
                     return
 
                 loss, _ = self.partial_fit(batch_i)
-
 
             # Compute average loss
             epoch_loss += loss
