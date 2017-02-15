@@ -28,7 +28,7 @@ class Configuration():
         self.z_rotate = z_rotate
         self.saver_max_to_keep = saver_max_to_keep
         self.training_epochs = training_epochs
-        # Parameteres for any AE
+        # Parameters for any AE
         self.n_input = n_input
         self.encoder_sizes = [64, 128, 1024]
         self.non_linearity = non_linearity
@@ -72,7 +72,7 @@ class AutoEncoder(object):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
-    def restore_model(self, model_path, epoch):
+    def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved auto-encoder model.
         '''
         self.saver.restore(self.sess, osp.join(model_path, model_saver_id + '-' + str(int(epoch))))
@@ -80,7 +80,8 @@ class AutoEncoder(object):
         if self.epoch.eval(session=self.sess) != epoch:
             warnings.warn('Loaded model\'s epoch doesn\'t match the requested one.')
         else:
-            print 'Model restored in epoch %d.' % (epoch,)
+            if verbose:
+                print 'Model restored in epoch %d.' % (epoch,)
 
     def partial_fit(self, X, GT=None):
         '''Trains the model with mini-batches of input data.
@@ -128,33 +129,38 @@ class AutoEncoder(object):
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
         return stats
 
-    def evaluate(self, in_data, configuration, return_original=True):
+    def evaluate(self, in_data, configuration, return_feed=True):
         '''
-        return_original if True, return also input data of each batch.
+        return_feed: if True, return also input batch data.
         '''
         n_examples = in_data.num_examples
         data_loss = 0.
         batch_size = configuration.batch_size
         n_batches = int(n_examples / batch_size)
         reconstructions = []
-        original = []
+        feed = []
+        gt_feed = []
         # Loop over all batches
         for _ in xrange(n_batches):
-            original_data, labels, noisy_data = in_data.next_batch(batch_size)
-            original_data = original_data.reshape([batch_size] + configuration.n_input)
+            gt_data, labels, noisy_data = in_data.next_batch(batch_size)
+            gt_data = gt_data.reshape([batch_size] + configuration.n_input)
+
             if self.is_denoising:
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
-                batch_i = noisy_data
-                rec_i, loss = self.reconstruct(batch_i, original_data)
+                batch_i = noisy_data    # Feed the noisy-version of the gt_data.
+                rec_i, loss = self.reconstruct(batch_i, gt_data)
             else:
-                batch_i = original_data
+                batch_i = gt_data
                 rec_i, loss = self.reconstruct(batch_i)
 
-            reconstructions.append((rec_i, labels))
+            reconstructions.append([rec_i, labels])
 
-            if return_original:
-                original.append((batch_i, labels))
+            if return_feed:
+                feed.append([batch_i, labels])
+                if self.is_denoising:
+                    gt_feed.append([gt_data, labels])
+
             # Compute average loss
             data_loss += loss
         data_loss /= n_batches
-        return reconstructions, data_loss, original
+        return reconstructions, data_loss, feed, gt_feed

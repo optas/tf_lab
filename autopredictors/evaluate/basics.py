@@ -17,7 +17,7 @@ def read_saved_epochs(saved_dir):
     return epochs_saved
 
 
-def eval_model(model, configuration, datasets, epochs=None):
+def eval_model(model, configuration, datasets, epochs=None, verbose=False):
     conf = configuration
     if type(datasets) != list:
         datasets = [datasets]
@@ -27,10 +27,12 @@ def eval_model(model, configuration, datasets, epochs=None):
 
     stats = np.zeros((len(epochs), len(datasets)))
     for i, epoch in enumerate(epochs):
-        model.restore_model(conf.train_dir, epoch)
+        model.restore_model(conf.train_dir, epoch, verbose)
         for j, d in enumerate(datasets):
-            _, loss, _ = model.evaluate(d, conf)
+            loss = model.evaluate(d, conf)[1]
             stats[i, j] = loss
+        if verbose:
+            print stats[i, :]
 
     epochs = np.array(epochs).reshape((len(epochs), 1))
     stats = np.hstack((epochs, stats))
@@ -44,9 +46,9 @@ def generalization_error(model, train_data, test_data, val_data, configuration):
 
     for i, epoch in enumerate(epochs_saved):
         model.restore_model(conf.train_dir, epoch)
-        _, l_tr, _ = model.evaluate(train_data, conf)
-        _, l_te, _ = model.evaluate(test_data, conf)
-        _, l_va, _ = model.evaluate(val_data, conf)
+        l_tr = model.evaluate(train_data, conf)[1]
+        l_te = model.evaluate(test_data, conf)[1]
+        l_va = model.evaluate(val_data, conf)[1]
         stats[i, :] = [epoch, l_tr, l_te, l_va]
         print(stats[i, :])
 
