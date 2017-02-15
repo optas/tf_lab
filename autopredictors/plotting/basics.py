@@ -48,17 +48,21 @@ def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_ba
     plot_gt_of_feed()
 
 
-def plot_train_val_test_curves(stats, save_dir, best_epoch=None, show=True):
+def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=None, show=True):
     create_dir(save_dir)
     n_epochs = stats.shape[0]
     x = range(n_epochs)
     fig, ax = plt.subplots()
     plt.plot(x, stats[:, 1])
     plt.plot(x, stats[:, 2])
-    plt.plot(x, stats[:, 3])
+    if has_validation:
+        plt.plot(x, stats[:, 3])
     plt.xlabel('Epochs')
     plt.ylabel('AE Loss')
-    plt.legend(['Train', 'Test', 'Val'])
+    if has_validation:
+        plt.legend(['Train', 'Test', 'Val'])
+    else:
+        plt.legend(['Train', 'Test'])
 
     xticks = x[0: len(x): n_epochs / 10]
     ax.set_xticks(xticks)
@@ -69,7 +73,11 @@ def plot_train_val_test_curves(stats, save_dir, best_epoch=None, show=True):
 
     if show:
         plt.show()
-    fig.savefig(osp.join(save_dir, 'train-test-val-curves.png'))
+    if has_validation:
+        tag = 'train-test-val-curves.png'
+    else:
+        tag = 'train-test-curves.png'
+    fig.savefig(osp.join(save_dir, tag))
 
 
 def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, max_plot=None):
