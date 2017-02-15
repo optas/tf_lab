@@ -152,7 +152,9 @@ class VariationalAutoencoder(AutoEncoder):
             if configuration.loss == 'bernoulli':
                 # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
                 batch_i_tmp += .5
-                if np.maximum(batch_i_tmp) > 1 or np.minimum(batch_i_tmp) < 0:
+                if np.max(batch_i_tmp) > 1 or np.min(batch_i_tmp) < 0:
+                    print '%.10f' %(np.max(batch_i_tmp))
+                    print '%.10f' %(np.min(batch_i_tmp))
                     raise ValueError()
 #                 batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
 #                 batch_i_tmp = np.minimum(batch_i_tmp, 1.0 - 1e-10)
