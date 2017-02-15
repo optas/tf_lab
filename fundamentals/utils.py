@@ -6,6 +6,13 @@ Created on Feb 2, 2017
 
 import tensorflow as tf
 import numpy as np
+import os
+
+
+def set_visible_GPUs(accessible=[0]):
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # See issue #152 stack-overflow.
+    accessible = '"' + ','.join(str(e) for e in accessible) + '"'
+    os.environ["CUDA_VISIBLE_DEVICES"] = accessible
 
 
 def get_incoming_shape(incoming):
