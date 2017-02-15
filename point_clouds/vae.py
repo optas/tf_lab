@@ -20,6 +20,9 @@ except:
     pass
 
 
+from general_tools.in_out.basics import pickle_data
+debug = []
+
 class VariationalAutoencoder(AutoEncoder):
     """ Variation Autoencoder (VAE) with an sklearn-like interface implemented using TensorFlow.
 
@@ -28,6 +31,7 @@ class VariationalAutoencoder(AutoEncoder):
 
     See "Auto-Encoding Variational Bayes" by Kingma and Welling for more details.
     """
+
     def __init__(self, name, configuration, graph=None):
         if graph is None:
             self.graph = tf.get_default_graph()
@@ -67,6 +71,8 @@ class VariationalAutoencoder(AutoEncoder):
         self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
+        global debug
+        debug.append(eps)
         # z = mu + sigma * epsilon
         return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
@@ -140,7 +146,7 @@ class VariationalAutoencoder(AutoEncoder):
                 batch_i += .5
                 batch_i = np.maximum(1e-10, batch_i)
                 batch_i = np.minimum(batch_i, 1.0 - 1e-10)
-              
+
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 r_rotation = rand_rotation_matrix()
                 r_rotation[0, 2] = 0
@@ -153,7 +159,18 @@ class VariationalAutoencoder(AutoEncoder):
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)
             else:
+                print 'here'
+                epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
+
+                if epoch > 1:
+                    np.savetxt('test_degub.np', batch_i)
+                    global debug
+                    pickle_data('test_degub_eps.', debug)
+                    print 'done debugging'
+                    return
+
                 loss, _ = self.partial_fit(batch_i)
+
 
             # Compute average loss
             epoch_loss += loss
