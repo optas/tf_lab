@@ -159,7 +159,6 @@ class AutoEncoder(object):
                 rec_i, loss = self.reconstruct(batch_i, gt_data)
             else:
                 batch_i = gt_data
-                
                 if configuration.gauss_augment is not None:  # TODO Take it out of here.
                     batch_i = batch_i.copy()
                     mu = configuration.gauss_augment['mu']
