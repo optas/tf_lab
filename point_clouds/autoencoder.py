@@ -148,9 +148,9 @@ class AutoEncoder(object):
             if self.is_denoising:
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
-                
-                print 'yo'
+                                
                 if configuration.gauss_augment is not None:
+                    batch_i = batch_i.copy() 
                     mu = configuration.gauss_augment['mu']
                     sigma = configuration.gauss_augment['sigma']
                     batch_i += np.random.normal(mu, sigma, batch_i.shape)
