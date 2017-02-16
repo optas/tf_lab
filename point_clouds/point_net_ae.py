@@ -55,7 +55,7 @@ class PointNetAutoEncoder(AutoEncoder):
             # Initializing the tensor flow variables
             self.init = tf.global_variables_initializer()
 
-            # GPU configuration
+#             # GPU configuration
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
 

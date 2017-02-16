@@ -281,8 +281,8 @@ class PointCloudDataSet(object):
     def __init__(self, point_clouds, noise=None, labels=None):
         '''Construct a DataSet.
         Args:
-        noise (Dictionary, optional):   noise['frac'], fraction [0,1] of points that will be distorted in every point-cloud.
-                                        noise['filler'], the distortion value.
+        Output:
+            original_pclouds, labels, noise_pclouds
         '''
 
         self.num_examples = point_clouds.shape[0]
@@ -312,10 +312,8 @@ class PointCloudDataSet(object):
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self.num_examples:
-            # Finished epoch.
-            self.epochs_completed += 1
-            # Shuffle the data.
-            if seed is not None:
+            self.epochs_completed += 1  # Finished epoch.
+            if seed is not None:    # Shuffle the data.
                 np.random.seed(seed)
             perm = np.arange(self.num_examples)
             np.random.shuffle(perm)

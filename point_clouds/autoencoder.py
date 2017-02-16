@@ -39,7 +39,7 @@ class Configuration():
         self.spatial_trans = spatial_trans
         self.debug = debug
         # Used in VAE
-        self.latent_vs_recon = latent_vs_recon
+        self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
 
         def __str__(self):
@@ -101,8 +101,9 @@ class AutoEncoder(object):
         '''Use AE to reconstruct given data.
         GT will be used to measure the loss (e.g., if X is a noisy version of the GT)'''
         if GT is None:
-            GT = X
-        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
+            return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X})
+        else:
+            return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
@@ -148,11 +149,20 @@ class AutoEncoder(object):
             if self.is_denoising:
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
+
+                if configuration.gauss_augment is not None:
+                    batch_i = batch_i.copy()
+                    mu = configuration.gauss_augment['mu']
+                    sigma = configuration.gauss_augment['sigma']
+                    batch_i += np.random.normal(mu, sigma, batch_i.shape)
+
                 rec_i, loss = self.reconstruct(batch_i, gt_data)
             else:
                 batch_i = gt_data
                 rec_i, loss = self.reconstruct(batch_i)
 
+            # Compute average loss
+            data_loss += loss
             reconstructions.append([rec_i, labels])
 
             if return_feed:
@@ -160,7 +170,5 @@ class AutoEncoder(object):
                 if self.is_denoising:
                     gt_feed.append([gt_data, labels])
 
-            # Compute average loss
-            data_loss += loss
         data_loss /= n_batches
         return reconstructions, data_loss, feed, gt_feed

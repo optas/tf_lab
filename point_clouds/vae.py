@@ -11,16 +11,14 @@ from tflearn.layers.core import fully_connected as fc_layer
 
 from general_tools.in_out.basics import create_dir
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
-
-from . autoencoder import AutoEncoder
+from general_tools.in_out.basics import pickle_data
 
 try:
-    from tf_nndistance import nn_distance
+    from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
 except:
-    pass
+    print 'nn_distance module cannot be loaded.'
 
-
-from general_tools.in_out.basics import pickle_data
+from . autoencoder import AutoEncoder
 
 
 class VariationalAutoencoder(AutoEncoder):
@@ -71,7 +69,6 @@ class VariationalAutoencoder(AutoEncoder):
         self.z_mean = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         self.z_log_sigma_sq = fc_layer(encoded, n_z, activation='relu', weights_init='xavier')
         eps = tf.random_normal((batch_size, n_z), 0, 1, dtype=tf.float32)  # TODO double check that this samples new stuff in each batch.
-        self.eps = eps
         # z = mu + sigma * epsilon
         return tf.add(self.z_mean, tf.mul(tf.sqrt(tf.exp(self.z_log_sigma_sq)), eps))
 
@@ -91,7 +88,9 @@ class VariationalAutoencoder(AutoEncoder):
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
-        self.loss = tf.reduce_mean(reconstr_loss) + (tf.multiply(tf.constant(c.latent_vs_recon), tf.reduce_mean(latent_loss)))  # TODO reverse to simpler.
+#         self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(c.latent_vs_recon * latent_loss)
+        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(100.0 * latent_loss)   # TODO - >add weighted loss
+
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
@@ -133,18 +132,12 @@ class VariationalAutoencoder(AutoEncoder):
             else:
                 batch_i = original_data
 
-            batch_i = batch_i.copy()    # TODO -> only necessary if you do augmentations
+            batch_i_tmp = batch_i.copy()    # TODO -> only necessary if you do augmentations
 
             if configuration.gauss_augment is not None:
                 mu = configuration.gauss_augment['mu']
                 sigma = configuration.gauss_augment['sigma']
-                batch_i += np.random.normal(mu, sigma, batch_i.shape)
-
-            if configuration.loss == 'bernoulli':
-                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
-                batch_i += .5
-                batch_i = np.maximum(1e-10, batch_i)
-                batch_i = np.minimum(batch_i, 1.0 - 1e-10)
+                batch_i_tmp += np.random.normal(mu, sigma, batch_i_tmp.shape)
 
             if configuration.z_rotate:  # TODO -> add independent rotations to each object
                 r_rotation = rand_rotation_matrix()
@@ -155,17 +148,20 @@ class VariationalAutoencoder(AutoEncoder):
                 r_rotation[2, 2] = 1
                 batch_i = batch_i.dot(r_rotation)
 
-            if self.is_denoising:
-                loss, _ = self.partial_fit(batch_i, original_data)
-            else:
-                epoch = int(self.sess.run(self.epoch))
-                print self.sess.run(self.eps)[0][0:1]
-                if epoch > 10:
-                    pickle_data('test_degub.np', batch_i)
-                    print 'done debugging'
-                    return
+            if configuration.loss == 'bernoulli':
+                # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
+                batch_i_tmp += .5
+                batch_i_tmp = np.maximum(1e-10, batch_i_tmp)
+                batch_i_tmp = np.minimum(batch_i_tmp, 1.0 - 1e-10)
+                if np.max(batch_i_tmp) > 1 or np.min(batch_i_tmp) < 0:
+                    print '%.10f' % (np.max(batch_i_tmp))
+                    print '%.10f' % (np.min(batch_i_tmp))
+                    raise ValueError()
 
-                loss, _ = self.partial_fit(batch_i)
+            if self.is_denoising:
+                loss, _ = self.partial_fit(batch_i_tmp, original_data)
+            else:
+                loss, _ = self.partial_fit(batch_i_tmp)
 
             # Compute average loss
             epoch_loss += loss
