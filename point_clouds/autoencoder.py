@@ -42,14 +42,14 @@ class Configuration():
         self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
 
-        def __str__(self):
-            keys = self.__dict__.keys()
-            vals = self.__dict__.values()
-            index = np.argsort(keys)
-            res = ''
-            for i in index:
-                res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
-            return res
+    def __str__(self):
+        keys = self.__dict__.keys()
+        vals = self.__dict__.values()
+        index = np.argsort(keys)
+        res = ''
+        for i in index:
+            res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
+        return res
 
 
 class AutoEncoder(object):
@@ -150,7 +150,7 @@ class AutoEncoder(object):
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
 
-                if configuration.gauss_augment is not None:
+                if configuration.gauss_augment is not None:  # TODO Take it out of here.
                     batch_i = batch_i.copy()
                     mu = configuration.gauss_augment['mu']
                     sigma = configuration.gauss_augment['sigma']
@@ -159,6 +159,13 @@ class AutoEncoder(object):
                 rec_i, loss = self.reconstruct(batch_i, gt_data)
             else:
                 batch_i = gt_data
+                
+                if configuration.gauss_augment is not None:  # TODO Take it out of here.
+                    batch_i = batch_i.copy()
+                    mu = configuration.gauss_augment['mu']
+                    sigma = configuration.gauss_augment['sigma']
+                    batch_i += np.random.normal(mu, sigma, batch_i.shape)
+
                 rec_i, loss = self.reconstruct(batch_i)
 
             # Compute average loss
