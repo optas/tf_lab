@@ -89,7 +89,7 @@ class VariationalAutoencoder(AutoEncoder):
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
 
 #         self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(c.latent_vs_recon * latent_loss)
-        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(100.0 * latent_loss)
+        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(100.0 * latent_loss)   # TODO - >add weighted loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 

@@ -153,6 +153,8 @@ class AutoEncoder(object):
                 batch_i = gt_data
                 rec_i, loss = self.reconstruct(batch_i)
 
+            # Compute average loss
+            data_loss += loss
             reconstructions.append([rec_i, labels])
 
             if return_feed:
@@ -160,7 +162,5 @@ class AutoEncoder(object):
                 if self.is_denoising:
                     gt_feed.append([gt_data, labels])
 
-            # Compute average loss
-            data_loss += loss
         data_loss /= n_batches
         return reconstructions, data_loss, feed, gt_feed
