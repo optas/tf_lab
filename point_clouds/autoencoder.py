@@ -101,8 +101,9 @@ class AutoEncoder(object):
         '''Use AE to reconstruct given data.
         GT will be used to measure the loss (e.g., if X is a noisy version of the GT)'''
         if GT is None:
-            GT = X
-        return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
+            return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X})
+        else:
+            return self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
@@ -148,15 +149,13 @@ class AutoEncoder(object):
             if self.is_denoising:
                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
-                                
+
                 if configuration.gauss_augment is not None:
-                    batch_i = batch_i.copy() 
+                    batch_i = batch_i.copy()
                     mu = configuration.gauss_augment['mu']
                     sigma = configuration.gauss_augment['sigma']
                     batch_i += np.random.normal(mu, sigma, batch_i.shape)
-                
-                
-                
+
                 rec_i, loss = self.reconstruct(batch_i, gt_data)
             else:
                 batch_i = gt_data
