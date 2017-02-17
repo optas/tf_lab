@@ -270,7 +270,7 @@ def shuffle_two_pcloud_datasets(a, b, seed=None):
 #             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
 #             for i in xrange(self.num_examples):
 #                 drop_index = np.random.choice(point_range, n_distort, replace=False)
-#                 self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+#                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
 
 
 class PointCloudDataSet(object):
