@@ -46,10 +46,7 @@ def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024):
     return pc.points, model_id, class_id
 
 
-def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, loader=_load_crude_pcloud_and_model_id):
-    if file_names is None:
-        file_names = glob.glob(osp.join(top_directory, '*' + points_extension))
-
+def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, verbose=False):
     pc = loader(file_names[0])[0]
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = np.empty([len(file_names)], dtype=object)
@@ -61,6 +58,12 @@ def load_crude_point_clouds(top_directory=None, file_names=None, n_threads=1, lo
 
     pool.close()
     pool.join()
+
+    if len(np.unique(model_names)) != len(pclouds):
+        warnings.warn('Point clouds with the same model name were loaded.')
+
+    if verbose:
+        print '%d pclouds were loaded. They belong in %d shape-classes.' % (len(pclouds), len(np.unique(class_ids)))
 
     return pclouds, model_names, class_ids
 
