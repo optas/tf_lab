@@ -53,3 +53,13 @@ def occupancy_grid_as_point_cloud(matlab_file):
     x, y, z = np.where(data)
     points = np.vstack((x, y, z)).T
     return Point_Cloud(points=points)
+
+
+def match_incomplete_to_complete_data(complete_model_names, incomplete_model_names):
+    # Match incomplete to complete model_names.
+    d = {name: i for i, name in enumerate(complete_model_names)}
+    mapping = []    # The i-th incomplete pcloud will correspond to the mapping[i] in the order of the complete_model_names.
+    for name in incomplete_model_names:
+        mapping.append(d[name])
+    mapping = np.array(mapping)
+    return np.array(mapping)
