@@ -1,17 +1,18 @@
 import os
-import glob
 import warnings
 import numpy as np
 import os.path as osp
 import tensorflow as tf
 from multiprocessing import Pool
 
-from autopredictors.scripts.helper import points_extension
+from geo_tool import Mesh, Point_Cloud
 from geo_tool.in_out.soup import load_crude_point_cloud
 from geo_tool.in_out.soup import load_mesh_from_file
-from geo_tool import Mesh, Point_Cloud
+
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
 from general_tools.in_out.basics import files_in_subdirs
+
+from .. autopredictors.scripts.helper import points_extension
 
 tf_record_extension = '.tfrecord'
 vscan_search_pattern = '__0__.ply'
