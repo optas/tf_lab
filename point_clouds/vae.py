@@ -13,6 +13,8 @@ from general_tools.in_out.basics import create_dir
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
 from general_tools.in_out.basics import pickle_data
 
+from tensorflow.contrib.losses import compute_weighted_loss
+
 try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
     from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
@@ -92,10 +94,9 @@ class VariationalAutoencoder(AutoEncoder):
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
-
-#         self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(c.latent_vs_recon * latent_loss)
-        self.loss = tf.reduce_mean(reconstr_loss) + tf.reduce_mean(100.0 * latent_loss)   # TODO - >add weighted loss
-
+	
+        self.loss = tf.reduce_mean(reconstr_loss + latent_loss)   # TODO - >add weighted loss
+	#self.loss = compute_weighted_loss(temp, [1.0, c.latent_vs_recon])
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
