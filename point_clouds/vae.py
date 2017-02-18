@@ -152,7 +152,7 @@ class VariationalAutoencoder(AutoEncoder):
                 r_rotation[1, 2] = 0
                 r_rotation[2, 1] = 0
                 r_rotation[2, 2] = 1
-                batch_i = batch_i.dot(r_rotation)
+                batch_i_tmp = batch_i_tmp.dot(r_rotation)
 
             if configuration.loss == 'bernoulli':
                 # Ensures pclouds lie in [0,1] interval, thus are interpreted as Bernoulli variables.
