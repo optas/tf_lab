@@ -6,7 +6,7 @@ from general_tools.in_out.basics import create_dir
 from geo_tool import Point_Cloud
 
 
-def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_batches, save_dir, max_plot=None):
+def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_batches, save_dir, in_u_sphere=True, max_plot=None):
     '''Example:
     ae.restore_model(conf.train_dir, epoch)
     reconstructed, loss, original = ae.evaluate(train_data, conf)
@@ -22,11 +22,11 @@ def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_ba
                 if max_plot and counter > max_plot:
                     return
 
-                fig = Point_Cloud(points=oi).plot(show=False)
+                fig = Point_Cloud(points=oi).plot(show=False, in_u_sphere=in_u_sphere)
                 fig.savefig(osp.join(save_dir, '%s_feed.png' % (ol, )))
                 plt.close()
 
-                fig = Point_Cloud(points=ri).plot(show=False)
+                fig = Point_Cloud(points=ri).plot(show=False, in_u_sphere=in_u_sphere)
                 fig.savefig(osp.join(save_dir, '%s_reconstructed.png' % (rl, )))
                 plt.close()
 
@@ -38,7 +38,7 @@ def plot_original_pclouds_vs_reconstructed(feed_batches, recon_batches, gt_of_ba
                     counter += 1
                     if max_plot and counter > max_plot:
                         return
-                    fig = Point_Cloud(points=pc).plot(show=False)
+                    fig = Point_Cloud(points=pc).plot(show=False, in_u_sphere=in_u_sphere)
                     fig.savefig(osp.join(save_dir, '%s_gt_feed.png' % (l, )))
                     plt.close()
 
@@ -81,8 +81,8 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     fig.savefig(osp.join(save_dir, tag))
 
 
-def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, max_plot=None):
+def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, in_u_sphere=True, max_plot=None):
     conf = configuration
     model.restore_model(conf.train_dir, epoch)
     reconstructed, _, feed, gt_feed = model.evaluate(in_data, conf)
-    plot_original_pclouds_vs_reconstructed(feed, reconstructed, gt_feed, save_dir, max_plot=max_plot)
+    plot_original_pclouds_vs_reconstructed(feed, reconstructed, gt_feed, save_dir, in_u_sphere=in_u_sphere, max_plot=max_plot)
