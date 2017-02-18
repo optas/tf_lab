@@ -35,6 +35,22 @@ def encoder_1dcovnv_5_points(in_signal, spn=False):
     return layer
 
 
+def encoder_1dcovnv_1_points_sum(in_signal, spn=False):
+    if spn:
+        in_signal = pcloud_spn(in_signal)
+    layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1)
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+    layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1)
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+    layer = tf.reduce_sum(layer, axis=1)
+    return layer
+
+
 def encoder_1dcovnv_5_points_sum(in_signal, spn=False):     # TODO Unify with rest.
     if spn:
         in_signal = pcloud_spn(in_signal)
