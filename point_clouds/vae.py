@@ -15,8 +15,9 @@ from general_tools.in_out.basics import pickle_data
 
 try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+    from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print 'nn_distance module cannot be loaded.'
+    print 'External Losses (Chamfer-EMD) cannot be loaded.'
 
 from . autoencoder import AutoEncoder
 
@@ -74,9 +75,13 @@ class VariationalAutoencoder(AutoEncoder):
 
     def _create_loss_optimizer(self):
         c = self.configuration
+
         if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             reconstr_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+        elif c.loss == 'emd':
+            match = approx_match(self.x_reconstr, self.gt)
+            reconstr_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'bernoulli':
             # Negative log probability of the input under the reconstructed Bernoulli distribution
             # induced by the decoder in the data space. Adding 1e-10 to avoid evaluation of log(0.0)

@@ -21,8 +21,9 @@ from .. fundamentals.loss import Loss
 
 try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+    from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print 'nn_distance module cannot be loaded.'
+    print 'External Losses (Chamfer-EMD) cannot be loaded.'
 
 
 class PointNetAutoEncoder(AutoEncoder):
@@ -97,6 +98,9 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+        elif c.loss == 'emd':
+            match = approx_match(self.x_reconstr, self.gt)
+            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
