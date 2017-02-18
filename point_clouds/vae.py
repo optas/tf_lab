@@ -80,10 +80,10 @@ class VariationalAutoencoder(AutoEncoder):
 
         if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
-            reconstr_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            reconstr_loss = tf.reduce_sum(cost_p1_p2) + tf.reduce_sum(cost_p2_p1)
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
-            reconstr_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+            reconstr_loss = tf.reduce_sum(match_cost(self.x_reconstr, self.gt, match))
         elif c.loss == 'bernoulli':
             # Negative log probability of the input under the reconstructed Bernoulli distribution
             # induced by the decoder in the data space. Adding 1e-10 to avoid evaluation of log(0.0)
@@ -94,9 +94,9 @@ class VariationalAutoencoder(AutoEncoder):
 
         # Regularize posterior towards unit Gaussian prior:
         latent_loss = -0.5 * tf.reduce_sum(1 + self.z_log_sigma_sq - tf.square(self.z_mean) - tf.exp(self.z_log_sigma_sq), 1)
-	
-        self.loss = tf.reduce_mean(reconstr_loss + latent_loss)   # TODO - >add weighted loss
-	#self.loss = compute_weighted_loss(temp, [1.0, c.latent_vs_recon])
+
+        self.loss = tf.reduce_mean(reconstr_loss + (c.latent_vs_recon * latent_loss))
+#         tf.losses.compute_weighted_loss([reconstr_loss, latent_loss], [1.0, c.latent_vs_recon])
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def transform(self, X):
