@@ -76,6 +76,20 @@ def decoder_only_with_fc(latent_signal):
     return layer
 
 
+def decoder_with_three_fc(latent_signal):
+    layer = fully_connected(latent_signal, 512, activation='linear', weights_init='xavier')
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+
+    layer = fully_connected(latent_signal, 1024, activation='linear', weights_init='xavier')
+    layer = batch_normalization(layer)
+    layer = tf.nn.relu(layer)
+
+    layer = fully_connected(layer, 1024 * 3, activation='linear', weights_init='xavier')
+    layer = tf.reshape(layer, [-1, 1024, 3])
+    return layer
+
+
 def decoder_fc_and_1ddeconv(latent_signal):
     # TODO - Check tile.
     layer = fully_connected(latent_signal, 1024, activation='relu', weights_init='xavier')
