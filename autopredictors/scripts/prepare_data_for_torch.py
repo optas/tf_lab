@@ -11,15 +11,8 @@ import os.path as osp
 from general_tools.arrays.is_true import is_contiguous
 from . helper import segs_extension
 from general_tools.in_out.basics import read_header_of_np_saved_txt
-    
 
-def read_pt_cloud_with_segs(in_file):
-    in_data = np.loadtxt(in_file)
-    pts = in_data[:,[0,1,2]]
-    seg = in_data[:,3].astype(np.int32)
-    return pts, seg
-    
-    
+
 def read_model_id_to_max_segment(in_file):
     res = dict()
     with open(in_file) as f_in:
