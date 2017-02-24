@@ -69,49 +69,6 @@ def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_a
     return pclouds, model_names, class_ids
 
 
-# # import geo_tool.in_out.soup as pio
-# # 
-# # DATA_PATH = '/orions4-zfs/projects/lins2/Panos_Space/DATA/SN_with_part_annotation/03001627/expert_verified/points_label/'
-# # model_id = '1015e71a0d21b127de03ab2a27ba7531.seg'
-# # c = pio.load_annotation_of_points(osp.join(DATA_PATH, model_id))
-# # 
-# # DATA_PATH = '/orions4-zfs/projects/lins2/Panos_Space/DATA/SN_with_part_annotation/03001627/points/'
-# # model_id = '1015e71a0d21b127de03ab2a27ba7531.pts'
-# # pts = pio.load_crude_point_cloud(osp.join(DATA_PATH, model_id))
-# # pc = Point_Cloud(points=pts)
-# # # pc.sample(1024)
-# # pc.permute_points([0,2,1])
-# # pc.center_in_unit_sphere()
-# # pc.plot(c=c)
-# # 
-# # def apply_mask(self, bool_mask):
-# #     return Point_Cloud(self.points[bool_mask, :])
-# # 
-# # 
-# # def load_pclouds_with_eric_annotations(pts_file, seg_file, ):
-# 
-# def load_point_clouds_with_segmentations(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, verbose=False):
-#     pc = loader(file_names[0])[0]
-#     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
-#     model_names = np.empty([len(file_names)], dtype=object)
-#     class_ids = np.empty([len(file_names)], dtype=object)
-#     pool = Pool(n_threads)
-# 
-#     for i, data in enumerate(pool.imap(loader, file_names)):
-#         pclouds[i, :, :], model_names[i], class_ids[i] = data
-# 
-#     pool.close()
-#     pool.join()
-# 
-#     if len(np.unique(model_names)) != len(pclouds):
-#         warnings.warn('Point clouds with the same model name were loaded.')
-# 
-#     if verbose:
-#         print '%d pclouds were loaded. They belong in %d shape-classes.' % (len(pclouds), len(np.unique(class_ids)))
-# 
-#     return pclouds, model_names, class_ids
-
-
 def load_cc_parts_of_model(model_path):
     raise NotImplementedError()
 
@@ -380,13 +337,14 @@ class PointCloudDataSet(object):
         else:
             return self.point_clouds[start:end], self.labels[start:end], self.noisy_point_clouds[start:end]
 
-    def full_epoch_data(self, seed=None):
+    def full_epoch_data(self, shuffle=True, seed=None):
         '''Returns a copy of the examples of the entire data set (i.e. an epoch's data), shuffled.
         '''
-        if seed is not None:
+        if shuffle and seed is not None:
             np.random.seed(seed)
         perm = np.arange(self.num_examples)  # Shuffle the data.
-        np.random.shuffle(perm)
+        if shuffle:
+            np.random.shuffle(perm)
         pc = self.point_clouds[perm]
         lb = self.labels[perm]
         ns = None
