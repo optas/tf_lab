@@ -9,7 +9,7 @@ import os.path as osp
 import tensorflow as tf
 import numpy as np
 
-from general_tools.in_out.basics import create_dir
+from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 
 model_saver_id = 'models.ckpt'
 
@@ -57,6 +57,15 @@ class Configuration():
                 v = str(vals[i])
             res += '%30s: %s\n' % (str(keys[i]), v)
         return res
+
+    def save(self, file_name):
+        pickle_data(file_name + '.pickle', self)
+        with open(file_name + '.txt', 'w') as fout:
+            fout.write(self.__str__())
+
+    @staticmethod
+    def load(file_name):
+        return unpickle_data(file_name).next()
 
 
 class AutoEncoder(object):

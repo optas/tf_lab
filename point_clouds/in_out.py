@@ -278,6 +278,11 @@ def shuffle_two_pcloud_datasets(a, b, seed=None):
 #                 drop_index = np.random.choice(point_range, n_distort, replace=False)
 #                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
 
+def write_model_ids_of_datasets(out_dir, model_ids, r_indices):
+    for ind, name in zip(r_indices, ['train', 'val', 'test']):
+        with open(osp.join(out_dir, name + '_data.txt'), 'w') as fout:
+            for t in model_ids[ind]:
+                fout.write(' '.join(t[:]) + '\n')
 
 class PointCloudDataSet(object):
     '''
