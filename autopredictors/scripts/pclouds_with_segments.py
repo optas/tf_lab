@@ -336,7 +336,7 @@ def main():
         parallel = True
 
     create_dir(out_top_dir)
-    synth_id_to_category = helper.shape_net_core_synth_id_to_category()
+    synth_id_to_category = helper.shape_net_core_synth_id_to_category
 
     if parallel:
         pool = Pool(n_threads)
