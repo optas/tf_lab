@@ -66,8 +66,9 @@ class AutoEncoder(object):
     def __init__(self, name, n_input, is_denoising):
         self.name = name
         self.is_denoising = is_denoising
+        self.n_input = n_input
 
-        in_shape = [None, n_input[0], n_input[1]]
+        in_shape = [None] + n_input
 
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, in_shape)
@@ -115,6 +116,17 @@ class AutoEncoder(object):
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
         return self.sess.run(self.z, feed_dict={self.x: X})
+
+    def interpolate(self, x, y, steps, n_input):
+        ''' Interpolate between and x and y input vectors in latent space.'''
+        in_feed = np.vstack((x, y))
+        z1, z2 = self.transform(in_feed.reshape([2] + self.n_input))
+        all_z = np.zeros((steps + 2, len(z1)))
+
+        for i, alpha in enumerate(np.linspace(0, 1, steps + 2)):
+            all_z[i, :] = (alpha * z2) + ((1.0 - alpha) * z1)
+
+        return self.sess.run((self.x_reconstr), {self.z: all_z})
 
     def train(self, train_data, configuration):
         c = configuration

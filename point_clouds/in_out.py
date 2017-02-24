@@ -238,15 +238,17 @@ def train_validate_test_split(arrays, train_perc=0, validate_perc=0, test_perc=0
     train_data = []
     validate_data = []
     test_data = []
+    r_ind = (perm[:train_end], perm[train_end:validate_end], perm[validate_end:])
+
     for a in arrays:
-        train_data.append(a[perm[:train_end]])
-        validate_data.append(a[perm[train_end:validate_end]])
-        test_data.append(a[perm[validate_end:]])
+        train_data.append(a[r_ind[0]])
+        validate_data.append(a[r_ind[1]])
+        test_data.append(a[r_ind[2]])
 
     if len(train_data) == 1:
-        return train_data[0], validate_data[0], test_data[0]
+        return train_data[0], validate_data[0], test_data[0], r_ind
     else:
-        return train_data, validate_data, test_data
+        return train_data, validate_data, test_data, r_ind
 
 
 def shuffle_two_pcloud_datasets(a, b, seed=None):

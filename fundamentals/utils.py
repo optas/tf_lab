@@ -15,7 +15,7 @@ def set_visible_GPUs(accessible=[0]):
     os.environ["CUDA_VISIBLE_DEVICES"] = accessible
 
 
-def reset_tf_graph(): # TODO- move to utilities for notebook
+def reset_tf_graph():   # TODO- move to utilities for notebook
     if 'sess' in globals() and sess:
         sess.close()
     tf.reset_default_graph()
