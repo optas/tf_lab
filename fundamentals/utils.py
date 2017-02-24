@@ -15,6 +15,12 @@ def set_visible_GPUs(accessible=[0]):
     os.environ["CUDA_VISIBLE_DEVICES"] = accessible
 
 
+def reset_tf_graph(): # TODO- move to utilities for notebook
+    if 'sess' in globals() and sess:
+        sess.close()
+    tf.reset_default_graph()
+
+
 def get_incoming_shape(incoming):
     """ Returns the incoming data shape """
     if isinstance(incoming, tf.Tensor):

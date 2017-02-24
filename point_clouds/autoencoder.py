@@ -15,9 +15,20 @@ model_saver_id = 'models.ckpt'
 
 
 class Configuration():
-    def __init__(self, n_input, training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False, non_linearity=tf.nn.relu,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, decoder=None, encoder=None, saver_max_to_keep=None, loss_display_step=1,
-                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0):
+    def __init__(self, n_input, encoder, decoder, encoder_args, decoder_args,
+                 training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, saver_max_to_keep=None, loss_display_step=1,
+                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0, experiment_name='experiment'):
+
+        # Parameters for any AE
+        self.n_input = n_input
+        self.is_denoising = denoising
+        self.loss = loss.lower()
+        self.decoder = decoder
+        self.encoder = encoder
+        self.encoder_args = encoder_args
+        self.decoder_args = decoder_args
+
         # Training related parameters
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -28,16 +39,8 @@ class Configuration():
         self.z_rotate = z_rotate
         self.saver_max_to_keep = saver_max_to_keep
         self.training_epochs = training_epochs
-        # Parameters for any AE
-        self.n_input = n_input
-        self.encoder_sizes = [64, 128, 1024]
-        self.non_linearity = non_linearity
-        self.is_denoising = denoising
-        self.loss = loss.lower()
-        self.decoder = decoder
-        self.encoder = encoder
-        self.spatial_trans = spatial_trans
         self.debug = debug
+
         # Used in VAE
         self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
@@ -48,7 +51,11 @@ class Configuration():
         index = np.argsort(keys)
         res = ''
         for i in index:
-            res += '%30s: %s\n' % (str(keys[i]), str(vals[i]))
+            if callable(vals[i]):
+                v = vals[i].__name__
+            else:
+                v = str(vals[i])
+            res += '%30s: %s\n' % (str(keys[i]), v)
         return res
 
 

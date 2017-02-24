@@ -40,15 +40,9 @@ class PointNetAutoEncoder(AutoEncoder):
         AutoEncoder.__init__(self, name, c.n_input, c.is_denoising)
 
         with tf.variable_scope(name):
-            if c.encoder is None:
-                self.z = self._encoder_network(c.spatial_trans)
-            else:
-                self.z = c.encoder(self.x, c.spatial_trans)
-
-            if c.decoder is None:
-                self.x_reconstr = self._decoder_network()
-            else:
-                self.x_reconstr = c.decoder(self.z)
+            self.z = c.encoder(self.x, **c.encoder_args)
+            layer = c.decoder(self.z, **c.decoder_args)
+            self.x_reconstr = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
 
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
@@ -56,40 +50,13 @@ class PointNetAutoEncoder(AutoEncoder):
             # Initializing the tensor flow variables
             self.init = tf.global_variables_initializer()
 
-#             # GPU configuration
+            # GPU configuration
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
 
             # Launch the session
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
-
-    def _encoder_network(self, spn=False):
-        '''Generate encoder (recognition network), which maps inputs onto a latent space.
-        '''
-        c = self.configuration
-        nb_filters = c.encoder_sizes
-        if spn:
-            layer = pcloud_spn(self.x)
-        else:
-            layer = self.x
-        layer = conv_1d(layer, nb_filter=nb_filters[0], filter_size=1, strides=1, name='conv-fc1')
-        layer = c.non_linearity(layer)
-        layer = conv_1d(layer, nb_filter=nb_filters[1], filter_size=1, strides=1, name='conv-fc2')
-        layer = c.non_linearity(layer)
-        layer = conv_1d(layer, nb_filter=nb_filters[2], filter_size=1, strides=1, name='conv-fc3')
-        layer = tf.reduce_max(layer, axis=1)
-        return layer
-
-    def _decoder_network(self):
-        '''Generate a decoder which maps points from the latent space back onto the data space.
-        '''
-        c = self.configuration
-        layer = fully_connected(self.z, c.n_input[0], name='decoder_fc_0')
-        layer = c.non_linearity(layer)
-        layer = fully_connected(layer, c.n_input[0] * c.n_input[1], name='decoder_fc_1')
-        layer = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
-        return layer
 
     def _create_loss_optimizer(self):
         c = self.configuration
