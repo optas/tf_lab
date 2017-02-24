@@ -7,7 +7,7 @@ General output specifications:
     They are stored as the first 3 columns of each output file.
     The fourth column of an output file (when it exists) indicates for the corresponding point in which segment it belongs to.
 
-Requires: add in PYTHONPATH geo_tool, general_tools and autopredictors
+Requires: in PYTHONPATH geo_tool, general_tools
 '''
 
 import sys
@@ -28,7 +28,7 @@ import geo_tool.in_out.soup as gio
 import geo_tool.solids.mesh_cleaning as cleaning
 import geo_tool.signatures.node_signatures as ns
 
-from autopredictors.scripts import helper
+from . import helper
 
 segs_ext = helper.segs_extension
 pts_ext = helper.points_extension
@@ -249,7 +249,7 @@ def crude_shape_segmentations(file_name, out_folder, n_samples, swap_y_z=True, s
         point_seg_ids = make_contiguous(point_seg_ids, start=np.min(point_seg_ids)).reshape((pc.num_points, 1))
 
         output_data = np.hstack((pc.points, point_seg_ids))
-        out_file = osp.join(out_folder, model_id + segs_extension)
+        out_file = osp.join(out_folder, model_id + segs_ext)
 
         n_segs = np.unique(point_seg_ids)
         n_segs = len(n_segs[n_segs != 0])

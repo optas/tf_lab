@@ -284,6 +284,7 @@ def write_model_ids_of_datasets(out_dir, model_ids, r_indices):
             for t in model_ids[ind]:
                 fout.write(' '.join(t[:]) + '\n')
 
+
 class PointCloudDataSet(object):
     '''
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
