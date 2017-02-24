@@ -28,7 +28,7 @@ import geo_tool.in_out.soup as gio
 import geo_tool.solids.mesh_cleaning as cleaning
 import geo_tool.signatures.node_signatures as ns
 
-from . import helper
+import helper   # TODO  Make it relative
 
 segs_ext = helper.segs_extension
 pts_ext = helper.points_extension
@@ -287,11 +287,11 @@ def restrict_mesh_on_specific_faces_only(in_mesh, sample_face_id):
 
 def main():
     '''
-    python autopredictors/scripts/pclouds_with_segments.py
-        ~/DATA/Shapes/Shape_Net_Core_Test/
+    python tf_lab/autopredictors/scripts/pclouds_with_segments.py
+        ~/DATA/Shapes/Shape_Net_Core/
         ~/DATA/Shapes/Shape_Net_Core/Point_Clouds/
         sample_pclouds
-        2 3000 03001627
+        2 1024 03001627
     '''
 
     top_shape_dir = sys.argv[1]     # e.g., '...Shape_Net_Core' where the class folders of shape_net are.
