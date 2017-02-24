@@ -23,9 +23,8 @@ def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=Tr
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     if spn:
-        in_signal = pcloud_spn(in_signal)
-        print in_signal
-#         layer = tf.batch_matmul(in_signal,transform)
+        transformer = pcloud_spn(in_signal)
+        in_signal = tf.batch_matmul(in_signal, transformer)
     print in_signal
     layer = conv_1d(in_signal, nb_filter=layers[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
 
