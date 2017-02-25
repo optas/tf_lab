@@ -65,7 +65,7 @@ class Configuration():
 
     @staticmethod
     def load(file_name):
-        return unpickle_data(file_name).next()
+        return unpickle_data(file_name + '.pickle').next()
 
 
 class AutoEncoder(object):
@@ -126,7 +126,7 @@ class AutoEncoder(object):
         '''Transform data by mapping it into the latent space.'''
         return self.sess.run(self.z, feed_dict={self.x: X})
 
-    def interpolate(self, x, y, steps, n_input):
+    def interpolate(self, x, y, steps):
         ''' Interpolate between and x and y input vectors in latent space.'''
         in_feed = np.vstack((x, y))
         z1, z2 = self.transform(in_feed.reshape([2] + self.n_input))

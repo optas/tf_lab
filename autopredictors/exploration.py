@@ -26,7 +26,7 @@ def merge_val_test_data(val_data, test_data):   # TODO delete
 
 def latent_embedding_of_entire_dataset(dataset, model, conf):
     batch_size = conf.batch_size
-    feed, labels, _ = dataset.full_epoch_data()
+    feed, labels, _ = dataset.full_epoch_data(shuffle=False)
     latent = []
     for b in pio.chunks(feed, batch_size):
         latent.append(model.transform(b.reshape([len(b)] + conf.n_input)))

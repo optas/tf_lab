@@ -88,11 +88,11 @@ def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir
     plot_original_pclouds_vs_reconstructed(feed, reconstructed, gt_feed, save_dir, in_u_sphere=in_u_sphere, max_plot=max_plot)
 
 
-def plot_interpolations(inter_clouds):
-    fig = plt.figure(figsize=(50, 50))
+def plot_interpolations(inter_clouds, grid_size, fig_size=(50, 50)):
+    fig = plt.figure(figsize=fig_size)
     c = 1
     for cloud in inter_clouds:
-        plt.subplot(4, 3, c, projection='3d') # TODO -> change to grid of len(in_clouds)
+        plt.subplot(grid_size[0], grid_size[1], c, projection='3d')
         plt.axis('off')
         ax = fig.axes[c - 1]
         Point_Cloud(points=cloud).plot(axis=ax, show=False)
