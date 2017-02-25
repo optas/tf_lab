@@ -206,12 +206,13 @@ class PointCloudDataSet(object):
 
         if noise is not None:
             assert (type(noise) is np.ndarray)
-            self.noisy_point_clouds = noise
+            self.noisy_point_clouds = noise.copy()
 #             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
             self.noisy_point_clouds = None
 
 #         self.point_clouds = point_clouds.reshape(self.num_examples, -1)
+        self.point_clouds = point_clouds.copy()
         self.epochs_completed = 0
         self._index_in_epoch = 0
 

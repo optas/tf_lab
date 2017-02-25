@@ -64,7 +64,8 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     else:
         plt.legend(['Train', 'Test'])
 
-    xticks = x[0: len(x): n_epochs / 10]
+    tick_step = max(1, n_epochs / 10)
+    xticks = x[0: len(x): tick_step]
     ax.set_xticks(xticks)
     ax.set_xticklabels(stats[:, 0].astype(np.int16)[xticks])    # TODO - Cleaner tick-set
 
