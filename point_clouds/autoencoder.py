@@ -174,10 +174,8 @@ class AutoEncoder(object):
         # Loop over all batches
         for _ in xrange(n_batches):
             gt_data, labels, noisy_data = in_data.next_batch(batch_size)
-#             gt_data = gt_data.reshape([batch_size] + configuration.n_input)
 
             if self.is_denoising:
-#                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
 
                 if configuration.gauss_augment is not None:  # TODO Take it out of here.

@@ -12,10 +12,10 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 
 from general_tools.in_out.basics import create_dir
-from general_tools.rla.three_d_transforms import rand_rotation_matrix
 
 
 from . autoencoder import AutoEncoder
+from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
 
@@ -79,31 +79,15 @@ class PointNetAutoEncoder(AutoEncoder):
         start_time = time.time()
         # Loop over all batches
         for _ in xrange(n_batches):
-            original_data, labels, noisy_data = train_data.next_batch(batch_size)
-
-#             original_data = original_data.reshape([batch_size] + configuration.n_input)
 
             if self.is_denoising:
-#                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
-                batch_i = noisy_data
+                original_data, _, batch_i = train_data.next_batch(batch_size)
+                if batch_i is None:  # In this case the denoising concern only the augmentation.
+                    batch_i = original_data
             else:
-                batch_i = original_data
+                batch_i, _, _ = train_data.next_batch(batch_size)
 
-            batch_i = batch_i.copy()    # TODO -> only necessary if you do augmentations
-
-            if configuration.gauss_augment is not None:
-                mu = configuration.gauss_augment['mu']
-                sigma = configuration.gauss_augment['sigma']
-                batch_i += np.random.normal(mu, sigma, batch_i.shape)
-
-            if configuration.z_rotate:  # TODO -> add independent rotations to each object
-                r_rotation = rand_rotation_matrix()
-                r_rotation[0, 2] = 0
-                r_rotation[2, 0] = 0
-                r_rotation[1, 2] = 0
-                r_rotation[2, 1] = 0
-                r_rotation[2, 2] = 1
-                batch_i = batch_i.dot(r_rotation)
+            batch_i = apply_augmentations(batch_i, configuration)
 
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)

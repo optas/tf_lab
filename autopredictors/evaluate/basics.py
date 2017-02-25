@@ -8,7 +8,6 @@ from geo_tool import Point_Cloud
 from .. plotting.basics import  plot_original_pclouds_vs_reconstructed
 
 
-
 def read_saved_epochs(saved_dir):
     epochs_saved = []
     files = glob.glob(osp.join(saved_dir, 'models.ckpt-*.index'))

@@ -2,7 +2,6 @@ import os
 import warnings
 import numpy as np
 import os.path as osp
-import tensorflow as tf
 from multiprocessing import Pool
 
 from geo_tool import Mesh, Point_Cloud
@@ -13,7 +12,6 @@ from general_tools.rla.three_d_transforms import rand_rotation_matrix
 from general_tools.in_out.basics import files_in_subdirs
 
 from .. autopredictors.scripts.helper import points_extension
-
 
 vscan_search_pattern = '__0__.ply'
 blensor_search_pattern = '0_noisy00000.txt'
@@ -167,19 +165,32 @@ def shuffle_two_pcloud_datasets(a, b, seed=None):
     return new_a, new_b
 
 
-# TODO -> Make Noise Class 
-#             self.noisy_point_clouds = point_clouds.copy()
-#             point_range = np.arange(self.n_points)
-#             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
-#             for i in xrange(self.num_examples):
-#                 drop_index = np.random.choice(point_range, n_distort, replace=False)
-#                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
-
 def write_model_ids_of_datasets(out_dir, model_ids, r_indices):
     for ind, name in zip(r_indices, ['train', 'val', 'test']):
         with open(osp.join(out_dir, name + '_data.txt'), 'w') as fout:
             for t in model_ids[ind]:
                 fout.write(' '.join(t[:]) + '\n')
+
+
+def apply_augmentations(batch, conf):
+        if conf.gauss_augment is not None or conf.z_rotate:
+                batch = batch.copy()
+
+        if conf.gauss_augment is not None:
+            mu = conf.gauss_augment['mu']
+            sigma = conf.gauss_augment['sigma']
+            batch += np.random.normal(mu, sigma, batch.shape)
+
+        if conf.z_rotate:  # TODO -> add independent rotations to each object, not one per batch.
+            r_rotation = rand_rotation_matrix()
+            r_rotation[0, 2] = 0
+            r_rotation[2, 0] = 0
+            r_rotation[1, 2] = 0
+            r_rotation[2, 1] = 0
+            r_rotation[2, 2] = 1
+            batch = batch.dot(r_rotation)
+
+        return batch
 
 
 class PointCloudDataSet(object):
@@ -207,11 +218,9 @@ class PointCloudDataSet(object):
         if noise is not None:
             assert (type(noise) is np.ndarray)
             self.noisy_point_clouds = noise.copy()
-#             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
             self.noisy_point_clouds = None
 
-#         self.point_clouds = point_clouds.reshape(self.num_examples, -1)
         self.point_clouds = point_clouds.copy()
         self.epochs_completed = 0
         self._index_in_epoch = 0
