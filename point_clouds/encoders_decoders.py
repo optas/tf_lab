@@ -25,7 +25,7 @@ def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=Tr
     if spn:
         transformer = pcloud_spn(in_signal)
         in_signal = tf.batch_matmul(in_signal, transformer)
-    print in_signal
+
     layer = conv_1d(in_signal, nb_filter=layers[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
 
     if b_norm:
@@ -52,7 +52,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
 
     n_layers = len(layer_sizes)
     if n_layers < 2:
-        raise ValueError('For single FC decoder use simpler code.')
+        raise ValueError('For an FC decoder with single a layer use simpler code.')
 
     layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0')
     if b_norm:
