@@ -81,13 +81,10 @@ class PointNetAutoEncoder(AutoEncoder):
         for _ in xrange(n_batches):
             original_data, labels, noisy_data = train_data.next_batch(batch_size)
 
-            if self.configuration.debug and not set(labels).issubset(self.train_names):
-                assert(False)
-
-            original_data = original_data.reshape([batch_size] + configuration.n_input)
+#             original_data = original_data.reshape([batch_size] + configuration.n_input)
 
             if self.is_denoising:
-                noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
+#                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data
             else:
                 batch_i = original_data

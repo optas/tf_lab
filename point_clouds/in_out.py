@@ -200,18 +200,18 @@ class PointCloudDataSet(object):
             assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
             self.labels = labels
         else:
-            self.labels = np.ones(self.num_examples)
+            self.labels = np.ones(self.num_examples, dtype=np.int8)
 
         self.n_points = point_clouds.shape[1]
 
         if noise is not None:
             assert (type(noise) is np.ndarray)
             self.noisy_point_clouds = noise
-            self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
+#             self.noisy_point_clouds = self.noisy_point_clouds.reshape(self.num_examples, -1)
         else:
             self.noisy_point_clouds = None
 
-        self.point_clouds = point_clouds.reshape(self.num_examples, -1)
+#         self.point_clouds = point_clouds.reshape(self.num_examples, -1)
         self.epochs_completed = 0
         self._index_in_epoch = 0
 

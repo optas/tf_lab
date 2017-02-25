@@ -127,7 +127,9 @@ class AutoEncoder(object):
         return self.sess.run(self.z, feed_dict={self.x: X})
 
     def interpolate(self, x, y, steps):
-        ''' Interpolate between and x and y input vectors in latent space.'''
+        ''' Interpolate between and x and y input vectors in latent space.
+        x, y np.arrays of size (n_points, dim_embedding).
+        '''
         in_feed = np.vstack((x, y))
         z1, z2 = self.transform(in_feed.reshape([2] + self.n_input))
         all_z = np.zeros((steps + 2, len(z1)))
@@ -153,7 +155,7 @@ class AutoEncoder(object):
                 print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
 
             # Save the models checkpoint periodically.
-            if c.saver_step is not None and epoch % c.saver_step == 0:
+            if c.saver_step is not None and (epoch % c.saver_step == 0 or epoch - 1 == 0):
                 checkpoint_path = osp.join(c.train_dir, model_saver_id)
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
         return stats
@@ -172,10 +174,10 @@ class AutoEncoder(object):
         # Loop over all batches
         for _ in xrange(n_batches):
             gt_data, labels, noisy_data = in_data.next_batch(batch_size)
-            gt_data = gt_data.reshape([batch_size] + configuration.n_input)
+#             gt_data = gt_data.reshape([batch_size] + configuration.n_input)
 
             if self.is_denoising:
-                noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
+#                 noisy_data = noisy_data.reshape([batch_size] + configuration.n_input)
                 batch_i = noisy_data    # Feed the noisy-version of the gt_data.
 
                 if configuration.gauss_augment is not None:  # TODO Take it out of here.
