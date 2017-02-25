@@ -7,6 +7,8 @@ from geo_tool import Point_Cloud
 
 from .. plotting.basics import  plot_original_pclouds_vs_reconstructed
 
+# TODO Here I keep things that are also used for exploration. tide-break thing apart.
+
 
 def read_saved_epochs(saved_dir):
     epochs_saved = []
