@@ -34,7 +34,7 @@ segs_ext = helper.segs_extension
 pts_ext = helper.points_extension
 
 
-def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True):
+def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype=np.float32):
     ''' Given a mesh, it computes a point-cloud that is uniformly sampled
     from its area elements.
     '''
@@ -45,7 +45,7 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True):
         in_mesh.swap_axes_of_vertices([0, 2, 1])
     in_mesh = cleaning.clean_mesh(in_mesh)
     ss_points, _ = in_mesh.sample_faces(n_samples)
-    pc = Point_Cloud(ss_points)
+    pc = Point_Cloud(ss_points.astype(dtype))
     pc = pc.center_in_unit_sphere()
     pc, _ = pc.lex_sort()
     out_file = osp.join(out_folder, model_id + pts_ext)
