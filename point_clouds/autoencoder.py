@@ -11,6 +11,7 @@ import numpy as np
 
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 
+from . in_out import apply_augmentations
 model_saver_id = 'models.ckpt'
 
 
@@ -206,3 +207,40 @@ class AutoEncoder(object):
 
         data_loss /= n_batches
         return reconstructions, data_loss, feed, gt_feed
+
+
+#     def evaluate(self, in_data, configuration, return_feed=True):
+#         '''
+#         return_feed: if True, return also input batch data.
+#         '''
+# 
+#         data_loss = 0.
+#         if self.is_denoising:
+#             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
+#             if feed_data is None:
+#                 feed_data = original_data
+#             feed_data = apply_augmentations(original_data, configuration)  # This is a new copy of the batch.
+#         else:
+#             original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
+#             feed_data = apply_augmentations(original_data, configuration)
+# 
+#         n_examples = in_data.num_examples
+#         assert(len(original_data) == n_examples)
+# 
+#         reconstructions = []
+#         
+#         for i in xrange(n_examples):
+#             if self.is_denoising:
+#                 rec_i, loss_i = self.reconstruct(feed_data[i], original_data[i])
+#             else:
+#                 rec_i, loss_i = self.reconstruct(feed_data[i])
+#             data_loss += loss_i
+#             reconstructions.append([rec_i, labels])
+# 
+#             if return_feed:
+#                 feed.append([batch_i, labels])
+#                 if self.is_denoising:
+#                     gt_feed.append([gt_data, labels])
+# 
+#         data_loss /= n_batches
+#         return reconstructions, data_loss, feed, gt_feed

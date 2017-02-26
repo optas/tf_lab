@@ -87,7 +87,7 @@ class PointNetAutoEncoder(AutoEncoder):
             else:
                 batch_i, _, _ = train_data.next_batch(batch_size)
 
-            batch_i = apply_augmentations(batch_i, configuration)
+            batch_i = apply_augmentations(batch_i, configuration)   # This is a new copy of the batch.
 
             if self.is_denoising:
                 loss, _ = self.partial_fit(batch_i, original_data)

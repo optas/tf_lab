@@ -45,13 +45,6 @@ def shape_net_category_to_synth_id():
     return inv_map
 
 
-# # towards solving the same-model-name problem.
-# merged = np.empty_like(full_model_names)
-# i = 0
-# for name, classid in zip(full_model_names, full_syn_ids):
-#     merged[i] = name+'-_-'+classid
-#     i += 1
-
 def match_incomplete_to_complete_data(complete_model_names, incomplete_model_names):
     # Match incomplete to complete model_names.
     d = {name: i for i, name in enumerate(complete_model_names)}

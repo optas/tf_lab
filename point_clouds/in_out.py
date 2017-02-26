@@ -33,7 +33,7 @@ def _load_blensor_incomplete_pcloud(f_name):
     return pc.points, tokens[-2], tokens[-3]
 
 
-def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024):
+def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024, vscan_search_pattern=vscan_search_pattern):
     pc = Point_Cloud(ply_file=f_name)
     pc.permute_points([0, 2, 1])
     pc = pc.sample(n_samples)
@@ -202,7 +202,7 @@ class PointCloudDataSet(object):
         '''Construct a DataSet.
         Args:
         Output:
-            original_pclouds, labels, noise_pclouds
+            original_pclouds, labels, (None or Feed) # TODO Rename
         '''
 
         self.num_examples = point_clouds.shape[0]

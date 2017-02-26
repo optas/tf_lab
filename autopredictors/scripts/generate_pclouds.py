@@ -287,7 +287,7 @@ def restrict_mesh_on_specific_faces_only(in_mesh, sample_face_id):
 
 def main():
     '''
-    python tf_lab/autopredictors/scripts/pclouds_with_segments.py
+    python tf_lab/autopredictors/scripts/generate_pclouds.py
         ~/DATA/Shapes/Shape_Net_Core/
         ~/DATA/Shapes/Shape_Net_Core/Point_Clouds/
         sample_pclouds

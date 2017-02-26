@@ -70,7 +70,8 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     return layer
 
 
-def complex_decoder(latent_signal):
+def decoder_in_voxel_space_v0(latent_signal):
+    # TODO make it work with variable input/filter sizes
     layer = fully_connected(latent_signal, 1024, activation='linear', weights_init='xavier')
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
@@ -91,26 +92,6 @@ def complex_decoder(latent_signal):
     layer = batch_normalization(layer)
     layer = tf.nn.relu(layer)
 
-    # Up-sample signal in an 32 x 32 x 32 voxel-space, with 4 channels.
-    layer = conv_3d_transpose(layer, nb_filter=4, filter_size=4, output_shape=[32, 32, 32], strides=2)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    # Push back signal into a linear 1D vector.
-    layer = tf.reshape(layer, [-1, 32 * 32 * 32, 4])
-
-    # Convolve every 32 values via 1024 filters.
-    layer = conv_1d(layer, nb_filter=1024, filter_size=32, strides=32)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    layer = conv_1d(layer, nb_filter=64, filter_size=1, strides=1)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
-
-    layer = conv_1d(layer, nb_filter=3, filter_size=1, strides=1)
+    # Up-sample signal in an 32 x 32 x 32 voxel-space, with 1 channel.
+    layer = conv_3d_transpose(layer, nb_filter=1, filter_size=4, output_shape=[32, 32, 32], strides=2)
     return layer

@@ -7,6 +7,15 @@ import tensorflow as tf
 
 tf_record_extension = '.tfrecord'
 
+
+# TODO -> Make Noise Class 
+#             self.noisy_point_clouds = point_clouds.copy()
+#             point_range = np.arange(self.n_points)
+#             n_distort = int(noise['frac'] * self.n_points)   # How many points will be noised.
+#             for i in xrange(self.num_examples):
+#                 drop_index = np.random.choice(point_range, n_distort, replace=False)
+#                self.noisy_point_clouds[i, drop_index, :] = noise['filler']
+
 def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
