@@ -45,14 +45,14 @@ def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024, vscan_search_pa
     return pc.points, model_id, class_id
 
 
-def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, verbose=False):
+def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, loader_kwargs={}, verbose=False):
     pc = loader(file_names[0])[0]
     pclouds = np.empty([len(file_names), pc.shape[0], pc.shape[1]], dtype=np.float32)
     model_names = np.empty([len(file_names)], dtype=object)
     class_ids = np.empty([len(file_names)], dtype=object)
     pool = Pool(n_threads)
 
-    for i, data in enumerate(pool.imap(loader, file_names)):
+    for i, data in enumerate(pool.imap(loader(**loader_kwargs), file_names)):
         pclouds[i, :, :], model_names[i], class_ids[i] = data
 
     pool.close()
