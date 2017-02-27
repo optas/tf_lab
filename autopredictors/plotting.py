@@ -33,6 +33,7 @@ def plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, orig
         plt.close()
         counter += 1
 
+
 def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=None, show=True):
     create_dir(save_dir)
     n_epochs = stats.shape[0]
@@ -67,14 +68,12 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     fig.savefig(osp.join(save_dir, tag))
 
 
-def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, in_u_sphere=True, max_plot=None):
+def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, in_u_sphere=False, max_plot=None):
     conf = configuration
     model.restore_model(conf.train_dir, epoch)
-    
-    reconstructed, _, feed, gt_feed = model.evaluate(in_data, conf)
-    
-    
-    plot_original_pclouds_vs_reconstructed(feed, reconstructed, gt_feed, save_dir, in_u_sphere=in_u_sphere, max_plot=max_plot)
+    reconstructions, losses, feed_data, ids, original_data = model.evaluate_one_by_one(in_data, conf)
+    plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, original_data, save_dir,
+                                           data_loss=losses, in_u_sphere=in_u_sphere, max_plot=max_plot)
 
 
 def plot_interpolations(inter_clouds, grid_size, fig_size=(50, 50)):
