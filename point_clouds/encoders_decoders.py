@@ -70,14 +70,17 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     return layer
 
 
-def decoder_in_voxel_space_v0(latent_signal):
+def decoder_in_voxel_space_v0(latent_signal, b_norm=True, non_linearity=tf.nn.relu):
     # TODO make it work with variable input/filter sizes
     layer = fully_connected(latent_signal, 1024, activation='linear', weights_init='xavier')
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
     layer = fully_connected(layer, 32 * 4 * 4 * 4, activation='linear', weights_init='xavier')
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
 
     # Virtually treat the signal as 4 x 4 x 4 Voxels, each having 32 channels.
     layer = tf.reshape(layer, [-1, 4, 4, 4, 32])
