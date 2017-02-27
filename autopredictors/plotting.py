@@ -23,13 +23,12 @@ def plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, orig
         if data_loss is not None:
             fig.axes[0].title.set_text('Prediction with loss = %f.' % data_loss[counter])
         fig.savefig(osp.join(save_dir, '%s_reconstructed.png' % (idx, )))
-
+        plt.close()
         fig = Point_Cloud(points=feed).plot(show=False, in_u_sphere=in_u_sphere)
         fig.savefig(osp.join(save_dir, '%s_feed.png' % (idx, )))
-
+        plt.close()
         fig = Point_Cloud(points=original).plot(show=False, in_u_sphere=in_u_sphere)
         fig.savefig(osp.join(save_dir, '%s_feed_gt.png' % (idx, )))
-
         plt.close()
         counter += 1
 
@@ -72,8 +71,7 @@ def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir
     conf = configuration
     model.restore_model(conf.train_dir, epoch)
     reconstructions, losses, feed_data, ids, original_data = model.evaluate_one_by_one(in_data, conf)
-    plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, original_data, save_dir,
-                                           data_loss=losses, in_u_sphere=in_u_sphere, max_plot=max_plot)
+    plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, original_data, save_dir, data_loss=losses, in_u_sphere=in_u_sphere, max_plot=max_plot)
 
 
 def plot_interpolations(inter_clouds, grid_size, fig_size=(50, 50)):
