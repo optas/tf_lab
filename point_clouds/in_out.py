@@ -97,7 +97,7 @@ def load_mesh_filenames(top_directory):
 
 
 def chunks(l, n):
-    '''Yield successive n-sized chunks from l.
+    '''Yield successive n-sized chunks from l (last chunk might be smaller than l).
     '''
     for i in xrange(0, len(l), n):
         yield l[i:i + n]

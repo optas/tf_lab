@@ -161,86 +161,58 @@ class AutoEncoder(object):
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
         return stats
 
-    def evaluate(self, in_data, configuration, return_feed=True):
-        '''
-        return_feed: if True, return also input batch data.
-        '''
+    def evaluate(self, in_data, configuration):
         n_examples = in_data.num_examples
         data_loss = 0.
-        batch_size = configuration.batch_size
-        n_batches = int(n_examples / batch_size)
-        reconstructions = []
-        feed = []
-        gt_feed = []
-        # Loop over all batches
-        for _ in xrange(n_batches):
-            gt_data, labels, noisy_data = in_data.next_batch(batch_size)
 
+        if self.is_denoising:
+            original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
+            if feed_data is None:
+                feed_data = original_data
+            feed_data = apply_augmentations(original_data, configuration)  # This is a new copy of the batch.
+        else:
+            original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
+            feed_data = apply_augmentations(original_data, configuration)
+
+        b = configuration.batch_size
+        reconstructions = np.zeros([n_examples] + configuration.n_input)
+        for i in xrange(0, n_examples, b):
             if self.is_denoising:
-                batch_i = noisy_data    # Feed the noisy-version of the gt_data.
-
-                if configuration.gauss_augment is not None:  # TODO Take it out of here.
-                    batch_i = batch_i.copy()
-                    mu = configuration.gauss_augment['mu']
-                    sigma = configuration.gauss_augment['sigma']
-                    batch_i += np.random.normal(mu, sigma, batch_i.shape)
-
-                rec_i, loss = self.reconstruct(batch_i, gt_data)
+                reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
             else:
-                batch_i = gt_data
-                if configuration.gauss_augment is not None:  # TODO Take it out of here.
-                    batch_i = batch_i.copy()
-                    mu = configuration.gauss_augment['mu']
-                    sigma = configuration.gauss_augment['sigma']
-                    batch_i += np.random.normal(mu, sigma, batch_i.shape)
-
-                rec_i, loss = self.reconstruct(batch_i)
+                reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b])
 
             # Compute average loss
-            data_loss += loss
-            reconstructions.append([rec_i, labels])
+            data_loss += (loss * len(reconstructions[i:i + b]))
+        data_loss /= float(n_examples)
+        return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
 
-            if return_feed:
-                feed.append([batch_i, labels])
-                if self.is_denoising:
-                    gt_feed.append([gt_data, labels])
+    def evaluate_one_by_one(self, in_data, configuration):
+        '''Evaluates every data point separately to recover the loss on it. Thus, the batch_size = 1 making it
+        a slower than the 'evaluate' method.
+        '''
 
-        data_loss /= n_batches
-        return reconstructions, data_loss, feed, gt_feed
+        if self.is_denoising:
+            original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
+            if feed_data is None:
+                feed_data = original_data
+            feed_data = apply_augmentations(original_data, configuration)  # This is a new copy of the batch.
+        else:
+            original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
+            feed_data = apply_augmentations(original_data, configuration)
 
+        n_examples = in_data.num_examples
+        assert(len(original_data) == n_examples)\
 
-#     def evaluate(self, in_data, configuration, return_feed=True):
-#         '''
-#         return_feed: if True, return also input batch data.
-#         '''
-# 
-#         data_loss = 0.
-#         if self.is_denoising:
-#             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
-#             if feed_data is None:
-#                 feed_data = original_data
-#             feed_data = apply_augmentations(original_data, configuration)  # This is a new copy of the batch.
-#         else:
-#             original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
-#             feed_data = apply_augmentations(original_data, configuration)
-# 
-#         n_examples = in_data.num_examples
-#         assert(len(original_data) == n_examples)
-# 
-#         reconstructions = []
-#         
-#         for i in xrange(n_examples):
-#             if self.is_denoising:
-#                 rec_i, loss_i = self.reconstruct(feed_data[i], original_data[i])
-#             else:
-#                 rec_i, loss_i = self.reconstruct(feed_data[i])
-#             data_loss += loss_i
-#             reconstructions.append([rec_i, labels])
-# 
-#             if return_feed:
-#                 feed.append([batch_i, labels])
-#                 if self.is_denoising:
-#                     gt_feed.append([gt_data, labels])
-# 
-#         data_loss /= n_batches
-#         return reconstructions, data_loss, feed, gt_feed
+        feed_data = np.expand_dims(feed_data, 1)
+        original_data = np.expand_dims(original_data, 1)
+        reconstructions = np.zeros([n_examples] + configuration.n_input)
+        losses = np.zeros([n_examples])
+
+        for i in xrange(n_examples):
+            if self.is_denoising:
+                reconstructions[i], losses[i] = self.reconstruct(feed_data[i], original_data[i])
+            else:
+                reconstructions[i], losses[i] = self.reconstruct(feed_data[i])
+
+        return reconstructions, losses, np.squeeze(feed_data), ids, np.squeeze(original_data)
