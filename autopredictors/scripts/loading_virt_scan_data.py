@@ -4,7 +4,7 @@ Created on Feb 27, 2017
 @author: optas
 '''
 
-import time
+import struct
 import numpy as np
 from collections import defaultdict
 from geo_tool import Point_Cloud 
@@ -83,19 +83,18 @@ def load_single_class(top_data_dir, permissible_file_list, class_syn_id, full_pc
 
 def load_distance_field(df_file_name):
     fin = open(df_file_name, 'rb')
-    dimX = struct.unpack('f', fin.read(4))[0]
-    dimY = struct.unpack('f', fin.read(4))[0]
-    dimZ = struct.unpack('f', fin.read(4))[0]
+    _ = struct.unpack('f', fin.read(4))[0]
+    _ = struct.unpack('f', fin.read(4))[0]
+    _ = struct.unpack('f', fin.read(4))[0]
 
     output_width = struct.unpack('<I', fin.read(4))[0]
-    output_height = struct.unpack('<I', fin.read(4))[0]
+    _ = struct.unpack('<I', fin.read(4))[0]
     output_depth = struct.unpack('<I', fin.read(4))[0]
-
     output_height = output_width
     output_grid = np.ndarray((output_width, output_height, output_depth), np.dtype('B'))
 
-    numOutput = output_width * output_height * output_depth
-    output_grid_values = struct.unpack('f' * numOutput, fin.read(4 * numOutput))
+    n_output = output_width * output_height * output_depth
+    output_grid_values = struct.unpack('f' * n_output, fin.read(4 * n_output))
 
     k = 0
     for d in range(output_depth):
