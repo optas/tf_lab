@@ -79,3 +79,31 @@ def load_single_class(top_data_dir, permissible_file_list, class_syn_id, full_pc
     incomplete_pclouds, initial_ids, _ = load_permissible_pointclouds(top_data_dir, data_dict, n_threads)
     full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
+
+
+def load_distance_field(df_file_name):
+    fin = open(df_file_name, 'rb')
+    dimX = struct.unpack('f', fin.read(4))[0]
+    dimY = struct.unpack('f', fin.read(4))[0]
+    dimZ = struct.unpack('f', fin.read(4))[0]
+
+    output_width = struct.unpack('<I', fin.read(4))[0]
+    output_height = struct.unpack('<I', fin.read(4))[0]
+    output_depth = struct.unpack('<I', fin.read(4))[0]
+
+    output_height = output_width
+    output_grid = np.ndarray((output_width, output_height, output_depth), np.dtype('B'))
+
+    numOutput = output_width * output_height * output_depth
+    output_grid_values = struct.unpack('f' * numOutput, fin.read(4 * numOutput))
+
+    k = 0
+    for d in range(output_depth):
+        for w in range(output_width):
+            for h in range(output_height):
+                output_grid[w, h, d] = output_grid_values[k]
+                if output_grid_values[k] > 3:
+                    output_grid[w, h, d] = 3
+                k += 1
+    fin.close()
+    return output_grid

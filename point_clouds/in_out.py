@@ -13,7 +13,6 @@ from general_tools.in_out.basics import files_in_subdirs
 
 from .. autopredictors.scripts.helper import points_extension
 
-vscan_search_pattern = '__0__.ply'
 blensor_search_pattern = '0_noisy00000.txt'
 
 
@@ -31,18 +30,6 @@ def _load_blensor_incomplete_pcloud(f_name):
     pc.center_in_unit_sphere()
     tokens = f_name.split('/')
     return pc.points, tokens[-2], tokens[-3]
-
-
-def _load_virtual_scan_incomplete_pcloud(f_name, n_samples=1024, vscan_search_pattern=vscan_search_pattern):
-    pc = Point_Cloud(ply_file=f_name)
-    pc.permute_points([0, 2, 1])
-    pc = pc.sample(n_samples)
-    pc.lex_sort()
-    pc.center_in_unit_sphere()
-    tokens = f_name.split('/')
-    model_id = tokens[-1][:-len(vscan_search_pattern)]
-    class_id = tokens[-2]
-    return pc.points, model_id, class_id
 
 
 def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, verbose=False):
@@ -67,10 +54,6 @@ def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_a
     return pclouds, model_names, class_ids
 
 
-def load_cc_parts_of_model(model_path):
-    raise NotImplementedError()
-
-
 def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     gnoise = np.random.normal(mu, sigma, pcloud.shape[0])
     gnoise = np.tile(gnoise, (3, 1)).T
@@ -85,15 +68,6 @@ def load_filenames_of_input_data(top_directory, file_extension=points_extension,
     if verbose:
         print '%d files were found.' % (len(res), )
     return res
-
-
-def load_mesh_filenames(top_directory):
-    model_names = []
-    for file_name in os.listdir(top_directory):
-        model_name = os.path.join(top_directory, file_name, 'models.obj')
-        if os.path.exists(model_name):
-            model_names.append(model_name)
-    return model_names
 
 
 def chunks(l, n):
