@@ -19,6 +19,9 @@ from .. point_clouds import in_out as pio
 
 
 def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True, apply_augmentation=False):
+    '''
+    Observation: the NN-neighborhoods seem more reasonable when we do not apply the augmentation.
+    '''
     batch_size = conf.batch_size
     original, ids, noise = dataset.full_epoch_data(shuffle=False)
 
@@ -38,7 +41,7 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
         latent.append(model.transform(b.reshape([len(b)] + conf.n_input)))
 
     latent = np.vstack(latent)
-    return feed_data, latent, ids
+    return feed, latent, ids
 
 
 def load_pcloud_with_segmentation(pts_file, seg_file, n_samples):
