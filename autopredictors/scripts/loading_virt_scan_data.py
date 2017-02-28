@@ -9,7 +9,8 @@ import numpy as np
 from collections import defaultdict
 from geo_tool import Point_Cloud 
 
-from .. point_clouds.in_out import load_filenames_of_input_data, match_incomplete_to_complete_data, load_crude_point_clouds, PointCloudDataSet
+from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet
+from .helper import match_incomplete_to_complete_data
 
 vscan_search_pattern = '.ply'
 vscan_scan_pattern = '__?__.ply'
@@ -69,7 +70,7 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
     return full_pclouds_matched, ids
 
 
-def load_single_class_data(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples):
+def load_single_class(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples):
     # Currently works with single class.
     global n_samples_
     n_samples_ = n_samples
