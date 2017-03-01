@@ -17,7 +17,9 @@ vscan_scan_pattern = '__?__.ply'
 _n_samples = 2048
 
 
-def permissible_models(file_with_ids):
+def permissible_dictionary(file_with_ids):
+    ''' Returns a dictionary with model_ids that are white-listed in the input file.
+    '''
     data_dict = defaultdict(dict)
     with open(file_with_ids, 'r') as f_in:
         for line in f_in:
@@ -41,19 +43,19 @@ def _load_virtual_scan_incomplete_pcloud(f_name):
     return pc.points, (model_id, scan_id), class_id
 
 
-def load_permissible_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads):
-    noisy_pcloud_files = load_filenames_of_input_data(v_scan_data_top_dir, vscan_search_pattern)
-    keep = np.zeros([len(noisy_pcloud_files)], dtype=np.bool)
-    for i, f in enumerate(noisy_pcloud_files):
+def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads):
+    incommplete_pcloud_files = load_filenames_of_input_data(v_scan_data_top_dir, vscan_search_pattern)
+    keep = np.zeros([len(incommplete_pcloud_files)], dtype=np.bool)
+    for i, f in enumerate(incommplete_pcloud_files):
         model_id = f.split('/')[-1][:-len(vscan_scan_pattern)]
         if model_id in permissible_dict:
             keep[i] = True
 
-    noisy_pcloud_files = np.array(noisy_pcloud_files, dtype=object)
-    noisy_pcloud_files = noisy_pcloud_files[keep]
-    noisy_pclouds, noisy_ids, class_ids = load_crude_point_clouds(file_names=noisy_pcloud_files, n_threads=n_threads, loader=_load_virtual_scan_incomplete_pcloud)
-    print '%d files containing noisy point clouds were found.' % (len(noisy_pclouds), )
-    return noisy_pclouds, noisy_ids, class_ids
+    incommplete_pcloud_files = np.array(incommplete_pcloud_files, dtype=object)
+    incommplete_pcloud_files = incommplete_pcloud_files[keep]
+    inc_pclouds, inc_ids, class_ids = load_crude_point_clouds(file_names=incommplete_pcloud_files, n_threads=n_threads, loader=_load_virtual_scan_incomplete_pcloud)
+    print '%d incomplete point clouds were loaded.' % (len(inc_pclouds), )
+    return inc_pclouds, inc_ids, class_ids
 
 
 def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
@@ -70,15 +72,30 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
     return full_pclouds_matched, ids
 
 
-def load_single_class(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples):
+def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples):
     # Currently works with single class.
     global n_samples_
     n_samples_ = n_samples
-    data_dict = permissible_models(permissible_file_list)
+    data_dict = permissible_dictionary(permissible_file_list)
     data_dict = data_dict[class_syn_id]
-    incomplete_pclouds, initial_ids, _ = load_permissible_pointclouds(top_data_dir, data_dict, n_threads)
+    incomplete_pclouds, initial_ids, _ = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads)
     full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
+
+
+def mask_of_permissible(model_names, permissible_file, class_syn_id=None):
+    ''' model_names: N x 1 np.array
+        returns : mask N x 1 boolean'''
+    permissible_dict = permissible_dictionary(permissible_file)
+    if class_syn_id is not None:
+        permissible_dict = permissible_dict[class_syn_id]
+
+    mask = np.zeros([len(model_names)], dtype=np.bool)
+    for i, model_id in enumerate(model_names):
+        if model_id in permissible_dict:
+            mask[i] = True
+
+    return mask
 
 
 def load_distance_field(df_file_name):
