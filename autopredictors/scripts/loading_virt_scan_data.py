@@ -12,8 +12,8 @@ from geo_tool import Point_Cloud
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet
 from .helper import match_incomplete_to_complete_data
 
-vscan_search_pattern = '.ply'
-vscan_scan_pattern = '__?__.ply'
+vscan_search_pattern = '.ply'      # TODO use for both a regex.
+vscan_scan_pattern = '__?__.ply'    # Used only to indicate how to crop the input file-names to produced model_ids etc.
 _n_samples = 2048
 
 
@@ -43,8 +43,8 @@ def _load_virtual_scan_incomplete_pcloud(f_name):
     return pc.points, (model_id, scan_id), class_id
 
 
-def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads):
-    incommplete_pcloud_files = load_filenames_of_input_data(v_scan_data_top_dir, vscan_search_pattern)
+def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads, search_pattern=vscan_search_pattern):
+    incommplete_pcloud_files = load_filenames_of_input_data(v_scan_data_top_dir, search_pattern)
     keep = np.zeros([len(incommplete_pcloud_files)], dtype=np.bool)
     for i, f in enumerate(incommplete_pcloud_files):
         model_id = f.split('/')[-1][:-len(vscan_scan_pattern)]
@@ -72,13 +72,13 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
     return full_pclouds_matched, ids
 
 
-def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples):
+def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples, search_pattern=vscan_search_pattern):
     # Currently works with single class.
     global n_samples_
     n_samples_ = n_samples
     data_dict = permissible_dictionary(permissible_file_list)
     data_dict = data_dict[class_syn_id]
-    incomplete_pclouds, initial_ids, _ = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads)
+    incomplete_pclouds, initial_ids, _ = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
     full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
 
