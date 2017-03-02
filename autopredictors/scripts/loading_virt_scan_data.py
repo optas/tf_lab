@@ -74,8 +74,8 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
 
 def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, class_syn_id, full_pclouds, full_model_names, n_threads, n_samples, search_pattern=vscan_search_pattern):
     # Currently works with single class.
-    global n_samples_
-    n_samples_ = n_samples
+    global _n_samples
+    _n_samples = n_samples
     data_dict = permissible_dictionary(permissible_file_list)
     data_dict = data_dict[class_syn_id]
     incomplete_pclouds, initial_ids, _ = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
