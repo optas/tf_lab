@@ -202,7 +202,7 @@ class AutoEncoder(object):
             feed_data = apply_augmentations(original_data, configuration)
 
         n_examples = in_data.num_examples
-        assert(len(original_data) == n_examples)\
+        assert(len(original_data) == n_examples)
 
         feed_data = np.expand_dims(feed_data, 1)
         original_data = np.expand_dims(original_data, 1)

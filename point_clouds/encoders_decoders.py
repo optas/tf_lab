@@ -87,13 +87,15 @@ def decoder_in_voxel_space_v0(latent_signal, b_norm=True, non_linearity=tf.nn.re
 
     # Up-sample signal in an 8 x 8 x 8 voxel-space, with 16 channels.
     layer = conv_3d_transpose(layer, nb_filter=16, filter_size=4, output_shape=[8, 8, 8], strides=2)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
 
     # Up-sample signal in an 16 x 16 x 16 voxel-space, with 8 channels.
     layer = conv_3d_transpose(layer, nb_filter=8, filter_size=4, output_shape=[16, 16, 16], strides=2)
-    layer = batch_normalization(layer)
-    layer = tf.nn.relu(layer)
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
 
     # Up-sample signal in an 32 x 32 x 32 voxel-space, with 1 channel.
     layer = conv_3d_transpose(layer, nb_filter=1, filter_size=4, output_shape=[32, 32, 32], strides=2)

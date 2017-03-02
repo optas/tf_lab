@@ -98,17 +98,17 @@ def mask_of_permissible(model_names, permissible_file, class_syn_id=None):
     return mask
 
 
-def load_distance_field(df_file_name):
+def load_distance_field(df_file_name, truncate_thres=None):
     fin = open(df_file_name, 'rb')
     _ = struct.unpack('f', fin.read(4))[0]
     _ = struct.unpack('f', fin.read(4))[0]
     _ = struct.unpack('f', fin.read(4))[0]
 
-    output_width = struct.unpack('<I', fin.read(4))[0]
-    _ = struct.unpack('<I', fin.read(4))[0]
-    output_depth = struct.unpack('<I', fin.read(4))[0]
-    output_height = output_width
-    output_grid = np.ndarray((output_width, output_height, output_depth), np.dtype('B'))
+    output_width = struct.unpack('Q', fin.read(8))[0]
+    output_height = struct.unpack('Q', fin.read(8))[0]
+    output_depth = struct.unpack('Q', fin.read(8))[0]
+
+    output_grid = np.ndarray((output_width, output_height, output_depth), np.float32)
 
     n_output = output_width * output_height * output_depth
     output_grid_values = struct.unpack('f' * n_output, fin.read(4 * n_output))
@@ -118,8 +118,10 @@ def load_distance_field(df_file_name):
         for w in range(output_width):
             for h in range(output_height):
                 output_grid[w, h, d] = output_grid_values[k]
-                if output_grid_values[k] > 3:
-                    output_grid[w, h, d] = 3
                 k += 1
     fin.close()
+
+    if truncate_thres is not None:
+        output_grid_values[output_grid_values > truncate_thres] = truncate_thres
+
     return output_grid
