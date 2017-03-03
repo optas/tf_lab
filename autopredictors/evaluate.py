@@ -88,3 +88,9 @@ def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
         dists, _ = nn.kneighbors(gt_pcloud, n_neighbors=1)
 
     return score, dists
+
+
+def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_range=3.0):
+    close_enough_mask = np.logical_or(pred_df < ignore_range, gt_df < ignore_range)
+    total_mask = close_enough_mask * unknown_space_mask
+    return np.sum(np.abs(gt_df - pred_df) * total_mask) / np.sum(total_mask)
