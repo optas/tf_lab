@@ -1,6 +1,7 @@
 import glob
 import os.path as osp
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 
 def read_saved_epochs(saved_dir):
@@ -57,3 +58,33 @@ def generalization_error(model, train_data, test_data, val_data, configuration):
     gen_error = stats[best_iter, 2] - stats[best_iter, 1]
     best_epoch = int(stats[best_iter, 0])
     return gen_error, best_epoch, stats
+
+
+def accuracy_of_completion(pred_pcloud, gt_pcloud, thres=0.02, ret_dists=False):
+    '''Returns the fraction of points in the predicted point-cloud that are within
+    `thres` euclidean distance from any point in the ground-truth point-cloud.
+    '''
+    nn = NearestNeighbors().fit(gt_pcloud)
+    indices = nn.radius_neighbors(pred_pcloud, radius=thres, return_distance=False)
+    success_indicator = [i.size >= 1 for i in indices]
+    score = np.sum(success_indicator) / float(len(pred_pcloud))
+    dists = None
+    if ret_dists:
+        dists, _ = nn.kneighbors(pred_pcloud, n_neighbors=1)
+
+    return score, dists
+
+
+def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
+    '''Returns the fraction of points in the ground-truth point-cloud that are within
+    `thres` euclidean distance from any point in the predicted point-cloud.
+    '''
+    nn = NearestNeighbors().fit(pred_pcloud)
+    indices = nn.radius_neighbors(gt_pcloud, radius=thres, return_distance=False)
+    success_indicator = [i.size >= 1 for i in indices]
+    score = np.sum(success_indicator) / float(len(gt_pcloud))
+    dists = None
+    if ret_dists:
+        dists, _ = nn.kneighbors(gt_pcloud, n_neighbors=1)
+
+    return score, dists
