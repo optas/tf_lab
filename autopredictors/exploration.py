@@ -5,7 +5,11 @@ Created on February 24, 2017
 '''
 
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
+import warnings
+try:
+    from sklearn.neighbors import NearestNeighbors
+except:
+    warnings.warn('Sklearn library is not installed.')
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
