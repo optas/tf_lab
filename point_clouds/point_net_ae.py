@@ -44,10 +44,10 @@ class PointNetAutoEncoder(AutoEncoder):
             layer = c.decoder(self.z, **c.decoder_args)
             self.x_reconstr = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
 
-#             if c.consistent_io:
-#                 n_output = c.n_input[0]
-#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
-#                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr)))
+            if c.consistent_io:
+                n_output = c.n_input[0]
+                mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
+                self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr)))
 
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
@@ -70,16 +70,16 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-#             if c.consistent_io:
-#                 cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.consistent, self.x)
-#                 self.loss += tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            if c.consistent_io:
+                cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.consistent, self.x)
+                self.loss += tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
 
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
-#             if c.consistent_io:
-#                 match = approx_match(self.consistent, self.x)
-#                 self.loss += tf.reduce_mean(match_cost(self.consistent, self.x, match))
+            if c.consistent_io:
+                match = approx_match(self.consistent, self.x)
+                self.loss += tf.reduce_mean(match_cost(self.consistent, self.x, match))
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
