@@ -47,8 +47,11 @@ class PointNetAutoEncoder(AutoEncoder):
             if c.consistent_io:
                 n_output = c.n_input[0]
                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
-                self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr)))
-
+                print 'mask'
+                print mask
+                self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
+                print 'sds'
+                print self.consistent
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 
@@ -70,9 +73,11 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-            if c.consistent_io:
-                cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.consistent, self.x)
-                self.loss += tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            #if c.consistent_io:
+                #self.loss = Loss.l2_loss(self.consistent, self.x)
+                #cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.consistent, self.x)
+                #self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+
 
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
