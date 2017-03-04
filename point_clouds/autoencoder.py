@@ -19,7 +19,7 @@ class Configuration():
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
                  training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
                  saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, saver_max_to_keep=None, loss_display_step=1,
-                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0, experiment_name='experiment'):
+                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0, consistent_io=False, experiment_name='experiment'):
 
         # Parameters for any AE
         self.n_input = n_input
@@ -45,6 +45,9 @@ class Configuration():
         # Used in VAE
         self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
+
+        # Fancy - TODO factor seperetaly.
+        self.consistent_io = consistent_io
 
     def __str__(self):
         keys = self.__dict__.keys()
