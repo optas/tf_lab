@@ -70,14 +70,14 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-            if self.consistent is not None:
+            if c.consistent_io:
                 cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.consistent, self.x)
                 self.loss += tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
 
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
-            if self.consistenter is not None:
+            if c.consistent_io:
                 match = approx_match(self.consistent, self.x)
                 self.loss += tf.reduce_mean(match_cost(self.consistent, self.x, match))
 
