@@ -118,7 +118,6 @@ def load_signed_distance_field(sdf_file_name):
             _ = struct.unpack('I', fin.read(4))[0]  # free counter (ignored)
             _ = struct.unpack('B' * 3, fin.read(3))  # color (ignored)
             weight = struct.unpack('B', fin.read(1))[0]
-            assert(weight >= 0)
             sdf_list[i] = sdf
             weight_list[i] = weight
 
@@ -161,7 +160,7 @@ def load_unsigned_distance_field(df_file_name, truncate_thres=None):
                 k += 1
 
     if truncate_thres is not None:
-        output_grid_values[output_grid_values > truncate_thres] = truncate_thres
+        output_grid[output_grid > truncate_thres] = truncate_thres
 
     return output_grid
 

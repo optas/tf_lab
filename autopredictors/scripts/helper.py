@@ -6,6 +6,7 @@ from geo_tool import Point_Cloud
 segs_extension = '_segs.txt'
 feat_extension = '_feat.txt'
 points_extension = '_pts.txt'
+points_w_normals_extension = '_pts_and_normals.txt'
 
 
 ################################################
@@ -24,8 +25,8 @@ shape_net_core_synth_id_to_category = {
     '02828884': 'bench', '02834778': 'bicycle', '02843684': 'birdhouse',
     '02871439': 'bookshelf', '02876657': 'bottle', '02880940': 'bowl',
     '02924116': 'bus', '02933112': 'cabinet', '02942699': 'camera',
-    '04401088': 'telephone', '02946921': 'tin_can', '04460130': 'tower',
-    '04468005': 'train', '02954340': 'cap', '02958343': 'car',
+    '04379243': 'table', '04401088': 'telephone', '02946921': 'tin_can',
+    '04460130': 'tower', '04468005': 'train', '02954340': 'cap', '02958343': 'car',
     '03001627': 'chair', '03046257': 'clock', '03085013': 'keyboard',
     '03207941': 'dishwasher', '03211117': 'display', '03261776': 'earphone',
     '03325088': 'faucet', '03337140': 'file', '03467517': 'guitar',
@@ -36,7 +37,7 @@ shape_net_core_synth_id_to_category = {
     '03938244': 'pillow', '03948459': 'pistol', '03991062': 'pot',
     '04004475': 'printer', '04074963': 'remote_control', '04090263': 'rifle',
     '04099429': 'rocket', '04225987': 'skateboard', '04256520': 'sofa',
-    '04330267': 'stove', '04379243': 'table', '04530566': 'vessel', '04554684': 'washer'
+    '04330267': 'stove', '04530566': 'vessel', '04554684': 'washer'
 }
 
 
