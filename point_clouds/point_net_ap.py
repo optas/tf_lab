@@ -44,7 +44,9 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             else:
                 self.extra_preds_gt = tf.placeholder(tf.float32, [None] + c.n_extra_pred)
                 out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
+                print out
                 self.x_reconstr = out[:, :, :c.n_output[1]]
+                print self.x_reconstr 
                 self.extra_preds = out[:, :, c.n_output[1]:]
 
         with tf.device('/cpu:0'):
