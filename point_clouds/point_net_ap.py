@@ -43,7 +43,8 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
                 self.x_reconstr = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1]])
             else:
                 self.extra_preds_gt = tf.placeholder(tf.float32, [None] + c.n_extra_pred)
-                out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
+                self.out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
+                out = self.out
                 self.x_reconstr = out[:, :, :c.n_output[1]]
                 self.extra_preds = out[:, :, c.n_output[1]:]
 
@@ -112,9 +113,9 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
         print type(extra_pred)
         print type(X)
         print type(GT)
-        if extra_pred is not None:
-            print self.sess.run(tf.shape(self.gt), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
-            print self.sess.run(tf.shape(self.x_reconstr), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
+        if extra_pred is not None:            
+            print self.sess.run(tf.shape(self.gt), tf.shape(self.x_reconstr), tf.shape(self.out), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
+            
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
