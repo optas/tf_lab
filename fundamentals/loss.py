@@ -28,11 +28,7 @@ class Loss():
         return tf.reduce_mean(entropy, name='cross_entropy')
 
     @staticmethod
-    def cosine_distance_loss(prediction,ground_truth):
-        """ 
-        The prediction and ground_truth : [batch, num point, 3]
-
-	""" 
-        cosine =  tf.reduce_sum(prediction * ground_truth,2)   
-        norm = tf.sqrt(tf.reduce_sum(prediction * prediction,2))
-        return tf.reduce_mean( -1.0 * tf.abs( cosine / norm) )
+    def cosine_distance_loss(prediction, ground_truth):
+        cosine = tf.reduce_sum(prediction * ground_truth, 2)
+        norm = tf.sqrt(tf.reduce_sum(prediction * prediction, 2))
+        return tf.reduce_mean(- 1.0 * tf.abs(cosine / norm))

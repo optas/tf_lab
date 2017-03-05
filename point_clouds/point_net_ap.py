@@ -24,6 +24,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             self.graph = tf.get_default_graph()
 
         c = configuration
+        self.configuration = c
         self.name = name
         self.is_denoising = True
         self.n_input = c.n_input
