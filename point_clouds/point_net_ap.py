@@ -44,9 +44,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             else:
                 self.extra_preds_gt = tf.placeholder(tf.float32, [None] + c.n_extra_pred)
                 out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
-                print out
                 self.x_reconstr = out[:, :, :c.n_output[1]]
-                print self.x_reconstr 
                 self.extra_preds = out[:, :, c.n_output[1]:]
 
         with tf.device('/cpu:0'):
@@ -72,6 +70,9 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
+            print self.gt
+            print self.x_reconstr
+            
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
