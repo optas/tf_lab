@@ -109,9 +109,12 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
         return epoch_loss, duration
 
     def partial_fit(self, X, GT, extra_pred=None):
+        print type(extra_pred)
+        print type(X)
+        print type(GT)
         if extra_pred is not None:
-            print self.sess.run(tf.shape(self.gt))
-            print self.sess.run(tf.shape(self.x_reconstr))
+            print self.sess.run(tf.shape(self.gt), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
+            print self.sess.run(tf.shape(self.x_reconstr), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
