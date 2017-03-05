@@ -106,7 +106,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
 
     def partial_fit(self, X, GT, extra_pred=None):
         if extra_pred is not None:
-            _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds: extra_pred})
+            _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
         return loss
