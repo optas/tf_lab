@@ -23,10 +23,10 @@ def permissible_dictionary(file_with_ids):
     data_dict = defaultdict(dict)
     with open(file_with_ids, 'r') as f_in:
         for line in f_in:
-            syn_id, model_id = line.split()
+            syn_id, model_id, scan_id = line.split()
             if len(data_dict[syn_id]) == 0:
                 data_dict[syn_id] = set()
-            data_dict[syn_id].add(model_id)
+            data_dict[syn_id].add((model_id + scan_id))
     return data_dict
 
 
@@ -47,8 +47,10 @@ def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads
     incommplete_pcloud_files = load_filenames_of_input_data(v_scan_data_top_dir, search_pattern)
     keep = np.zeros([len(incommplete_pcloud_files)], dtype=np.bool)
     for i, f in enumerate(incommplete_pcloud_files):
-        model_id = f.split('/')[-1][:-len(vscan_scan_pattern)]
-        if model_id in permissible_dict:
+        tokens = f.split('/')
+        model_id = tokens[-1][:-len(vscan_scan_pattern)]
+        scan_id = tokens[-1][-len(vscan_scan_pattern) + 2]
+        if model_id + scan_id in permissible_dict:
             keep[i] = True
 
     incommplete_pcloud_files = np.array(incommplete_pcloud_files, dtype=object)
