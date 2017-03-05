@@ -44,6 +44,11 @@ class PointNetAutoEncoder(AutoEncoder):
             layer = c.decoder(self.z, **c.decoder_args)
             self.x_reconstr = tf.reshape(layer, [-1, c.n_input[0], c.n_input[1]])
 
+#             if c.consistent_io:
+#                 n_output = c.n_input[0]
+#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')            
+#                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
+
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 

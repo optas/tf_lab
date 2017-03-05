@@ -32,6 +32,7 @@ import helper   # TODO  Make it relative
 
 segs_ext = helper.segs_extension
 pts_ext = helper.points_extension
+ptn_ext = helper.points_w_normals_extension
 
 
 def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype=np.float32):
@@ -50,6 +51,26 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype
     pc, _ = pc.lex_sort()
     out_file = osp.join(out_folder, model_id + pts_ext)
     np.savetxt(out_file, pc.points)
+
+
+def uniform_sampling_with_normals(mesh_file, out_folder, n_samples, swap_y_z=True, normalize=True, dtype=np.float32):
+    ''' Given a mesh, it computes a point-cloud that is uniformly sampled
+    from its area elements.
+    '''
+    in_mesh = Mesh(file_name=mesh_file)
+    model_id = mesh_file.split('/')[-2]
+    if swap_y_z:
+        in_mesh.swap_axes_of_vertices_and_triangles([0, 2, 1])
+    in_mesh = cleaning.clean_mesh(in_mesh)
+    mesh_normals = Mesh.normals_of_triangles(in_mesh.vertices, in_mesh.triangles, normalize=normalize)
+    ss_points, sample_face_idx = in_mesh.sample_faces(n_samples)
+    pc = Point_Cloud(ss_points.astype(dtype))
+    pc = pc.center_in_unit_sphere()
+    pc, lex_indices = pc.lex_sort()
+    pc_normals = mesh_normals[sample_face_idx[lex_indices], :]
+    points_and_normals = np.hstack((pc.points, pc_normals))
+    out_file = osp.join(out_folder, model_id + ptn_ext)
+    np.savetxt(out_file, points_and_normals)
 
 
 def uniform_sampling_of_connected_components(file_name, out_folder, n_samples, area_bound, swap_y_z=True, seed=None):
@@ -304,6 +325,16 @@ def main():
         n_samples = int(sys.argv[5])
         arg_tuple = (n_samples,)
         out_top_dir = osp.join(out_top_dir, str(n_samples))
+        if len(sys.argv) == 7:
+            synth_id = sys.argv[6]
+        else:
+            synth_id = None
+
+    elif experiment_type == 'sample_pclouds_w_normals':
+        dispatch_f = uniform_sampling_with_normals
+        n_samples = int(sys.argv[5])
+        arg_tuple = (n_samples,)
+        out_top_dir = osp.join(out_top_dir, str(n_samples) + '_with_normals')
         if len(sys.argv) == 7:
             synth_id = sys.argv[6]
         else:

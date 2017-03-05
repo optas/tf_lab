@@ -1,7 +1,12 @@
 import glob
 import os.path as osp
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
+import warnings
+
+try:
+    from sklearn.neighbors import NearestNeighbors
+except:
+    warnings.warn('Sklearn library is not installed.')
 
 
 def read_saved_epochs(saved_dir):
