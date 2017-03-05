@@ -43,8 +43,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
                 self.x_reconstr = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1]])
             else:
                 self.extra_preds_gt = tf.placeholder(tf.float32, [None] + c.n_extra_pred)
-                self.out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
-                out = self.out
+                out = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1] + c.n_extra_pred[1]])
                 self.x_reconstr = out[:, :, :c.n_output[1]]
                 self.extra_preds = out[:, :, c.n_output[1]:]
 
@@ -71,10 +70,6 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
-
-            print self.gt
-            print self.x_reconstr
-
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
@@ -99,9 +94,9 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             if c.n_extra_pred is not None:
                 extra_pred = gt_data[:, :, c.n_output[1]:]
                 gt_data = gt_data[:, :, :c.n_output[1]]
-                loss, _ = self.partial_fit(batch_i, gt_data, extra_pred)
+                loss = self.partial_fit(batch_i, gt_data, extra_pred)
             else:
-                loss, _ = self.partial_fit(batch_i, gt_data)
+                loss = self.partial_fit(batch_i, gt_data)
 
             # Compute average loss
             epoch_loss += loss
@@ -110,12 +105,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
         return epoch_loss, duration
 
     def partial_fit(self, X, GT, extra_pred=None):
-        print type(extra_pred)
-        print type(X)
-        print type(GT)
         if extra_pred is not None:
-            print self.sess.run([tf.shape(self.gt), tf.shape(self.x_reconstr), tf.shape(self.out)], feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
-
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
