@@ -110,3 +110,11 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
         return loss
+
+    def reconstruct(self, X, GT, extra_pred=None):
+        feed_dict = {self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred}
+        if extra_pred is not None:
+            return self.sess.run((self.x_reconstr, self.loss, self.extra_preds), feed_dict=feed_dict)
+        else:
+            return self.sess.run((self.x_reconstr, self.loss), feed_dict=feed_dict)
+
