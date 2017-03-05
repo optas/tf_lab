@@ -74,8 +74,8 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if c.n_extra_pred is not None:
-            extra_loss = tf.reduce_mean(Loss.l2_loss(self.extra_preds - self.extra_preds_gt))
-            self.loss = self.loss + c.relative_loss_+weight * extra_loss
+            extra_loss = tf.reduce_mean(Loss.cosine_distance_loss(self.extra_preds, self.extra_preds_gt))
+            self.loss = self.loss + c.relative_loss_weight * extra_loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
