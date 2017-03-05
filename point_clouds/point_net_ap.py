@@ -73,9 +73,6 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
 
             print self.gt
             print self.x_reconstr
-            print self.sess(tf.shape(self.gt))
-            print self.sess(tf.shape(self.x_reconstr))
-            
 
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
@@ -113,6 +110,8 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
 
     def partial_fit(self, X, GT, extra_pred=None):
         if extra_pred is not None:
+            print self.sess.run(tf.shape(self.gt))
+            print self.sess.run(tf.shape(self.x_reconstr))
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT, self.extra_preds_gt: extra_pred})
         else:
             _, loss = self.sess.run((self.optimizer, self.loss), feed_dict={self.x: X, self.gt: GT})
