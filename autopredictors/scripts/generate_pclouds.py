@@ -60,7 +60,7 @@ def uniform_sampling_with_normals(mesh_file, out_folder, n_samples, swap_y_z=Tru
     in_mesh = Mesh(file_name=mesh_file)
     model_id = mesh_file.split('/')[-2]
     if swap_y_z:
-        in_mesh.swap_axes_of_vertices([0, 2, 1])
+        in_mesh.swap_axes_of_vertices_and_triangles([0, 2, 1])
     in_mesh = cleaning.clean_mesh(in_mesh)
     mesh_normals = Mesh.normals_of_triangles(in_mesh.vertices, in_mesh.triangles, normalize=normalize)
     ss_points, sample_face_idx = in_mesh.sample_faces(n_samples)

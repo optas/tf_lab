@@ -5,7 +5,7 @@ import os.path as osp
 from multiprocessing import Pool
 
 from geo_tool import Mesh, Point_Cloud
-from geo_tool.in_out.soup import load_crude_point_cloud
+from geo_tool.in_out.soup import load_crude_point_cloud, load_crude_point_cloud_with_normals
 from geo_tool.in_out.soup import load_mesh_from_file
 
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
@@ -30,6 +30,13 @@ def _load_blensor_incomplete_pcloud(f_name):
     pc.center_in_unit_sphere()
     tokens = f_name.split('/')
     return pc.points, tokens[-2], tokens[-3]
+
+
+def _load_crude_pcloud_with_normal_and_model_info(f_name):
+    tokens = f_name.split('/')
+    model_id = tokens[-1].split('_')[0]
+    class_id = tokens[-2]
+    return load_crude_point_cloud_with_normals(f_name), model_id, class_id
 
 
 def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_and_model_id, verbose=False):
