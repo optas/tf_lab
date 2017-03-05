@@ -334,7 +334,7 @@ def main():
         dispatch_f = uniform_sampling_with_normals
         n_samples = int(sys.argv[5])
         arg_tuple = (n_samples,)
-        out_top_dir = osp.join(out_top_dir, str(n_samples))
+        out_top_dir = osp.join(out_top_dir, str(n_samples) + '_with_normals')
         if len(sys.argv) == 7:
             synth_id = sys.argv[6]
         else:
