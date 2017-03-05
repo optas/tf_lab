@@ -70,9 +70,13 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
+
             print self.gt
             print self.x_reconstr
+            print self.sess(tf.shape(self.gt))
+            print self.sess(tf.shape(self.x_reconstr))
             
+
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
