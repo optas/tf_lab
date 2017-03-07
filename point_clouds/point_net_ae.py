@@ -42,7 +42,7 @@ class PointNetAutoEncoder(AutoEncoder):
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
             layer = c.decoder(self.z, **c.decoder_args)
-            self.x_reconstr = tf.reshape(layer, [-1, c.n_output[0], c.n_output[1]])
+            self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 

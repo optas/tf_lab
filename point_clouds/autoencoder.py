@@ -82,17 +82,19 @@ class AutoEncoder(object):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
-    def __init__(self, name, n_input, is_denoising):
+    def __init__(self, name, configuration):
         self.name = name
-        self.is_denoising = is_denoising
-        self.n_input = n_input
+        self.is_denoising = configuration.is_denoising
+        self.n_input = configuration.n_input
+        self.n_output = configuration.n_output   # TODO Re-factor for AP
 
-        in_shape = [None] + n_input
+        in_shape = [None] + self.n_input
+        out_shape = [None] + self.n_output
 
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, in_shape)
             if self.is_denoising:
-                self.gt = tf.placeholder(tf.float32, in_shape)
+                self.gt = tf.placeholder(tf.float32, out_shape)
             else:
                 self.gt = self.x
 
@@ -184,7 +186,7 @@ class AutoEncoder(object):
             feed_data = apply_augmentations(original_data, configuration)
 
         b = configuration.batch_size
-        reconstructions = np.zeros([n_examples] + configuration.n_output)
+        reconstructions = np.zeros([n_examples] + self.n_output)
         for i in xrange(0, n_examples, b):
             if self.is_denoising:
                 reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
@@ -215,7 +217,7 @@ class AutoEncoder(object):
 
         feed_data = np.expand_dims(feed_data, 1)
         original_data = np.expand_dims(original_data, 1)
-        reconstructions = np.zeros([n_examples] + configuration.n_output)
+        reconstructions = np.zeros([n_examples] + self.n_output)
         losses = np.zeros([n_examples])
 
         for i in xrange(n_examples):
