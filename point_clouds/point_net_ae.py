@@ -34,10 +34,11 @@ class PointNetAutoEncoder(AutoEncoder):
     def __init__(self, name, configuration, graph=None):
         if graph is None:
             self.graph = tf.get_default_graph()
-        self.configuration = configuration
-        c = self.configuration
 
-        AutoEncoder.__init__(self, name, c.n_input, c.is_denoising)
+        AutoEncoder.__init__(self, name, configuration)
+
+        c = configuration
+        self.configuration = c
 
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
