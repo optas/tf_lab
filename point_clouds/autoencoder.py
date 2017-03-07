@@ -19,7 +19,7 @@ class Configuration():
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
                  training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
                  saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, saver_max_to_keep=None, loss_display_step=1,
-                 spatial_trans=False, debug=False, n_z=None, latent_vs_recon=1.0, consistent_io=False, experiment_name='experiment'):
+                 spatial_trans=False, debug=False, n_z=None, n_output=None, latent_vs_recon=1.0, consistent_io=False, experiment_name='experiment'):
 
         # Parameters for any AE
         self.n_input = n_input
@@ -45,6 +45,12 @@ class Configuration():
         # Used in VAE
         self.latent_vs_recon = np.array([latent_vs_recon], dtype=np.float32)[0]
         self.n_z = n_z
+
+        # Used in AP
+        if n_output is None:
+            self.n_output = n_input
+        else:
+            self.n_output = n_output
 
         # Fancy - TODO factor seperetaly.
         self.consistent_io = consistent_io
@@ -178,7 +184,7 @@ class AutoEncoder(object):
             feed_data = apply_augmentations(original_data, configuration)
 
         b = configuration.batch_size
-        reconstructions = np.zeros([n_examples] + configuration.n_input)
+        reconstructions = np.zeros([n_examples] + configuration.n_output)
         for i in xrange(0, n_examples, b):
             if self.is_denoising:
                 reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
@@ -209,7 +215,7 @@ class AutoEncoder(object):
 
         feed_data = np.expand_dims(feed_data, 1)
         original_data = np.expand_dims(original_data, 1)
-        reconstructions = np.zeros([n_examples] + configuration.n_input)
+        reconstructions = np.zeros([n_examples] + configuration.n_output)
         losses = np.zeros([n_examples])
 
         for i in xrange(n_examples):
