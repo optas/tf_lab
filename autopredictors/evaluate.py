@@ -40,27 +40,30 @@ def eval_model(model, configuration, datasets, epochs=None, verbose=False):
     return stats
 
 
-def generalization_error(model, train_data, test_data, val_data, configuration):
+def generalization_error(model, train_data, val_data, test_data, configuration, epochs=None):
     conf = configuration
-    epochs_saved = read_saved_epochs(conf.train_dir)
-    stats = np.zeros((len(epochs_saved), 4))
 
-    for i, epoch in enumerate(epochs_saved):
+    if epochs is None:
+        epochs = read_saved_epochs(conf.train_dir)
+
+    stats = np.zeros((len(epochs), 4))
+
+    for i, epoch in enumerate(epochs):
         model.restore_model(conf.train_dir, epoch)
         l_tr = model.evaluate(train_data, conf)[1]
-        l_te = model.evaluate(test_data, conf)[1]
         l_va = model.evaluate(val_data, conf)[1]
-        stats[i, :] = [epoch, l_tr, l_te, l_va]
+        l_te = model.evaluate(test_data, conf)[1]
+        stats[i, :] = [epoch, l_tr, l_va, l_te]
         print(stats[i, :])
 
         if i == 0:
-            gen_error = l_va - l_tr
+            gen_error = abs(l_va - l_tr)
             best_iter = i
-        elif (l_va - l_tr) < gen_error:
-            gen_error = l_va - l_tr
+        elif abs(l_va - l_tr) < gen_error:
+            gen_error = abs(l_va - l_tr)
             best_iter = i
 
-    gen_error = stats[best_iter, 2] - stats[best_iter, 1]
+    gen_error = abs(stats[best_iter, 2] - stats[best_iter, 1])
     best_epoch = int(stats[best_iter, 0])
     return gen_error, best_epoch, stats
 

@@ -40,12 +40,14 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     fig, ax = plt.subplots()
     plt.plot(x, stats[:, 1])
     plt.plot(x, stats[:, 2])
+
     if has_validation:
         plt.plot(x, stats[:, 3])
     plt.xlabel('Epochs')
-    plt.ylabel('AE Loss')
+    plt.ylabel('Total Loss')
+
     if has_validation:
-        plt.legend(['Train', 'Test', 'Val'])
+        plt.legend(['Train', 'Val', 'Test'])
     else:
         plt.legend(['Train', 'Test'])
 
@@ -60,7 +62,7 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     if show:
         plt.show()
     if has_validation:
-        tag = 'train-test-val-curves.png'
+        tag = 'train-val-test-curves.png'
     else:
         tag = 'train-test-curves.png'
 
