@@ -218,7 +218,7 @@ class AutoEncoder(object):
             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
             if feed_data is None:
                 feed_data = original_data
-            feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
+#             feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
         else:
             original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
             feed_data = apply_augmentations(original_data, configuration)
