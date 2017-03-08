@@ -5,8 +5,8 @@ Created on January 26, 2017
 '''
 
 import time
-import numpy as np
 import tensorflow as tf
+import os.path as osp
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
@@ -47,12 +47,12 @@ class PointNetAutoEncoder(AutoEncoder):
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 
-            # Initializing the tensor flow variables
-            self.init = tf.global_variables_initializer()
-
             # GPU configuration
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
+
+            # Initializing the tensor flow variables
+            self.init = tf.global_variables_initializer()
 
             # Launch the session
             self.sess = tf.Session(config=config)
@@ -69,7 +69,7 @@ class PointNetAutoEncoder(AutoEncoder):
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
