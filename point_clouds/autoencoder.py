@@ -184,12 +184,14 @@ class AutoEncoder(object):
 
         return stats
 
-    def evaluate(self, in_data, configuration):
+    def evaluate(self, in_data, configuration, ret_pre_augmentation=False):
         n_examples = in_data.num_examples
         data_loss = 0.
-
+        pre_aug = None
         if self.is_denoising:
             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
+            if ret_pre_augmentation:
+                pre_aug = feed_data.copy()
             if feed_data is None:
                 feed_data = original_data
             feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
@@ -209,7 +211,10 @@ class AutoEncoder(object):
             data_loss += (loss * len(reconstructions[i:i + b]))
         data_loss /= float(n_examples)
 
-        return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
+        if pre_aug is not None:
+            return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data), pre_aug
+        else:
+            return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
 
     def evaluate_one_by_one(self, in_data, configuration):
         '''Evaluates every data point separately to recover the loss on it. Thus, the batch_size = 1 making it
