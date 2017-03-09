@@ -88,11 +88,12 @@ def accuracy_of_completion(pred_pcloud, gt_pcloud, thres=0.02, ret_dists=False):
     indices = nn.radius_neighbors(pred_pcloud, radius=thres, return_distance=False)
     success_indicator = [i.size >= 1 for i in indices]
     score = np.sum(success_indicator) / float(len(pred_pcloud))
-    dists = None
+
     if ret_dists:
         dists, _ = nn.kneighbors(pred_pcloud, n_neighbors=1)
-
-    return score, dists
+        return score, dists
+    else:
+        return score
 
 
 def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
@@ -106,8 +107,9 @@ def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
     dists = None
     if ret_dists:
         dists, _ = nn.kneighbors(gt_pcloud, n_neighbors=1)
-
-    return score, dists
+        return score, dists
+    else:
+        return score
 
 
 def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_range=3.0):
