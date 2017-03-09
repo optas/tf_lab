@@ -8,6 +8,7 @@ import warnings
 import os.path as osp
 import tensorflow as tf
 import numpy as np
+import time
 
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 
@@ -188,7 +189,9 @@ class AutoEncoder(object):
         data_loss = 0.
 
         if self.is_denoising:
+            s = time.time()
             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
+            print time.time() - s
             if feed_data is None:
                 feed_data = original_data
             feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
