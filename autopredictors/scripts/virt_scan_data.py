@@ -35,7 +35,7 @@ def _load_virtual_scan_incomplete_pcloud(f_name):
     pc.permute_points([0, 2, 1])
     pc, _ = pc.sample(_n_samples)
     pc.lex_sort()
-    pc.center_in_unit_sphere()
+#     pc.center_in_unit_sphere()
     tokens = f_name.split('/')
     model_id = tokens[-1][:-len(vscan_scan_pattern)]
     scan_id = tokens[-1][-len(vscan_scan_pattern):-(len('.ply'))]

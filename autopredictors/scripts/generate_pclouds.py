@@ -46,7 +46,7 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype
         in_mesh.swap_axes_of_vertices([0, 2, 1])
     in_mesh = cleaning.clean_mesh(in_mesh)
     ss_points, _ = in_mesh.sample_faces(n_samples)
-    pc = Point_Cloud(ss_points.astype(dtype))
+    pc = Point_Cloud(points=ss_points.astype(dtype))
     pc = pc.center_in_unit_sphere()
     pc, _ = pc.lex_sort()
     out_file = osp.join(out_folder, model_id + pts_ext)
@@ -64,7 +64,7 @@ def uniform_sampling_with_normals(mesh_file, out_folder, n_samples, swap_y_z=Tru
     in_mesh = cleaning.clean_mesh(in_mesh)
     mesh_normals = Mesh.normals_of_triangles(in_mesh.vertices, in_mesh.triangles, normalize=normalize)
     ss_points, sample_face_idx = in_mesh.sample_faces(n_samples)
-    pc = Point_Cloud(ss_points.astype(dtype))
+    pc = Point_Cloud(points=ss_points.astype(dtype))
     pc = pc.center_in_unit_sphere()
     pc, lex_indices = pc.lex_sort()
     pc_normals = mesh_normals[sample_face_idx[lex_indices], :]
@@ -116,7 +116,7 @@ def uniform_sampling_of_connected_components(file_name, out_folder, n_samples, a
             part_i = cleaning.filter_vertices(cc_mesh.copy(), nodes_i)
             bi = part_i.bounding_box()
             ss_points, _ = part_i.sample_faces(n_samples)
-            pc = Point_Cloud(ss_points)
+            pc = Point_Cloud(points=ss_points)
             pc, _ = pc.lex_sort()
             out_file = osp.join(save_dir, 'part_' + str(i) + '.pts')
             header = 'bbox extrema = ' + str(bi.extrema) + '\n'
