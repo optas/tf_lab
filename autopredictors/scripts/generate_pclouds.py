@@ -14,9 +14,14 @@ import sys
 import glob
 import numpy as np
 import os.path as osp
+import warnings
 import matplotlib.pylab as plt
 from multiprocessing import Pool
-from sklearn.cluster import KMeans
+
+try:
+    from sklearn.cluster import KMeans
+except:
+    warnings.warn('Sklearn library is not installed.')
 
 from general_tools.arrays.is_true import is_contiguous
 from general_tools.arrays.transform import make_contiguous
@@ -39,7 +44,7 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype
     ''' Given a mesh, it computes a point-cloud that is uniformly sampled
     from its area elements.
     '''
-
+    # TODO -> scaling?
     in_mesh = Mesh(file_name=mesh_file)
     model_id = mesh_file.split('/')[-2]
     if swap_y_z:
