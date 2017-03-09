@@ -33,7 +33,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
     def __init__(self, name, configuration, graph=None):
         if graph is None:
-            self.graph = tf.get_default_graph()
+            self.graph = tf.get_default_graph()     # TODO change to make a new graph.
 
         c = configuration
         self.configuration = c
@@ -57,6 +57,7 @@ class PointNetAutoEncoder(AutoEncoder):
             # Launch the session
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
+#         print 'Trainable Parameters = %d' % (.count_trainable_parameters(self.graph), )
 
     def _create_loss_optimizer(self):
         c = self.configuration
