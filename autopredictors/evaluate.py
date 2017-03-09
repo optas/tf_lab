@@ -21,15 +21,13 @@ def read_saved_epochs(saved_dir):
     return epochs_saved
 
 
-def save_reconstructions(out_dir, model, data_set, conf):
+def save_reconstructions(out_dir, reconstructions, gt_data, feed_data, ids):
     create_dir(out_dir)
-    reconstructions, data_loss, feed_data, ids, original_data = model.evaluate(data_set, conf)
-    for rpc, opc, fpc, name in zip(reconstructions, original_data, feed_data, ids):
+    for rpc, gpc, fpc, name in zip(reconstructions, gt_data, feed_data, ids):
         save_id = osp.join(out_dir, name)
         Point_Cloud(points=rpc).save_as_ply(save_id + '_prediction')
-        Point_Cloud(points=opc).save_as_ply(save_id + '_gt')
+        Point_Cloud(points=gpc).save_as_ply(save_id + '_gt')
         Point_Cloud(points=fpc).save_as_ply(save_id + '_feed')
-    return reconstructions, data_loss, feed_data, ids, original_data
 
 
 def eval_model(model, configuration, datasets, epochs=None, verbose=False):
