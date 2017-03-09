@@ -188,19 +188,21 @@ class AutoEncoder(object):
         n_examples = in_data.num_examples
         data_loss = 0.
 
-        if self.is_denoising:
-            s = time.time()
+        if self.is_denoising:            
             original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
-            print time.time() - s
+            
             if feed_data is None:
                 feed_data = original_data
+            s = time.time()
             feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
+            print time.time() - s
         else:
             original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
             feed_data = apply_augmentations(original_data, configuration)
 
         b = configuration.batch_size
         reconstructions = np.zeros([n_examples] + self.n_output)
+        s = time.time()
         for i in xrange(0, n_examples, b):
             if self.is_denoising:
                 reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
@@ -210,6 +212,8 @@ class AutoEncoder(object):
             # Compute average loss
             data_loss += (loss * len(reconstructions[i:i + b]))
         data_loss /= float(n_examples)
+        print time.time() - s
+        
         return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
 
     def evaluate_one_by_one(self, in_data, configuration):
