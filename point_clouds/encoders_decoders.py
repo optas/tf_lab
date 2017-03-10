@@ -6,7 +6,7 @@ Created on February 4, 2017
 
 import tensorflow as tf
 
-from tflearn.layers.core import fully_connected
+from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
@@ -19,7 +19,7 @@ except:
     from tf_lab.fundamentals.conv import conv_3d_transpose
 
 
-def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
+def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     if spn:
@@ -42,6 +42,38 @@ def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=Tr
         layer = batch_normalization(layer)
     layer = non_linearity(layer)
 
+    if dropout_prob is not None:
+        layer = dropout(layer, dropout_prob)
+
+    layer = symmetry(layer, axis=1)
+    return layer
+
+
+def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, \
+                                    non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
+    '''An Encoder (recognition network), which maps inputs onto a latent space.
+    '''
+
+    layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name='encoder_conv_layer_0')
+    layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name='encoder_conv_layer_1')
+    layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name='encoder_conv_layer_1')
+    layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layerd1 = dropout(layer, 0.5)
+    layerd1 = symmetry(layerd1, axis=1)
+
+    layerd2 = dropout(layer, 0.5)
+    layerd2 = symmetry(layerd2, axis=1)
+
+    layer = tf.concat(1, [layerd1, layerd2])
+    layer = tf.reshape(layer, [-1, 2, 1024])
     layer = symmetry(layer, axis=1)
     return layer
 
