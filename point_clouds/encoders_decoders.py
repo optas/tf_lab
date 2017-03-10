@@ -65,7 +65,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
             layer = batch_normalization(layer)
         layer = non_linearity(layer)
 
-    layer = fully_connected(layer, layer_sizes[n_layers - 1], name='decoder_fc_' + str(n_layers - 1))  # Last decoding layer doesn't have a non-linearity.
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1))  # Last decoding layer doesn't have a non-linearity.
 
     return layer
 
