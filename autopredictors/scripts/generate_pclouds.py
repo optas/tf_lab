@@ -44,7 +44,7 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype
     ''' Given a mesh, it computes a point-cloud that is uniformly sampled
     from its area elements.
     '''
-    # TODO -> scaling?
+    # TODO -> resolve scaling issues.
     in_mesh = Mesh(file_name=mesh_file)
     model_id = mesh_file.split('/')[-2]
     if swap_y_z:

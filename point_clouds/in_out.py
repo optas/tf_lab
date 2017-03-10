@@ -56,7 +56,7 @@ def load_crude_point_clouds(file_names, n_threads=1, loader=_load_crude_pcloud_a
         warnings.warn('Point clouds with the same model name were loaded.')
 
     if verbose:
-        print '%d pclouds were loaded. They belong in %d shape-classes.' % (len(pclouds), len(np.unique(class_ids)))
+        print '{0} pclouds were loaded. They belong in {1} shape-classes.'.format(len(pclouds), len(np.unique(class_ids)))
 
     return pclouds, model_names, class_ids
 
