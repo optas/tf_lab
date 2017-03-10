@@ -115,7 +115,7 @@ class AutoEncoder(object):
             warnings.warn('Loaded model\'s epoch doesn\'t match the requested one.')
         else:
             if verbose:
-                print 'Model restored in epoch %d.' % (epoch,)
+                print('Model restored in epoch {0}.'.format(epoch))
 
     def partial_fit(self, X, GT=None):
         '''Trains the model with mini-batches of input data.
