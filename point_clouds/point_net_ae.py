@@ -6,6 +6,7 @@ Created on January 26, 2017
 
 import time
 import tensorflow as tf
+import socket
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
@@ -18,8 +19,11 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
 
 try:
+#     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-    from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+    approx_match = '2'
+    match_cost = '2'
+#     from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
