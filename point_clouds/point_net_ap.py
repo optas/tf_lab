@@ -11,7 +11,6 @@ model_saver_id = 'models.ckpt'
 
 from general_tools.in_out.basics import create_dir
 
-
 from . point_net_ae import PointNetAutoEncoder
 from . in_out import apply_augmentations
 from .. fundamentals.loss import Loss
@@ -21,7 +20,7 @@ try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
     from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print 'External Losses (Chamfer-EMD) cannot be loaded.'
+    print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
 class PointNetAbstractorPredictor(PointNetAutoEncoder):
@@ -126,7 +125,7 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
         start_time = time.time()
         # Loop over all batches
         c = configuration
-        
+
         for _ in xrange(n_batches):
             gt_data, _, batch_i = train_data.next_batch(batch_size)
             batch_i = apply_augmentations(batch_i, configuration)   # This is a new copy of the batch.

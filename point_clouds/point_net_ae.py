@@ -6,13 +6,11 @@ Created on January 26, 2017
 
 import time
 import tensorflow as tf
-import os.path as osp
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 
 from general_tools.in_out.basics import create_dir
-
 
 from . autoencoder import AutoEncoder
 from . in_out import apply_augmentations
@@ -23,7 +21,7 @@ try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
     from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
-    print 'External Losses (Chamfer-EMD) cannot be loaded.'
+    print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
 class PointNetAutoEncoder(AutoEncoder):
@@ -43,6 +41,16 @@ class PointNetAutoEncoder(AutoEncoder):
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
             layer = c.decoder(self.z, **c.decoder_args)
+            
+            
+            #             if c.consistent_io:
+#                 n_output = c.n_input[0]
+#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
+#                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
+            
+            
+            
+            
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
