@@ -23,7 +23,7 @@ try:
         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
         approx_match = '2'
         match_cost = '2'
-        print 'yo man'
+        print('yo man')
     else:    
         from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
         from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
