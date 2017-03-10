@@ -55,7 +55,7 @@ def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads
     incommplete_pcloud_files = np.array(incommplete_pcloud_files, dtype=object)
     incommplete_pcloud_files = incommplete_pcloud_files[keep]
     inc_pclouds, inc_ids, class_ids = load_crude_point_clouds(file_names=incommplete_pcloud_files, n_threads=n_threads, loader=_load_virtual_scan_incomplete_pcloud)
-    print '%d incomplete point clouds were loaded.' % (len(inc_pclouds), )
+    print('{0} incomplete point clouds were loaded.'.format(len(inc_pclouds)))
     return inc_pclouds, inc_ids, class_ids
 
 
