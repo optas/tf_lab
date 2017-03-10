@@ -21,9 +21,7 @@ from .. fundamentals.loss import Loss
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
-        approx_match = '2'
-        match_cost = '2'
-        print('yo man')
+        from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
     else:
         from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
         from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
