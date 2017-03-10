@@ -73,7 +73,7 @@ def load_filenames_of_input_data(top_directory, file_extension=points_extension,
     for file_name in files_in_subdirs(top_directory, file_extension + '$'):
         res.append(file_name)
     if verbose:
-        print '%d files were found.' % (len(res), )
+        print('{0} files were found.'.format(len(res)))
     return res
 
 
