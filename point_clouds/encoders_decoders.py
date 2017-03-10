@@ -15,7 +15,7 @@ from . spatial_transformer import transformer as pcloud_spn
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    print 'Loading manual conv_3d_transpose.'
+    print('Loading manual conv_3d_transpose.')
     from tf_lab.fundamentals.conv import conv_3d_transpose
 
 
