@@ -19,11 +19,14 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
 
 try:
-#     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
-    from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-    approx_match = '2'
-    match_cost = '2'
-#     from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
+        from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        approx_match = '2'
+        match_cost = '2'
+        print 'yo man'
+    else:    
+        from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
