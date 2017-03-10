@@ -1,3 +1,4 @@
+import six
 import numpy as np
 from scipy.io import loadmat
 
@@ -43,7 +44,7 @@ shape_net_core_synth_id_to_category = {
 
 def shape_net_category_to_synth_id():
     d = shape_net_core_synth_id_to_category
-    inv_map = {v: k for k, v in d.iteritems()}
+    inv_map = {v: k for k, v in six.iteritems(d)}
     return inv_map
 
 
