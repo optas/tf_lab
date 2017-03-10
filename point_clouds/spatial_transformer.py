@@ -11,7 +11,7 @@ from tflearn.layers.normalization import batch_normalization
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    print 'Loading manual conv_3d_transpose.'
+    print('Loading manual conv_3d_transpose.')
     from tf_lab.fundamentals.conv import conv_3d_transpose
 
 
