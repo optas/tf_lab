@@ -45,7 +45,7 @@ def eval_model(model, configuration, datasets, epochs=None, verbose=False):
             loss = model.evaluate(d, conf)[1]
             stats[i, j] = loss
         if verbose:
-            print stats[i, :]
+            print(stats[i, :])
 
     epochs = np.array(epochs).reshape((len(epochs), 1))
     stats = np.hstack((epochs, stats))
