@@ -51,6 +51,7 @@ def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=Tr
 
 def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, \
                                     non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
+    # TODO Investigate more.
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
 
