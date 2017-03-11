@@ -58,7 +58,9 @@ class PointNetAutoEncoder(AutoEncoder):
             self._create_loss_optimizer()
 
             # GPU configuration
+
             if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
+                print 'yo'
                 growth = c.allow_gpu_growth
             else:
                 growth = False
