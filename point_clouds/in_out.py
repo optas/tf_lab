@@ -187,6 +187,7 @@ class PointCloudDataSet(object):
         '''
 
         self.num_examples = point_clouds.shape[0]
+        self.n_points = point_clouds.shape[1]
 
         if labels is not None:
             assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
@@ -195,12 +196,8 @@ class PointCloudDataSet(object):
             else:
                 self.labels = labels
 
-#             self.labels = self.labels.reshape([self.num_examples, 1])
-
         else:
-            self.labels = np.ones([self.num_examples, 1], dtype=np.int8)
-
-        self.n_points = point_clouds.shape[1]
+            self.labels = np.ones(self.num_examples, dtype=np.int8)
 
         if noise is not None:
             assert (type(noise) is np.ndarray)
@@ -265,9 +262,15 @@ class PointCloudDataSet(object):
         self._index_in_epoch = 0
         self.epochs_completed = 0
         self.point_clouds = np.vstack((self.point_clouds, other_data_set.point_clouds))
-        self.labels = np.vstack((self.labels, other_data_set.labels))
+
+        labels_1 = self.labels.reshape([self.num_examples, 1])  # TODO = move to init.
+        labels_2 = other_data_set.labels.reshape([other_data_set.num_examples, 1])
+        self.labels = np.vstack((labels_1, labels_2))
+        self.labels = np.squeeze(self.labels)
 
         if self.noisy_point_clouds is not None:
             self.noisy_point_clouds = np.vstack((self.noisy_point_clouds, other_data_set.noisy_point_clouds))
+
         self.num_examples = self.point_clouds.shape[0]
+
         return self
