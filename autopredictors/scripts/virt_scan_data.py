@@ -16,6 +16,8 @@ vscan_search_pattern = '.ply'      # TODO use for both a regex.
 vscan_scan_pattern = '__?__.ply'    # Used only to indicate how to crop the input file-names to produced model_ids etc.
 _n_samples = 2048
 
+all_classes = ['airplane', 'cabinet', 'car', 'chair', 'lamp', 'sofa', 'table', 'vessel']    # All classes used in Angela et al.
+
 
 def permissible_dictionary(file_with_ids):
     ''' Returns a dictionary with model_ids that are white-listed in the input file.

@@ -179,7 +179,7 @@ class PointCloudDataSet(object):
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
     '''
 
-    def __init__(self, point_clouds, noise=None, labels=None):
+    def __init__(self, point_clouds, noise=None, labels=None, copy=True):
         '''Construct a DataSet.
         Args:
         Output:
@@ -190,7 +190,10 @@ class PointCloudDataSet(object):
 
         if labels is not None:
             assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
-            self.labels = labels
+            if copy:
+                self.labels = labels.copy()
+            else:
+                self.labels = labels
         else:
             self.labels = np.ones(self.num_examples, dtype=np.int8)
 
@@ -198,11 +201,18 @@ class PointCloudDataSet(object):
 
         if noise is not None:
             assert (type(noise) is np.ndarray)
-            self.noisy_point_clouds = noise.copy()
+            if copy:
+                self.noisy_point_clouds = noise.copy()
+            else:
+                self.noisy_point_clouds = noise
         else:
             self.noisy_point_clouds = None
 
-        self.point_clouds = point_clouds.copy()
+        if copy:
+            self.point_clouds = point_clouds.copy()
+        else:
+            self.point_clouds = point_clouds
+
         self.epochs_completed = 0
         self._index_in_epoch = 0
 
@@ -247,3 +257,12 @@ class PointCloudDataSet(object):
         if self.noisy_point_clouds is not None:
             ns = self.noisy_point_clouds[perm]
         return pc, lb, ns
+
+    def merge(self, other_data_set):
+        self._index_in_epoch = 0
+        self.epochs_completed = 0
+        self.point_clouds = np.vstack((self.point_clouds, other_data_set.point_clouds))
+        self.labels = np.vstack((self.labels, other_data_set.labels))
+        if self.noisy_point_clouds is not None:
+            self.noisy_point_clouds = np.vstack((self.noisy_point_clouds, other_data_set.noisy_point_clouds))
+        self.num_examples = self.point_clouds.shape[0]
