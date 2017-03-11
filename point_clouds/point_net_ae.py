@@ -52,17 +52,19 @@ class PointNetAutoEncoder(AutoEncoder):
 #                 n_output = c.n_input[0]
 #                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
 #                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
-            
-            
-            
-            
+
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 
             # GPU configuration
+            if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
+                growth = c.allow_gpu_growth
+            else:
+                growth = False
+
             config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
+            config.gpu_options.allow_growth = growth
 
             # Initializing the tensor flow variables
             self.init = tf.global_variables_initializer()
