@@ -205,7 +205,7 @@ def load_train_val_test_vscan_paper(class_syn_id, n_threads, complete_n_samples=
     cmpl_file_names = load_filenames_of_input_data(complete_pclouds_path, points_extension)
     cmpl_pclouds, cmpl_model_names, syn_ids = load_crude_point_clouds(file_names=cmpl_file_names, n_threads=n_threads)
     assert(len(np.unique(syn_ids)) == 1)
-    print '%d files containing complete point clouds were found.' % (len(cmpl_pclouds), )
+    print('{0} files containing complete point clouds were found.'.format(len(cmpl_pclouds)))
 
     v_scan_top_dir = osp.join(top_data_dir, 'From_Matthias/shapenet_dim32_sdf_pc', class_syn_id)
     train_id_file = osp.join(top_data_dir, 'From_Matthias/train_test_models/train_models_with_scan_id.txt')
