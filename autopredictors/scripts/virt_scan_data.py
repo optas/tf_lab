@@ -6,11 +6,12 @@ Created on Feb 27, 2017
 
 import struct
 import numpy as np
+import os.path as osp
 from collections import defaultdict
 from geo_tool import Point_Cloud 
 
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet, train_validate_test_split
-from .helper import match_incomplete_to_complete_data
+from . helper import match_incomplete_to_complete_data, points_extension
 
 vscan_search_pattern = '.ply'      # TODO use for both a regex.
 vscan_scan_pattern = '__?__.ply'    # Used only to indicate how to crop the input file-names to produced model_ids etc.
@@ -189,3 +190,36 @@ def export_distance_field_to_text(out_file, field_values):
     with open(out_file, 'w') as fout:
         for i in np.nditer(field_values):
             fout.write(str(i) + '\n')
+
+
+def load_train_val_test_vscan_paper(class_syn_id, n_threads, complete_n_samples=4096, incomplete_n_samples=2048, val_percent=0.10):
+    ''' Exactly what we did for Submission. (This is a dirty function:) ).
+    '''
+    seed = 42
+    np.random.seed(seed)
+
+    top_data_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/'
+
+    complete_pclouds_path = osp.join(top_data_dir, 'ShapeNetPointClouds/from_manifold_meshes/not_scaled', str(complete_n_samples), class_syn_id)
+
+    cmpl_file_names = load_filenames_of_input_data(complete_pclouds_path, points_extension)
+    cmpl_pclouds, cmpl_model_names, syn_ids = load_crude_point_clouds(file_names=cmpl_file_names, n_threads=n_threads)
+    assert(len(np.unique(syn_ids)) == 1)
+    print '%d files containing complete point clouds were found.' % (len(cmpl_pclouds), )
+
+    v_scan_top_dir = osp.join(top_data_dir, 'From_Matthias/shapenet_dim32_sdf_pc', class_syn_id)
+    train_id_file = osp.join(top_data_dir, 'From_Matthias/train_test_models/train_models_with_scan_id.txt')
+
+    train_data = load_single_class_incomplete_dataset(v_scan_top_dir, train_id_file, class_syn_id,
+                                                      cmpl_pclouds, cmpl_model_names, n_threads=n_threads,
+                                                      n_samples=incomplete_n_samples)
+    val_data = None
+    if val_percent > 0:
+        train_data, val_data = make_validation_from_train_data(train_data, val_percent)
+
+    test_id_file = osp.join(top_data_dir, 'From_Matthias/train_test_models/test_models_with_scan_id.txt')
+    test_data = load_single_class_incomplete_dataset(v_scan_top_dir, test_id_file, class_syn_id,
+                                                     cmpl_pclouds, cmpl_model_names, n_threads=n_threads,
+                                                     n_samples=incomplete_n_samples)
+
+    return train_data, val_data, test_data
