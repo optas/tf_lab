@@ -2,7 +2,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.python.framework import ops
 
-nn_distance_module = tf.load_op_library('/orions4-zfs/projects/lins2/Panos_Space/Git_Repos/tf_lab/external/oriong2/Chamfer_EMD_losses/tf_nndistance_so.so')
+nn_distance_module = tf.load_op_library('/orions4-zfs/projects/lins2/Lin_Space/Git_Repos/tf_lab/external/oriong2/Chamfer_EMD_losses/tf_nndistance_so.so')
 
 
 def nn_distance(xyz1, xyz2):
