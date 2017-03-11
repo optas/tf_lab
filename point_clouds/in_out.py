@@ -194,8 +194,11 @@ class PointCloudDataSet(object):
                 self.labels = labels.copy()
             else:
                 self.labels = labels
+
+            self.labels = self.labels.reshape([self.num_examples, 1])
+
         else:
-            self.labels = np.ones(self.num_examples, dtype=np.int8)
+            self.labels = np.ones([self.num_examples, 1], dtype=np.int8)
 
         self.n_points = point_clouds.shape[1]
 
@@ -263,6 +266,7 @@ class PointCloudDataSet(object):
         self.epochs_completed = 0
         self.point_clouds = np.vstack((self.point_clouds, other_data_set.point_clouds))
         self.labels = np.vstack((self.labels, other_data_set.labels))
+
         if self.noisy_point_clouds is not None:
             self.noisy_point_clouds = np.vstack((self.noisy_point_clouds, other_data_set.noisy_point_clouds))
         self.num_examples = self.point_clouds.shape[0]
