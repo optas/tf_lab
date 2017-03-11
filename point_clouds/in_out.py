@@ -195,7 +195,7 @@ class PointCloudDataSet(object):
             else:
                 self.labels = labels
 
-            self.labels = self.labels.reshape([self.num_examples, 1])
+#             self.labels = self.labels.reshape([self.num_examples, 1])
 
         else:
             self.labels = np.ones([self.num_examples, 1], dtype=np.int8)
@@ -270,3 +270,4 @@ class PointCloudDataSet(object):
         if self.noisy_point_clouds is not None:
             self.noisy_point_clouds = np.vstack((self.noisy_point_clouds, other_data_set.noisy_point_clouds))
         self.num_examples = self.point_clouds.shape[0]
+        return self
