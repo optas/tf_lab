@@ -62,7 +62,7 @@ def load_incomplete_pointclouds(v_scan_data_top_dir, permissible_dict, n_threads
     return inc_pclouds, inc_ids, class_ids
 
 
-def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
+def match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_ids):
     scan_ids = np.empty([len(initial_ids)], dtype=object)
     incomplete_model_names = np.empty([len(initial_ids)], dtype=object)
     for i, item in enumerate(initial_ids):
@@ -72,7 +72,7 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds):
     # # Match incomplete to complete data.
     mapping = match_incomplete_to_complete_data(full_model_names, incomplete_model_names)
     full_pclouds_matched = full_pclouds[mapping]
-    ids = incomplete_model_names + '.' + scan_ids
+    ids = class_ids + '.' + incomplete_model_names + '.' + scan_ids
     return full_pclouds_matched, ids
 
 
@@ -82,8 +82,8 @@ def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, cl
     _n_samples = n_samples
     data_dict = permissible_dictionary(permissible_file_list)
     data_dict = data_dict[class_syn_id]
-    incomplete_pclouds, initial_ids, _ = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
-    full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds)
+    incomplete_pclouds, initial_ids, class_ids = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
+    full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_ids)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
 
 

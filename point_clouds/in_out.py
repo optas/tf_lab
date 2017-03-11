@@ -215,24 +215,27 @@ class PointCloudDataSet(object):
 
         self.epochs_completed = 0
         self._index_in_epoch = 0
+        self.shuffle_data()
+
+    def shuffle_data(self, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+        perm = np.arange(self.num_examples)
+        np.random.shuffle(perm)
+        self.point_clouds = self.point_clouds[perm]
+        self.labels = self.labels[perm]
+        if self.noisy_point_clouds is not None:
+            self.noisy_point_clouds = self.noisy_point_clouds[perm]
+        return self
 
     def next_batch(self, batch_size, seed=None):
-        # TODO: The data are copied. Might be unnecessary.
         '''Return the next batch_size examples from this data set.
         '''
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self.num_examples:
             self.epochs_completed += 1  # Finished epoch.
-            if seed is not None:    # Shuffle the data.
-                np.random.seed(seed)
-            perm = np.arange(self.num_examples)
-            np.random.shuffle(perm)
-            self.point_clouds = self.point_clouds[perm]
-            self.labels = self.labels[perm]
-            if self.noisy_point_clouds is not None:
-                self.noisy_point_clouds = self.noisy_point_clouds[perm]
-
+            self.shuffle_data(seed)
             # Start next epoch
             start = 0
             self._index_in_epoch = batch_size
