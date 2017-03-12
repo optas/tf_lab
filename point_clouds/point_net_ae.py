@@ -89,7 +89,7 @@ class PointNetAutoEncoder(AutoEncoder):
             _, indices = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
             temp = tf.transpose(self.x_reconstr, perm=[1, 2, 0])
             print temp
-            self.output_cons_subset = tf.gather(temp, indices)
+            self.output_cons_subset = tf.gather(temp, indices)[:-2]
             print self.output_cons_subset
             self.output_cons_subset = tf.transpose(self.output_cons_subset, perm=[2, 0, 1])
             print self.output_cons_subset
