@@ -88,7 +88,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
             _, indices = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
 
-            self.output_cons_subset = tf.gather(self.x_reconstr, indices)
+            self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
             print self.output_cons_subset
 #             print selector
 #             self.sess.run(tf.shape(selector))
