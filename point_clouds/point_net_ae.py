@@ -46,11 +46,9 @@ class PointNetAutoEncoder(AutoEncoder):
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
             layer = c.decoder(self.z, **c.decoder_args)
-            
-            
-            #             if c.consistent_io:
+
 #                 n_output = c.n_input[0]
-#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', weights_init='xavier', name='consistent')
+#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', 
 #                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
 
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
@@ -85,6 +83,14 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+
+        if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
+            self.output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
+            _, selector = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
+            self.output_cons_subset = self.x_reconstr[selector, :]
+            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
+            self.cons_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            self.loss += self.cons_loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
 
