@@ -87,11 +87,11 @@ class PointNetAutoEncoder(AutoEncoder):
         if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
             self.output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
             _, indices = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
-            temp = tf.reverse(self.x_reconstr, [1, 2, 0])
+            temp = tf.transpose(self.x_reconstr, perm=[1, 2, 0])
             print temp
             self.output_cons_subset = tf.gather(temp, indices)
             print self.output_cons_subset
-            self.output_cons_subset = tf.reverse(self.output_cons_subset, [2, 0, 1])
+            self.output_cons_subset = tf.transpose(self.output_cons_subset, perm=[2, 0, 1])
             print self.output_cons_subset
 #             print selector
 #             self.sess.run(tf.shape(selector))
