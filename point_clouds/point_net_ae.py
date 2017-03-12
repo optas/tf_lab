@@ -86,12 +86,14 @@ class PointNetAutoEncoder(AutoEncoder):
 
         if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
             self.output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
-            _, selector = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
+            _, indices = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
 
-            print selector
-            self.sess.run(tf.shape(selector))
-
-            self.output_cons_subset = self.x_reconstr[:, selector, :]
+            self.output_cons_subset = tf.gather(self.x_reconstr, indices)
+            print self.output_cons_subset
+#             print selector
+#             self.sess.run(tf.shape(selector))
+# 
+#             self.output_cons_subset = self.x_reconstr[:, selector, :]
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
             self.cons_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
             self.loss += self.cons_loss
