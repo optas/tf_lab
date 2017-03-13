@@ -79,7 +79,7 @@ class PointNetAutoEncoder(AutoEncoder):
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
-        if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
+        if hasattr(c, 'consistent_io') and c.consistent_io is not None:  # TODO - mitigate hasaatr
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
 
@@ -132,5 +132,11 @@ class PointNetAutoEncoder(AutoEncoder):
         self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
         self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
 
-        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
-        return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+        if self.consistent_io == 'chamfer':
+            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
+            return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+        elif self.consistent_io == 'emd':
+            match = approx_match(self.output_cons_subset, self.x)
+            return tf.reduce_mean(match_cost(self.output_cons_subset, self.x, match))
+        else:
+            assert(False)
