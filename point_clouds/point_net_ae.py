@@ -80,7 +80,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
-            self.cons_loss = PointNetAutoEncoder._consistency_loss()
+            self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
@@ -115,7 +115,7 @@ class PointNetAutoEncoder(AutoEncoder):
         return epoch_loss, duration
 
     @staticmethod
-    def _consistency_loss(self):
+    def _consistency_loss(self):   # TODO Make instance method.
         c = self.configuration
         batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
         batch_indicator = batch_indicator.repeat(self.n_input[0])
