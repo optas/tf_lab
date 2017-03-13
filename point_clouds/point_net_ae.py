@@ -134,4 +134,3 @@ class PointNetAutoEncoder(AutoEncoder):
 
         cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
         return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-
