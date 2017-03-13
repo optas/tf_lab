@@ -68,26 +68,26 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess.run(self.init)
 #         print 'Trainable Parameters = %d' % (.count_trainable_parameters(self.graph), )
 
-        def _consistency_loss(self):
-            c = self.configuration
-            batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
-            batch_indicator = batch_indicator.repeat(self.n_input[0])
-            batch_indicator = tf.constant(batch_indicator, dtype=tf.int32)
-            batch_indicator = tf.expand_dims(batch_indicator, 1)
-    
-            output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
-            _, indices = tf.nn.top_k(output_mask, self.n_input[0], sorted=False)
-    
-            indices = tf.reshape(indices, [-1])
-            indices = tf.expand_dims(indices, 1)
-            indices = tf.concat(1, [batch_indicator, indices])
-    
-            self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
-            self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
-    
-            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
-            return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-    
+    def _consistency_loss(self):
+        c = self.configuration
+        batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
+        batch_indicator = batch_indicator.repeat(self.n_input[0])
+        batch_indicator = tf.constant(batch_indicator, dtype=tf.int32)
+        batch_indicator = tf.expand_dims(batch_indicator, 1)
+
+        output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
+        _, indices = tf.nn.top_k(output_mask, self.n_input[0], sorted=False)
+
+        indices = tf.reshape(indices, [-1])
+        indices = tf.expand_dims(indices, 1)
+        indices = tf.concat(1, [batch_indicator, indices])
+
+        self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
+        self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
+
+        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
+        return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+
     def _create_loss_optimizer(self):
         c = self.configuration
         if c.loss == 'l2':
