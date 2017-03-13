@@ -39,6 +39,7 @@ def save_pc_prediction_stats(file_out, data_ids, scores):
     hmeas = hmean(scores, axis=1)
     splitted_ids = [' '.join(t.split('.')) for t in data_ids]
     with open(file_out, 'w') as fout:
+        fout.write('Mode ID: Accuracy Coverage H-Measure\n')
         for i, sid in enumerate(splitted_ids):
             fout.write(sid + '%f %f %f\n' % (accurasy[i], coverage[i], hmeas[i]))
 
