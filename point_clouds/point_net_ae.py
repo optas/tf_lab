@@ -68,7 +68,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess.run(self.init)
 #         print 'Trainable Parameters = %d' % (.count_trainable_parameters(self.graph), )
 
-    def _consistency_loss(self):
+    def consistency_loss(self):
         c = self.configuration
         batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
         batch_indicator = batch_indicator.repeat(self.n_input[0])
@@ -87,6 +87,8 @@ class PointNetAutoEncoder(AutoEncoder):
 
         cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
         return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+    def moini(self):
+	print 210    
 
     def _create_loss_optimizer(self):
         c = self.configuration
@@ -100,7 +102,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
-            self.cons_loss = self._consistency_loss()
+            self.cons_loss = consistency_loss()
             self.loss += self.cons_loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
