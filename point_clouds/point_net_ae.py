@@ -5,6 +5,7 @@ Created on January 26, 2017
 '''
 
 import time
+import numpy as np
 import tensorflow as tf
 import socket
 
@@ -46,17 +47,11 @@ class PointNetAutoEncoder(AutoEncoder):
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
             layer = c.decoder(self.z, **c.decoder_args)
-
-#                 n_output = c.n_input[0]
-#                 mask = fully_connected(tf.reshape(self.x_reconstr, [-1, 1, np.prod(c.n_input)]), n_output, 'softmax', 
-#                 self.consistent = tf.transpose(tf.multiply(mask, tf.transpose(self.x_reconstr, perm=[0,2,1])), perm=[0,2,1])
-
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 
             # GPU configuration
-
             if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
                 growth = c.allow_gpu_growth
             else:
@@ -85,20 +80,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io:  # TODO - mitigate hasaatr
-            self.output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
-            _, indices = tf.nn.top_k(self.output_mask, self.n_input[0], sorted=False)
-            temp = tf.transpose(self.x_reconstr, perm=[1, 2, 0])
-            print temp
-            self.output_cons_subset = tf.gather(temp, indices)[:-2]
-            print self.output_cons_subset
-            self.output_cons_subset = tf.transpose(self.output_cons_subset, perm=[2, 0, 1])
-            print self.output_cons_subset
-#             print selector
-#             self.sess.run(tf.shape(selector))
-# 
-#             self.output_cons_subset = self.x_reconstr[:, selector, :]
-            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
-            self.cons_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            self.cons_loss = self._consistency_loss()
             self.loss += self.cons_loss
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
@@ -131,3 +113,23 @@ class PointNetAutoEncoder(AutoEncoder):
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
+
+    def _consistency_loss(self):
+        c = self.configuration
+        batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
+        batch_indicator = batch_indicator.repeat(self.n_input[0])
+        batch_indicator = tf.constant(batch_indicator, dtype=tf.int32)
+        batch_indicator = tf.expand_dims(batch_indicator, 1)
+
+        output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
+        _, indices = tf.nn.top_k(output_mask, self.n_input[0], sorted=False)
+
+        indices = tf.reshape(indices, [-1])
+        indices = tf.expand_dims(indices, 1)
+        indices = tf.concat(1, [batch_indicator, indices])
+
+        self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
+        self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
+
+        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
+        return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)

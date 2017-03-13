@@ -182,3 +182,4 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
 
         data_loss /= float(n_examples)
         return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data), np.squeeze(extra_preds_recon)
+    
