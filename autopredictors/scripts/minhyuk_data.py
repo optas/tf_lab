@@ -22,7 +22,7 @@ def load_file_names_of_category(category_id):
     category = test_categories[category_id]
     print category
     gt_off_dir = osp.join(top_gt_dir, category, 'off')
-    gt_off_files = [f for f in files_in_subdirs(gt_off_dir, 'off')]
+    gt_off_files = [f for f in files_in_subdirs(gt_off_dir, 'off$')]
     gt_names = [osp.basename(f)[:-len('.off')] for f in gt_off_files]
     ply_file_prefix = osp.join(top_bench_dir, category, 'output')
     ply_incomplete_files = [osp.join(ply_file_prefix, name, name + '_input.ply') for name in gt_names]
