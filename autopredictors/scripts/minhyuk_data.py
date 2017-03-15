@@ -44,7 +44,7 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
     if manifold:
         gt_files = manifold_files
     else:
-        gt_off_files
+        gt_files = gt_off_files
 
     for i in xrange(n_examples):
         inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
