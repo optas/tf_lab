@@ -25,13 +25,15 @@ def load_file_names_of_category(category_id):
     gt_off_dir = osp.join(top_gt_dir, category, 'off')
     gt_off_files = [f for f in files_in_subdirs(gt_off_dir, 'off$')]
     gt_names = [osp.basename(f)[:-len('.off')] for f in gt_off_files]
+
+    manifold_files = [osp.join(top_gt_dir, category, 'manifold', name + '.obj') for name in gt_names]
     ply_file_prefix = osp.join(top_bench_dir, category, 'output')
     ply_incomplete_files = [osp.join(ply_file_prefix, name, name + '_input.ply') for name in gt_names]
-    return ply_incomplete_files, gt_off_files, gt_names
+    return ply_incomplete_files, gt_off_files, manifold_files, gt_names
 
 
-def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_samples=4096):
-    ply_incomplete_files, gt_off_files, gt_names = load_file_names_of_category(category_id)
+def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
+    ply_incomplete_files, gt_off_files, manifold_files, gt_names = load_file_names_of_category(category_id)
     swap = test_axis_swaps[category_id]
     bline_acc = []
     n_examples = len(ply_incomplete_files)
@@ -39,13 +41,20 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
     comp_pc_data = np.zeros((n_examples, complete_n_samples, 3))
     labels_data = np.array([test_categories[category_id] + '.' + name for name in gt_names], dtype=object)
 
+    if manifold:
+        gt_files = manifold_files
+    else:
+        gt_off_files
+
     for i in xrange(n_examples):
         inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
         inc_pc.permute_points(swap)
         inc_pc, _ = inc_pc.sample(incomplete_n_samples)
         inc_pc.lex_sort()
         inc_pc_data[i] = inc_pc.points
-        in_mesh = Mesh(file_name=gt_off_files[i])
+
+        in_mesh = Mesh(file_name=gt_files[i])
+        print in_mesh.num_vertices
         in_mesh = cleaning.clean_mesh(in_mesh)
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
         comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
@@ -53,4 +62,5 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         comp_pc.lex_sort()
         comp_pc_data[i] = comp_pc.points
         bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
+
     return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
