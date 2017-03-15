@@ -4,8 +4,6 @@ import numpy as np
 import warnings
 from scipy.stats import hmean
 from . scripts.helper import shape_net_core_synth_id_to_category
-from astropy.io.ascii.tests.test_fixedwidth import table
-from astropy.time.tests.test_basic import TestSofaErrors
 
 try:
     from sklearn.neighbors import NearestNeighbors
