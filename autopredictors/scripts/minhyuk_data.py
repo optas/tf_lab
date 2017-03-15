@@ -54,7 +54,6 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         inc_pc_data[i] = inc_pc.points
 
         in_mesh = Mesh(file_name=gt_files[i])
-        print in_mesh.num_vertices
         in_mesh = cleaning.clean_mesh(in_mesh)
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
         comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
