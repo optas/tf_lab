@@ -150,7 +150,7 @@ def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
 
 def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_range=None):
     if ignore_range is not None:
-        close_enough_mask = np.logical_or(pred_df < ignore_range, gt_df < ignore_range)
+        close_enough_mask = gt_df < ignore_range
     else:
         close_enough_mask = np.ones(pred_df.shape, dtype=np.bool)
 
