@@ -8,6 +8,7 @@ import numpy as np
 import os.path as osp
 from general_tools.in_out.basics import files_in_subdirs
 from geo_tool import Mesh, Point_Cloud
+from geo_tool.solids import mesh_cleaning as cleaning
 from tf_lab.autopredictors.evaluate import accuracy_of_completion
 from tf_lab.point_clouds.in_out import PointCloudDataSet
 
@@ -45,6 +46,7 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         inc_pc.lex_sort()
         inc_pc_data[i] = inc_pc.points
         in_mesh = Mesh(file_name=gt_off_files[i])
+        in_mesh = cleaning.clean_mesh(in_mesh)
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
         comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
         comp_pc = Point_Cloud(points=comp_pc)
