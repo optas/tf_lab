@@ -4,6 +4,8 @@ import numpy as np
 import warnings
 from scipy.stats import hmean
 from . scripts.helper import shape_net_core_synth_id_to_category
+from astropy.io.ascii.tests.test_fixedwidth import table
+from astropy.time.tests.test_basic import TestSofaErrors
 
 try:
     from sklearn.neighbors import NearestNeighbors
@@ -156,3 +158,11 @@ def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_ra
 
     total_mask = close_enough_mask * unknown_space_mask
     return np.sum(np.abs(gt_df - pred_df) * total_mask) / np.sum(total_mask)
+
+
+def paper_pc_completion_experiment_id_best_epoch(category, loss):
+    experiment_id = {"airplane": 1, "chair": 2, "car": 3, "table": 4, "vessel": 5, "lamp": 6, "sofa": 7, "cabinet": 8}
+    best_epoch = dict()
+    best_epoch['chamfer'] = {"airplane": 48, "chair": 40, "car": 26, "table": 46, "vessel": 40, "lamp": 30, "sofa": 42, "cabinet": 90}
+    best_epoch['emd'] = {"airplane": 54, "chair": 52, "car": 20, "table": 82, "vessel": 60, "lamp": 74, "sofa": 74, "cabinet": 76}
+    return experiment_id[category], best_epoch[loss][category]

@@ -103,7 +103,6 @@ def plot_3d_point_cloud_paper(pc_cloud, show=True, in_u_sphere=False, axis=None,
 
     ax.scatter(x, y, z, marker='.', s=40, alpha=.8, *args, **kwargs)
     ax.view_init(elev=elev, azim=azim)
-
     plt.axis('off')
 
     if in_u_sphere:
