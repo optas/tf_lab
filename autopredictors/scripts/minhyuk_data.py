@@ -42,9 +42,13 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
         inc_pc.permute_points(swap)
         inc_pc, _ = inc_pc.sample(incomplete_n_samples)
+        inc_pc.lex_sort()
         inc_pc_data[i] = inc_pc.points
         in_mesh = Mesh(file_name=gt_off_files[i])
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
-        comp_pc_data[i], _ = in_mesh.sample_faces(complete_n_samples)
+        comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
+        comp_pc = Point_Cloud(points=comp_pc)
+        comp_pc.lex_sort()
+        comp_pc_data[i] = comp_pc.points
         bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
     return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc

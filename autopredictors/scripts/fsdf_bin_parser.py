@@ -22,14 +22,6 @@ def fsdf_bin_parser(file_name,res = 32):
 
 	return output_grid
 
-#data,_ = fsdf_bin_parser('/orions4-zfs/projects/lins2/Panos_Space/DATA/From_Matthias/results-noclassification/dim32_sdf_m150/train/03001627/f2af2483f9fb980cb237f85c0ae7ac77__2__.fsdf.bin')
-
-#fw = open('test_sdf.txt','w')
-#for i in xrange(32):
-#    for k in xrange(32):
-#	for j in xrange(32):
-#	    fw.writelines(str(data[i,k,j])+'\n')
-#fw.close()
 
 def fsdf_bin_loader_n(filename,n_threads):
     point_cloud_list = []
@@ -46,4 +38,4 @@ def fsdf_bin_loader_n(filename,n_threads):
 
     pool.close()
     pool.join()
-    return pclouds,model_names
+    return pclouds, model_names
