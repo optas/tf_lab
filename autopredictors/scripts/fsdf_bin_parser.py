@@ -5,6 +5,7 @@ from multiprocessing import Pool
 import struct
 import scipy.io as sio
 
+
 def fsdf_bin_parser(file_name,res = 32):
     with open(file_name,'rb')  as fin:
 	output_grid = np.ndarray((res,res,res),np.float32)

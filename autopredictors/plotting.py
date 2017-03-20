@@ -101,7 +101,7 @@ def plot_3d_point_cloud_paper(pc_cloud, show=True, in_u_sphere=False, axis=None,
     y = pc_cloud.points[:, 1]
     z = pc_cloud.points[:, 2]
 
-    ax.scatter(x, y, z, marker='.', s=40, alpha=.8, *args, **kwargs)
+    ax.scatter(x, y, z, marker=marker, s=s, alpha=alpha, *args, **kwargs)
     ax.view_init(elev=elev, azim=azim)
     plt.axis('off')
 
