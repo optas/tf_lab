@@ -161,10 +161,10 @@ def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_ra
 def paper_pc_completion_experiment_id_best_epoch(category, loss):
     experiment_id = {"airplane": 1, "chair": 2, "car": 3, "table": 4, "vessel": 5, "lamp": 6, "sofa": 7, "cabinet": 8}
     best_epoch = dict()
-    best_epoch['chamfer'] = {"airplane": 48, "chair": 40, "car": 26, "table": 46, "vessel": 40, "lamp": 30, "sofa": 42, "cabinet": 90, "all": 73}
-    best_epoch['emd'] = {"airplane": 54, "chair": 52, "car": 20, "table": 82, "vessel": 60, "lamp": 74, "sofa": 74, "cabinet": 76, "all": 82}
-    if category == 'all':
-        if loss == 'chamfer':
+    best_epoch['chamfer'] = {"airplane": 48, "chair": 40, "car": 26, "table": 46, "vessel": 40, "lamp": 30, "sofa": 42, "cabinet": 90, "all_classes": 73}
+    best_epoch['emd'] = {"airplane": 54, "chair": 52, "car": 20, "table": 82, "vessel": 60, "lamp": 74, "sofa": 74, "cabinet": 76, "all_classes": 82}
+    if category == "all_classes":
+        if loss == "chamfer":
             res_exp_id = 10
         else:
             res_exp_id = 9
