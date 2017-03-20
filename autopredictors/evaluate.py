@@ -163,10 +163,11 @@ def paper_pc_completion_experiment_id_best_epoch(category, loss):
     best_epoch = dict()
     best_epoch['chamfer'] = {"airplane": 48, "chair": 40, "car": 26, "table": 46, "vessel": 40, "lamp": 30, "sofa": 42, "cabinet": 90, "all": 73}
     best_epoch['emd'] = {"airplane": 54, "chair": 52, "car": 20, "table": 82, "vessel": 60, "lamp": 74, "sofa": 74, "cabinet": 76, "all": 82}
-    res_exp_id = experiment_id[category]
     if category == 'all':
         if loss == 'chamfer':
             res_exp_id = 10
         else:
             res_exp_id = 9
+    else:
+        res_exp_id = experiment_id[category]
     return res_exp_id, best_epoch[loss][category]
