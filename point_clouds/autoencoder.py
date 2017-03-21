@@ -137,7 +137,7 @@ class AutoEncoder(object):
         if compute_loss:
             loss = self.loss
         else:
-            loss = tf.no_op
+            loss = tf.no_op()
 
         if GT is None:
             return self.sess.run((self.x_reconstr, loss), feed_dict={self.x: X})
