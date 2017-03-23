@@ -132,10 +132,10 @@ class PointNetAutoEncoder(AutoEncoder):
         self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
         self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
 
-        if c.consistent_io == 'chamfer':
+        if c.consistent_io.lower() == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
             return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-        elif c.consistent_io == 'emd':
+        elif c.consistent_io.lower() == 'emd':
             match = approx_match(self.output_cons_subset, self.x)
             return tf.reduce_mean(match_cost(self.output_cons_subset, self.x, match))
         else:
