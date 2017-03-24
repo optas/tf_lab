@@ -42,8 +42,6 @@ class KinectData(object):
             iccv.plot_3d_point_cloud(pc, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
             iccv.plot_3d_point_cloud(recon, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
 
-
-
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']
 test_axis_swaps = [[2, 0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
 
