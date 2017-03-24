@@ -16,7 +16,7 @@ def plot_in_u_sphere(category):
         return False
 
 
-def plot_3d_point_cloud(pc_cloud, show=True, in_u_sphere=False, axis=None, elev=20, azim=330, marker='.', s=40, alpha=.8, figsize=(5, 5), *args, **kwargs):
+def plot_3d_point_cloud(pc_cloud, show=True, in_u_sphere=False, axis=None, elev=20, azim=330, marker='.', s=4, alpha=.8, figsize=(5, 5), *args, **kwargs):
     if axis is None:
         fig = plt.figure(figsize=figsize)
         ax = fig.add_subplot(111, projection='3d')
