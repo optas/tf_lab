@@ -13,6 +13,37 @@ from tf_lab.autopredictors.evaluate import accuracy_of_completion
 from tf_lab.point_clouds.in_out import PointCloudDataSet
 from . import iccv
 
+
+class KinectData(object):
+    '''Real Scan (Kinect) Data used by Minhyuk.
+    '''
+
+    top_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Minhyuk/kinect_scan_data/'
+    model_names = ['chair001', 'chair002', 'chair003', 'chair006', 'table002', 'table004']
+    rotation_angles = np.array([-95, -145, 140, 39, 40, 60])  # Pre-processing for NN (i.e., rotate and swap axis)
+    perm = np.array([[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [1, 0, 2], [1, 0, 2]])
+    azimuth_angles = np.array([300, 260, 220, 240, 30, 40])   # Info for Visualization
+    in_u_s = [False, False, False, False, True, True]
+
+    @classmethod
+    def plot_predictions(cls, nn_model):
+        incomplete_n_samples = nn_model.n_input[0]
+        for i, name in enumerate(cls.model_names):
+            print name
+            file_name = osp.join(cls.top_dir, name + '_input.ply')
+            pc, _ = Point_Cloud(ply_file=file_name).sample(incomplete_n_samples)
+            pc.permute_points(cls.perm[i])
+            pc.rotate_z_axis_by_degrees(cls.rotation_angles[i])
+            pc.center_axis(0)
+            pc.center_axis(1)
+            pc.center_axis(2)
+            recon = nn_model.reconstruct(pc.points.reshape(1, incomplete_n_samples, 3), compute_loss=False)[0]
+            recon = Point_Cloud(points=np.squeeze(recon))
+            iccv.plot_3d_point_cloud(pc, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
+            iccv.plot_3d_point_cloud(recon, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
+
+
+
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']
 test_axis_swaps = [[2, 0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
 
@@ -65,29 +96,4 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
 
     return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
 
-    class KinectData(object):
-        '''Real Scan (Kinect) Data used by Minhyuk.
-        '''
-        top_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Minhyuk/kinect_scan_data/'
-        model_names = ['chair001', 'chair002', 'chair003', 'chair006', 'table002', 'table004']
-        rotation_angles = np.array([-95, -145, 140, 39, 40, 60])  # Pre-processing for NN (i.e., rotate and swap axis)
-        perm = np.array([[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [1, 0, 2], [1, 0, 2]])
-        azimuth_angles = np.array([300, 260, 220, 240, 30, 40])   # Info for Visualization
-        in_u_s = [False, False, False, False, True, True]
-
-        @classmethod
-        def plot_predictions(cls, nn_model):
-            incomplete_n_samples = nn_model.n_input[0]
-            for i, name in enumerate(cls.model_names):
-                print name
-                file_name = osp.join(cls.top_dir, name + '_input.ply')
-                pc, _ = Point_Cloud(ply_file=file_name).sample(incomplete_n_samples)
-                pc.permute_points(cls.perm[i])
-                pc.rotate_z_axis_by_degrees(cls.rotation_angles[i])
-                pc.center_axis(0)
-                pc.center_axis(1)
-                pc.center_axis(2)
-                recon = nn_model.reconstruct(pc.points.reshape(1, incomplete_n_samples, 3), compute_loss=False)[0]
-                recon = Point_Cloud(points=np.squeeze(recon))
-                iccv.plot_3d_point_cloud(pc, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
-                iccv.plot_3d_point_cloud(recon, azim=cls.azimuth_angles[i], s=8, in_u_sphere=cls.in_u_s[i])
+   
