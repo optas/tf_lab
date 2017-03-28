@@ -13,7 +13,6 @@ class CharlesFusedData(object):
     are aligned with ShapeNet (i.e., with our training data).
     '''
     chair_rotate_degrees = [-45, -150, -135, -115, -110, 0, -25, -10, 90, -30, -130, -45, -135, 90, 90, 60, 0]
-    chair_azimuth_angles = [] # LIN ADD HERE
     chair_model_names = ['chair_scan_0001', 'chair_scan_0010', 'chair_scan_0016', 'chair_scan_0007',
                          'chair_scan_0011', 'chair_scan_0006', 'chair_scan_0017', 'chair_scan_0012',
                          'chair_scan_0008', 'chair_scan_0003', 'chair_scan_0005', 'chair_scan_0014',
@@ -29,7 +28,6 @@ class CharlesFusedData(object):
                          'table_scan_0006', 'table_scan_0011']
 
     sofa_rotate_degrees = [0, 0, 100, -130, 10, -65, 60, -35, 60, 155, 120, 110, 70, 10, 0, 120, 67, 5, 5, 30, 0, 120, 5, 110, -83, -150]
-    sofa_azimuth_angles = [] # LIN ADD HERE
     sofa_model_names = ['sofa_scan_0007', 'sofa_scan_0016', 'sofa_scan_0025', 'sofa_scan_0023',
                         'sofa_scan_0010', 'sofa_scan_0001', 'sofa_scan_0017', 'sofa_scan_0006',
                         'sofa_scan_0024', 'sofa_scan_0022', 'sofa_scan_0011', 'sofa_scan_0014',
