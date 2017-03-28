@@ -4,8 +4,6 @@ Created on Mar 23, 2017
 @author: optas
 '''
 
-import os.path as osp
-
 
 class CharlesFusedData(object):
     ''' Info regarding Charle's OBJ mesh files which are fused by multiple views and are posted on his webpage.
