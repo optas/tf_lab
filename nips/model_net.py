@@ -15,10 +15,10 @@ import geo_tool.solids.mesh_cleaning as cleaning
 
 
 train_ply_pattern = '(.*)train(.*)\.ply$'
-test_ply_pattern = '(.*)train(.*)\.ply$'
+test_ply_pattern = '(.*)test(.*)\.ply$'
 
 rotation_angles = {'bed': -90, 'desk': -90, 'dresser': 180, 'chair': -90, 'night_stand': 180,     # These aligns model-net-10 with ShapeNetCore.
-                   'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 180, 'toilet': -90}
+                   'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 0, 'toilet': -90}
 
 
 def file_to_category(full_file, ending='obj'):
