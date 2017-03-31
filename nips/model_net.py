@@ -17,8 +17,21 @@ import geo_tool.solids.mesh_cleaning as cleaning
 train_ply_pattern = '(.*)train(.*)\.ply$'
 test_ply_pattern = '(.*)test(.*)\.ply$'
 
+net_10_classes = ['bathtub', 'bed', 'chair', 'desk', 'dresser', 'monitor', 'night_stand', 'sofa', 'table', 'toilet']
+
 rotation_angles = {'bed': -90, 'desk': -90, 'dresser': 180, 'chair': -90, 'night_stand': 180,     # These aligns model-net-10 with ShapeNetCore.
                    'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 0, 'toilet': -90}
+
+
+def classes_to_integers(net):
+    if net == 10:
+        classes = sorted(net_10_classes)
+        d = {cid: i for i, cid in zip(range(net), classes)}
+        return d
+    elif net == 40:
+        raise NotImplemented()
+    else:
+        raise ValueError()
 
 
 def file_to_category(full_file, ending='obj'):
