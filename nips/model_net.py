@@ -23,15 +23,18 @@ rotation_angles = {'bed': -90, 'desk': -90, 'dresser': 180, 'chair': -90, 'night
                    'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 0, 'toilet': -90}
 
 
-def classes_to_integers(net):
+def classes_to_integers(net, instances=None):
     if net == 10:
         classes = sorted(net_10_classes)
-        d = {cid: i for i, cid in zip(range(net), classes)}
-        return d
     elif net == 40:
         raise NotImplemented()
     else:
         raise ValueError()
+
+    d = {cid: i for i, cid in zip(range(net), classes)}
+    if instances is not None:
+        instances = [d[i] for i in instances]
+    return d, instances
 
 
 def file_to_category(full_file, ending='obj'):
