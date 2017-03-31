@@ -26,7 +26,7 @@ class Model_Net(object):
         return s.groups()[0]
 
     @staticmethod
-    def pc_sampler(mesh_file, out_file, n_samples, dtype=np.float32):
+    def pc_sampler(mesh_file, n_samples, save_file=None, dtype=np.float32):
         category = Model_Net.file_to_category(mesh_file)
         rotate_deg = Model_Net.rotation_angles[category]
         in_mesh = Mesh(file_name=mesh_file)
@@ -36,4 +36,6 @@ class Model_Net(object):
         pc.rotate_z_axis_by_degrees(rotate_deg)
         pc.center_in_unit_sphere()
         pc, _ = pc.lex_sort()
+        if save_file is not None:
+            pc.save_as_ply(save_file)
         return pc
