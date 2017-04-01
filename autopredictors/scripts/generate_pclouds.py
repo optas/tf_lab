@@ -51,9 +51,10 @@ def only_uniform_sampling(mesh_file, out_folder, n_samples, swap_y_z=True, dtype
     in_mesh = cleaning.clean_mesh(in_mesh)
     ss_points, _ = in_mesh.sample_faces(n_samples)
     pc = Point_Cloud(points=ss_points.astype(dtype))
+    pc.center_in_unit_sphere()
     pc, _ = pc.lex_sort()
-    out_file = osp.join(out_folder, model_id + pts_ext)
-    np.savetxt(out_file, pc.points)
+    out_file = osp.join(out_folder, model_id)
+    pc.save_as_ply(out_file)
 
 
 def uniform_sampling_with_normals(mesh_file, out_folder, n_samples, swap_y_z=True, normalize=True, dtype=np.float32):
