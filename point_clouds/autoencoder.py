@@ -161,6 +161,11 @@ class AutoEncoder(object):
 
         return self.sess.run((self.x_reconstr), {self.z: all_z})
 
+    def decode(self, z):
+        if np.ndim(z) == 1:  # single example
+            z = np.expand_dims(z, 0)
+        return self.sess.run((self.x_reconstr), {self.z: z})
+
     def train(self, train_data, configuration):
         c = configuration
         stats = []
