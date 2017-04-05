@@ -53,14 +53,16 @@ def pc_loader(ply_file):
     return load_ply(ply_file), model_id, category
 
 
-def pc_sampler(mesh_file, n_samples, save_file=None, dtype=np.float32):
+def pc_sampler(mesh_file, n_samples, save_file=None, rotate=False, dtype=np.float32):
     category = file_to_category(mesh_file)
-    rotate_deg = rotation_angles[category]
+    if rotate:
+        rotate_deg = rotation_angles[category]
     in_mesh = Mesh(file_name=mesh_file)
     in_mesh = cleaning.clean_mesh(in_mesh)
     ss_points, _ = in_mesh.sample_faces(n_samples)
     pc = Point_Cloud(points=ss_points.astype(dtype))
-    pc.rotate_z_axis_by_degrees(rotate_deg)
+    if rotate:
+        pc.rotate_z_axis_by_degrees(rotate_deg)
     pc.center_in_unit_sphere()
     pc, _ = pc.lex_sort()
     if save_file is not None:
