@@ -9,11 +9,13 @@ import os.path as osp
 import matplotlib.pyplot as plt
 
 
-def plot_in_u_sphere(category):
-    if category in ['chair']:
-        return True
-    else:
-        return False
+
+
+all_classes = ['airplane', 'cabinet', 'car', 'chair', 'lamp', 'sofa', 'table', 'vessel']
+
+in_u_sphere_plotting = {'chair': True}
+azimuth_angles = {'chair': 0}
+plotting_color = {'chair': ['blue', 'blue', 'blue']}
 
 
 def plot_3d_point_cloud(pc_cloud, show=True, in_u_sphere=False, axis=None, elev=10, azim=240, marker='.', s=8, alpha=.8, figsize=(5, 5), *args, **kwargs):
