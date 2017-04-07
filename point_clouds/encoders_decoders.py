@@ -19,25 +19,25 @@ except:
     from tf_lab.fundamentals.conv import conv_3d_transpose
 
 
-def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
+def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     if spn:
         transformer = pcloud_spn(in_signal)
         in_signal = tf.batch_matmul(in_signal, transformer)
 
-    layer = conv_1d(in_signal, nb_filter=layers[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
+    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
 
     if b_norm:
         layer = batch_normalization(layer)
     layer = non_linearity(layer)
 
-    layer = conv_1d(layer, nb_filter=layers[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
+    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
     if b_norm:
         layer = batch_normalization(layer)
     layer = non_linearity(layer)
 
-    layer = conv_1d(layer, nb_filter=layers[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
+    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
     if b_norm:
         layer = batch_normalization(layer)
     layer = non_linearity(layer)
@@ -49,8 +49,8 @@ def encoder_with_convs_and_symmetry(in_signal, layers=[64, 128, 1024], b_norm=Tr
     return layer
 
 
-def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False, \
-                                    non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
+def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False,
+                                                               non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
     # TODO Investigate more.
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
