@@ -25,6 +25,7 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_no
     if spn:
         transformer = pcloud_spn(in_signal)
         in_signal = tf.batch_matmul(in_signal, transformer)
+        print 'Spatial Transformer was Activated'
 
     layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
 
