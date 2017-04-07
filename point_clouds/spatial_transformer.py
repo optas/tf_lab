@@ -16,9 +16,10 @@ except:
 
 
 def transformer(point_cloud):
-    """ Input (XYZ) Transform Net, input is B x N x 3 gray image
-    Return:
-        Transformation matrix of size 3 x 3 """
+    '''Input is Batch_size x Num_Points x 3 point-clouds
+    Returns:
+        Transformation matrix of size 3 x 3 '''
+
     net = conv_1d(point_cloud, 64, 1, 1)
     net = batch_normalization(net)
     net = tf.nn.relu(net)

@@ -19,6 +19,13 @@ test_ply_pattern = '(.*)test(.*)\.ply$'
 
 net_10_classes = ['bathtub', 'bed', 'chair', 'desk', 'dresser', 'monitor', 'night_stand', 'sofa', 'table', 'toilet']
 
+net_40_classes = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf', 'bottle',
+                  'bowl', 'car', 'chair', 'cone', 'cup', 'curtain', 'desk', 'door',
+                  'dresser', 'flower_pot', 'glass_box', 'guitar', 'keyboard', 'lamp',
+                  'laptop', 'mantel', 'monitor', 'night_stand', 'person', 'piano',
+                  'plant', 'radio', 'range_hood', 'sink', 'sofa', 'stairs', 'stool',
+                  'table', 'tent', 'toilet', 'tv_stand', 'vase', 'wardrobe', 'xbox']
+
 rotation_angles = {'bed': -90, 'desk': -90, 'dresser': 180, 'chair': -90, 'night_stand': 180,     # These aligns model-net-10 with ShapeNetCore.
                    'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 0, 'toilet': -90}
 
@@ -27,7 +34,7 @@ def classes_to_integers(net, instances=None):
     if net == 10:
         classes = sorted(net_10_classes)
     elif net == 40:
-        raise NotImplemented()
+        classes = sorted(net_40_classes)
     else:
         raise ValueError()
 
