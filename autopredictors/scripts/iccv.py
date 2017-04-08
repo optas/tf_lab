@@ -13,13 +13,13 @@ in_u_sphere_plotting = {'chair': True, 'airplane': True, 'cabinet': True, 'car':
 
 azimuth_angles = {'chair': -50, 'airplane': 0, 'cabinet': -40, 'car': -60, 'lamp': 0, 'sofa': -60, 'table': 60, 'vessel': -60}
 
-plotting_color = {'chair': ['green', 'green', 'green'],
-                  'airplane': ['blue', 'blue', 'blue'],
-                  'cabinet': ['black', 'black', 'black'],
-                  'car': ['red', 'red', 'red'],
-                  'lamp': ['yellow', 'yellow', 'yellow'],
-                  'sofa': ['magenta', 'magenta', 'magenta'],
-                  'table': ['cyan', 'cyan', 'cyan'],
+plotting_color = {'chair': 'g',
+                  'airplane': 'b',
+                  'cabinet': 'black',
+                  'car': 'r',
+                  'lamp': 'yellow',
+                  'sofa': 'magenta',
+                  'table': 'cyan',
                   'vessel': [0, 0.6, 1]}
 
 
