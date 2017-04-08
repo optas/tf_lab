@@ -33,6 +33,29 @@ def permissible_dictionary(file_with_ids):
     return data_dict
 
 
+def pc_sampler(original_incomplete_file, n_samples, save_file=None, dtype=np.float32):
+    '''
+    NEW - will be used to sample each file from Matthias and store them.
+    '''
+    pc = Point_Cloud(ply_file=original_incomplete_file)
+    pc.permute_points([0, 2, 1])
+    pc, _ = pc.sample(n_samples)
+    pc.points = pc.points.astype(dtype)
+    pc.lex_sort()
+    if save_file is not None:
+        pc.save_as_ply(save_file)
+    return pc
+
+
+def pc_loader(ply_file):
+    pc = Point_Cloud(ply_file=ply_file)
+    tokens = ply_file.split('/')
+    model_id = tokens[-1][:-len(vscan_scan_pattern)]
+    scan_id = tokens[-1][-len(vscan_scan_pattern):-(len('.ply'))]
+    syn_id = tokens[-2]
+    return pc.points, (model_id, scan_id), syn_id
+
+
 def _load_virtual_scan_incomplete_pcloud(f_name):
     pc = Point_Cloud(ply_file=f_name)
     pc.permute_points([0, 2, 1])
