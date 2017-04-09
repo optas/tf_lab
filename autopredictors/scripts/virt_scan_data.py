@@ -2,6 +2,8 @@
 Created on February 27, 2017
 
 @author: optas
+
+ Data used by Dai et al. in  
 '''
 
 import struct
@@ -13,11 +15,9 @@ from geo_tool import Point_Cloud
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet, train_validate_test_split
 from . helper import match_incomplete_to_complete_data, points_extension
 
-vscan_search_pattern = '.ply'      # TODO use for both a regex.
-vscan_scan_pattern = '__?__.ply'    # Used only to indicate how to crop the input file-names to produced model_ids etc.
-_n_samples = 2048
 
-all_classes = ['airplane', 'cabinet', 'car', 'chair', 'lamp', 'sofa', 'table', 'vessel']    # All classes used in Angela et al.
+######################## New code ########################
+
 
 in_u_sphere_plotting = {'chair': True, 'airplane': False, 'cabinet': False, 'car': False, 'lamp': True, 'sofa': True, 'table': True, 'vessel': False}
 
@@ -28,23 +28,10 @@ plotting_color = {'chair': 'g', 'airplane': 'b', 'cabinet': 'orange', 'car': 'r'
 
 def plotting_default_params(category):
     kwdict = {}
-    kwdict['in_u_sphere'] = in_u_sphere_plotting[category]
+    kwdict['in_u_sphere'] = False
     kwdict['azim'] = azimuth_angles[category]
     kwdict['color'] = plotting_color[category]
     return kwdict
-
-
-def permissible_dictionary(file_with_ids):
-    ''' Returns a dictionary with model_ids that are white-listed in the input file.
-    '''
-    data_dict = defaultdict(dict)
-    with open(file_with_ids, 'r') as f_in:
-        for line in f_in:
-            syn_id, model_id, scan_id = line.split()
-            if len(data_dict[syn_id]) == 0:
-                data_dict[syn_id] = set()
-            data_dict[syn_id].add((model_id + scan_id))
-    return data_dict
 
 
 def pc_sampler(original_incomplete_file, n_samples, save_file=None, dtype=np.float32):
@@ -68,6 +55,43 @@ def pc_loader(ply_file):
     scan_id = tokens[-1][-len(vscan_scan_pattern):-(len('.ply'))]
     syn_id = tokens[-2]
     return pc.points, (model_id, scan_id), syn_id
+
+
+def load_partial_pointclouds(file_list, top_in_dir, n_threads, ending='.ply', class_restriction=None):
+    file_names = []
+    with open(file_list, 'r') as f_in:
+        for line in f_in:
+            syn_id, model_name, scan_id = line.split()
+            if class_restriction is not None and syn_id not in class_restriction:
+                continue
+            else:
+                file_names.append(osp.join(top_in_dir, syn_id, model_name + '__' + scan_id + '__' + ending))
+
+    pclouds, model_ids, class_ids = load_crude_point_clouds(file_names=file_names, n_threads=n_threads, loader=pc_loader)
+    print('{0} partial point clouds were loaded.'.format(len(pclouds)))
+    return pclouds, model_ids, class_ids
+
+
+######################## Code used in ICCV submission ########################
+
+vscan_search_pattern = '.ply'       # TODO use for both a regex.
+vscan_scan_pattern = '__?__.ply'    # Used only to indicate how to crop the input file-names to produced model_ids etc.
+_n_samples = 2048
+
+all_classes = ['airplane', 'cabinet', 'car', 'chair', 'lamp', 'sofa', 'table', 'vessel']
+
+
+def permissible_dictionary(file_with_ids):
+    ''' Returns a dictionary with model_ids that are white-listed in the input file.
+    '''
+    data_dict = defaultdict(dict)
+    with open(file_with_ids, 'r') as f_in:
+        for line in f_in:
+            syn_id, model_id, scan_id = line.split()
+            if len(data_dict[syn_id]) == 0:
+                data_dict[syn_id] = set()
+            data_dict[syn_id].add((model_id + scan_id))
+    return data_dict
 
 
 def _load_virtual_scan_incomplete_pcloud(f_name):
