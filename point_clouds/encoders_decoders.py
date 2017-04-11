@@ -80,7 +80,7 @@ def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers
     return layer
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu):
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False):
     ''' A decoding network which maps points from the latent space back onto the data space.
     '''
 
@@ -88,18 +88,19 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     if n_layers < 2:
         raise ValueError('For an FC decoder with single a layer use simpler code.')
 
-    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0')
+    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0', reuse=reuse)
     if b_norm:
         layer = batch_normalization(layer)
     layer = non_linearity(layer)
 
     for i in xrange(1, n_layers - 1):
-        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name='decoder_fc_' + str(i))
+        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name='decoder_fc_' + str(i), reuse=reuse)
         if b_norm:
             layer = batch_normalization(layer)
         layer = non_linearity(layer)
 
-    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1))  # Last decoding layer doesn't have a non-linearity.
+    # Last decoding layer doesn't have a non-linearity.
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1), reuse=reuse)
 
     return layer
 
