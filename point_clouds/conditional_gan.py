@@ -7,7 +7,6 @@ Created on Apr 11, 2017
 import numpy as np
 import time
 import tensorflow as tf
-from tf.train import GradientDescentOptimizer
 from . encoders_decoders import decoder_with_fc_only
 
 
@@ -71,7 +70,7 @@ class ConditionalGAN():
             decay,
             staircase=True
         )
-        optimizer = GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
     def _single_epoch_train(self, train_data, batch_size):
