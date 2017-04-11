@@ -16,13 +16,13 @@ class ConditionalGAN():
         self.noise_dim = noise_dim
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
-        self.true_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])      # Latent code of full shape.
+        self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])      # Latent code of full shape.
 
         with tf.variable_scope('generator'):
             self.generator_out = self.conditional_generator(self.z, self.part_latent)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, _ = self.conditional_discriminator(self.true_latent, self.part_latent, scope=scope)
+            self.real_prob, _ = self.conditional_discriminator(self.gt_latent, self.part_latent, scope=scope)
             self.synthetic_prob, _ = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
