@@ -84,12 +84,14 @@ class ConditionalGAN():
         for _ in xrange(n_batches):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
             z = self.generator_noise_distribution(batch_size, self.noise_dim)
-
             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
 
             # Update discriminator.
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+
             # Update generator.
+            z = self.generator_noise_distribution(batch_size, self.noise_dim)
+            feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
