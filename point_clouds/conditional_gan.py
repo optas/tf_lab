@@ -59,7 +59,7 @@ class ConditionalGAN():
         return d_prob, d_logits
 
     def optimizer(self, loss, var_list):
-        initial_learning_rate = 0.005
+        initial_learning_rate = 0.0005
         decay = 0.95
         num_decay_steps = 100
         batch = tf.Variable(0)
@@ -83,10 +83,10 @@ class ConditionalGAN():
         # Loop over all batches
         for _ in xrange(n_batches):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
-            z = self.generator_noise_distribution(batch_size, self.noise_dim)
-            feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
 
             # Update discriminator.
+            z = self.generator_noise_distribution(batch_size, self.noise_dim)
+            feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
             # Update generator.
