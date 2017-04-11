@@ -80,27 +80,45 @@ def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers
     return layer
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False):
-    ''' A decoding network which maps points from the latent space back onto the data space.
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
+    '''A decoding network which maps points from the latent space back onto the data space.
     '''
 
+    def _nest_scope(scope, name):
+        if scope is not None:
+            return scope.name + '/' + name
+        else:
+            return scope
+
     n_layers = len(layer_sizes)
+
     if n_layers < 2:
         raise ValueError('For an FC decoder with single a layer use simpler code.')
 
-    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0', reuse=reuse)
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+    name = 'decoder_fc_0'
+    scope_i = _nest_scope(scope, name)
+    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
 
-    for i in xrange(1, n_layers - 1):
-        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name='decoder_fc_' + str(i), reuse=reuse)
-        if b_norm:
-            layer = batch_normalization(layer)
+    if b_norm:
+        name = 'decoder_fc_0_bnorm'
+        scope_i = _nest_scope(scope, name)
+        layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
         layer = non_linearity(layer)
 
+    for i in xrange(1, n_layers - 1):
+        name = 'decoder_fc_' + str(i)
+        scope_i = _nest_scope(scope, name)
+        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
+        if b_norm:
+            name += 'bnorm'
+            scope_i = _nest_scope(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            layer = non_linearity(layer)
+
     # Last decoding layer doesn't have a non-linearity.
-    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1), reuse=reuse)
+    name = 'decoder_fc_' + str(n_layers - 1)
+    scope_i = _nest_scope(scope, name)
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
 
     return layer
 
@@ -134,4 +152,31 @@ def decoder_in_voxel_space_v0(latent_signal, b_norm=True, non_linearity=tf.nn.re
 
     # Up-sample signal in an 32 x 32 x 32 voxel-space, with 1 channel.
     layer = conv_3d_transpose(layer, nb_filter=1, filter_size=4, output_shape=[32, 32, 32], strides=2)
+    return layer
+
+
+# TODO The code below will be cleaned-up, deleted ASAP.
+
+def decoder_with_fc_only_old(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False):
+    ''' A decoding network which maps points from the latent space back onto the data space.
+    '''
+
+    n_layers = len(layer_sizes)
+    if n_layers < 2:
+        raise ValueError('For an FC decoder with single a layer use simpler code.')
+
+    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0', reuse=reuse)
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    for i in xrange(1, n_layers - 1):
+        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name='decoder_fc_' + str(i), reuse=reuse)
+        if b_norm:
+            layer = batch_normalization(layer)
+        layer = non_linearity(layer)
+
+    # Last decoding layer doesn't have a non-linearity.
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1), reuse=reuse)
+
     return layer
