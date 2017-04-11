@@ -22,7 +22,7 @@ class ConditionalGAN():
             self.generator_out = self.conditional_generator(self.z, self.part_latent)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, _ = self.conditional_discriminator(self.true_latent, self.part_latent)
+            self.real_prob, _ = self.conditional_discriminator(self.true_latent, self.part_latent, scope=scope)
             self.synthetic_prob, _ = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
