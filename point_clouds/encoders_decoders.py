@@ -99,7 +99,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     scope_i = _nest_scope(scope, name)
     layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
 
-    if b_norm:
+    if b_norm and scope is not None: # TODO drop the scope check -> it was added only for backwards compatibility with older trained models.
         name = 'decoder_fc_0_bnorm'
         scope_i = _nest_scope(scope, name)
         layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
@@ -109,7 +109,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         name = 'decoder_fc_' + str(i)
         scope_i = _nest_scope(scope, name)
         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
-        if b_norm:
+        if b_norm and scope is not None:
             name += 'bnorm'
             scope_i = _nest_scope(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
