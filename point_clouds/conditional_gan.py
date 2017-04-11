@@ -82,7 +82,7 @@ class ConditionalGAN():
         start_time = time.time()
         # Loop over all batches
         for _ in xrange(n_batches):
-            part_latent, _, gt_latent = train_data.next_batch(batch_size)
+            gt_latent, _, part_latent = train_data.next_batch(batch_size)
             z = self.generator_noise_distribution(batch_size, self.noise_dim)
 
             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
