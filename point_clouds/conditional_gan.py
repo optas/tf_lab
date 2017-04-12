@@ -23,11 +23,15 @@ class ConditionalGAN():
             self.generator_out = self.conditional_generator(self.z, self.part_latent)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, _ = self.conditional_discriminator(self.gt_latent, self.part_latent, scope=scope)
-            self.synthetic_prob, _ = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
+            self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, self.part_latent, scope=scope)
+            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
 
-        self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+#         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+
+        # one-sided label smoothing (.9 vs. .0) instead of (1.0 vs .0)
+        self.d_loss = tf.nn.sigmoid_cross_entropy_with_logits(self.real_logit, .9) + tf.nn.sigmoid_cross_entropy_with_logits(self.synthetic_logit, .0)
+        self.d_loss = tf.reduce_mean(self.d_loss)
 
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
@@ -72,7 +76,7 @@ class ConditionalGAN():
 
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
         d_prob = tf.nn.sigmoid(d_logit)
-        return d_prob, d_logits
+        return d_prob, d_logit
 
     def optimizer(self, loss, var_list):
         initial_learning_rate = 0.0005
@@ -101,21 +105,22 @@ class ConditionalGAN():
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-        discriminator_boost = 20
+#         discriminator_boost = 20
 
         # Loop over all batches
         for _ in xrange(n_batches):
-            for _ in xrange(discriminator_boost):
-                gt_latent, _, part_latent = train_data.next_batch(batch_size)
-                # Update discriminator.
-                z = self.generator_noise_distribution(batch_size, self.noise_dim)
-                feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
-                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
-            # Update generator.
+#             for _ in xrange(discriminator_boost):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
+            # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim)
             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
+            loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+
+            # Update generator.
+#             gt_latent, _, part_latent = train_data.next_batch(batch_size)
+#             z = self.generator_noise_distribution(batch_size, self.noise_dim)
+#             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
