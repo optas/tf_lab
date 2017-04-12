@@ -51,7 +51,7 @@ class ConditionalGAN():
         out_signal = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes)
         return out_signal
 
-    def conditional_discriminator(self, x, y, layer_sizes=[128, 256, 512, 1024], reuse=False, scope=None):
+    def conditional_discriminator(self, x, y, layer_sizes=[128, 256, 512, 512, 1], reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
         input_signal = tf.concat(concat_dim=1, values=[x, y])
         d_logits = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes, reuse=reuse, scope=scope)
