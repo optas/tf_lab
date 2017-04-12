@@ -26,12 +26,13 @@ class ConditionalGAN():
             self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, self.part_latent, scope=scope)
             self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
 
-#         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+        self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
-
+        
+        
         # one-sided label smoothing (.9 vs. .0) instead of (1.0 vs .0)
-        self.d_loss = tf.nn.sigmoid_cross_entropy_with_logits(self.real_logit, .9) + tf.nn.sigmoid_cross_entropy_with_logits(self.synthetic_logit, .0)
-        self.d_loss = tf.reduce_mean(self.d_loss)
+#         self.d_loss = tf.nn.sigmoid_cross_entropy_with_logits(self.real_logit, .9) + tf.nn.sigmoid_cross_entropy_with_logits(self.synthetic_logit, .0)
+#         self.d_loss = tf.reduce_mean(self.d_loss)
 
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
