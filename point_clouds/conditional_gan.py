@@ -55,6 +55,7 @@ class ConditionalGAN():
     def conditional_discriminator(self, x, y, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
         input_signal = tf.concat(concat_dim=1, values=[x, y])
+
         d_logits = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
 
         if scope is not None:
@@ -65,7 +66,7 @@ class ConditionalGAN():
         d_logits = fully_connected(d_logits, layer_sizes[-1], activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
 
         if scope is not None:
-            scope_i = scope.name + '/linear-mlp'
+            scope_i = scope.name + '/single-logit'
         else:
             scope_i = None
 
