@@ -56,7 +56,12 @@ class ConditionalGAN():
         '''Decipher if input x is real or fake given y.'''
         input_signal = tf.concat(concat_dim=1, values=[x, y])
         d_logits = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
+
+        if scope is not None:
+            scope = scope.name + '/linear-mlp'
         d_logits = fully_connected(d_logits, layer_sizes[-1], activation='linear', weights_init='xavier', reuse=reuse, scope=scope)
+        if scope is not None:
+            scope = scope.name + '/single-logit'
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logits
