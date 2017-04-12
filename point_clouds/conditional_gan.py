@@ -42,7 +42,7 @@ class ConditionalGAN():
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
+    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def conditional_generator(self, z, y, layer_sizes=[64, 128, 1024]):
