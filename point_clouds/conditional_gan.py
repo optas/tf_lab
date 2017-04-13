@@ -13,7 +13,7 @@ from tflearn.layers.core import fully_connected
 
 class ConditionalGAN():
 
-    def __init__(self, n_gt_latent=1024, n_part_latent=1024, noise_dim=1024):
+    def __init__(self, learning_rate,  n_gt_latent=1024, n_part_latent=1024, noise_dim=128,):
         self.noise_dim = noise_dim
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
@@ -37,8 +37,8 @@ class ConditionalGAN():
         d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith('generator/')]
 
-        self.opt_d = self.optimizer(self.loss_d, d_params)
-        self.opt_g = self.optimizer(self.loss_g, g_params)
+        self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
+        self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
         self.init = tf.global_variables_initializer()
 
         # Launch the session
@@ -58,8 +58,6 @@ class ConditionalGAN():
         '''Given y and noise (z) generate data.'''
 
         input_signal = tf.concat(concat_dim=1, values=[z, y])
-#         input_signal = tf.add_n(z, y)
-#         input_signal = z + y
         out_signal = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes)
         return out_signal
 
@@ -85,11 +83,11 @@ class ConditionalGAN():
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
-    def optimizer(self, loss, var_list):
-        initial_learning_rate = 0.00005
+    def optimizer(self, learning_rate, loss, var_list):
+        initial_learning_rate = learning_rate
 #         decay = 0.95
 #         num_decay_steps = 100
-        batch = tf.Variable(0)
+#         batch = tf.Variable(0)
 #         learning_rate = tf.train.exponential_decay(
 #             initial_learning_rate,
 #             batch,
@@ -97,11 +95,11 @@ class ConditionalGAN():
 #             decay,
 #             staircase=True
 #         )
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, global_step=batch, var_list=var_list)
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, var_list=var_list)
 #         optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
-    def _single_epoch_train(self, train_data, batch_size):
+    def _single_epoch_train(self, train_data, batch_size, sigma):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -121,7 +119,7 @@ class ConditionalGAN():
 #             for _ in xrange(discriminator_boost):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
             # Update discriminator.
-            z = self.generator_noise_distribution(batch_size, self.noise_dim)
+            z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
