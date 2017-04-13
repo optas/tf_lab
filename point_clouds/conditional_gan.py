@@ -87,17 +87,17 @@ class ConditionalGAN():
 
     def optimizer(self, loss, var_list):
         initial_learning_rate = 0.0005
-        decay = 0.95
-        num_decay_steps = 100
+#         decay = 0.95
+#         num_decay_steps = 100
         batch = tf.Variable(0)
-        learning_rate = tf.train.exponential_decay(
-            initial_learning_rate,
-            batch,
-            num_decay_steps,
-            decay,
-            staircase=True
-        )
-        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
+#         learning_rate = tf.train.exponential_decay(
+#             initial_learning_rate,
+#             batch,
+#             num_decay_steps,
+#             decay,
+#             staircase=True
+#         )
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, global_step=batch, var_list=var_list)
 #         optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
