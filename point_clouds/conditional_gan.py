@@ -86,7 +86,7 @@ class ConditionalGAN():
         return d_prob, d_logit
 
     def optimizer(self, loss, var_list):
-        initial_learning_rate = 0.0005
+        initial_learning_rate = 0.00005
 #         decay = 0.95
 #         num_decay_steps = 100
         batch = tf.Variable(0)
