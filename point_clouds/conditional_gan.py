@@ -13,7 +13,7 @@ from tflearn.layers.core import fully_connected
 
 class ConditionalGAN():
 
-    def __init__(self, n_gt_latent=1024, n_part_latent=1024, noise_dim=128):
+    def __init__(self, n_gt_latent=1024, n_part_latent=1024, noise_dim=1024):
         self.noise_dim = noise_dim
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
@@ -28,8 +28,7 @@ class ConditionalGAN():
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
-        
-        
+
         # one-sided label smoothing (.9 vs. .0) instead of (1.0 vs .0)
 #         self.d_loss = tf.nn.sigmoid_cross_entropy_with_logits(self.real_logit, .9) + tf.nn.sigmoid_cross_entropy_with_logits(self.synthetic_logit, .0)
 #         self.d_loss = tf.reduce_mean(self.d_loss)
@@ -57,7 +56,9 @@ class ConditionalGAN():
 
     def conditional_generator(self, z, y, layer_sizes=[64, 128, 1024]):
         '''Given y and noise (z) generate data.'''
-        input_signal = tf.concat(concat_dim=1, values=[z, y])
+
+#         input_signal = tf.concat(concat_dim=1, values=[z, y])
+        input_signal = tf.add_n(z, y)
         out_signal = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes)
         return out_signal
 
