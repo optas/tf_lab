@@ -48,6 +48,10 @@ class ConditionalGAN():
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
+    def generate(self, part_latent, noise):
+        feed_dict = {self.part_latent: part_latent, self.z: noise}
+        return self.sess.run([self.generator_out], feed_dict=feed_dict)
+
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
