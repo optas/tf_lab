@@ -58,7 +58,8 @@ class ConditionalGAN():
         '''Given y and noise (z) generate data.'''
 
 #         input_signal = tf.concat(concat_dim=1, values=[z, y])
-        input_signal = tf.add_n(z, y)
+#         input_signal = tf.add_n(z, y)
+        input_signal = z + y
         out_signal = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes)
         return out_signal
 
