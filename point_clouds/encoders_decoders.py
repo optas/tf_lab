@@ -80,7 +80,7 @@ def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers
     return layer
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
+def decoder_with_fc_only_new(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
 
@@ -157,7 +157,7 @@ def decoder_in_voxel_space_v0(latent_signal, b_norm=True, non_linearity=tf.nn.re
 
 # TODO The code below will be cleaned-up, deleted ASAP.
 
-def decoder_with_fc_only_(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False):
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False):
     ''' A decoding network which maps points from the latent space back onto the data space.
     '''
 

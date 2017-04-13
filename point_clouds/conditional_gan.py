@@ -7,7 +7,7 @@ Created on Apr 11, 2017
 import numpy as np
 import time
 import tensorflow as tf
-from . encoders_decoders import decoder_with_fc_only
+from . encoders_decoders import decoder_with_fc_only_new
 from tflearn.layers.core import fully_connected
 
 
@@ -58,14 +58,14 @@ class ConditionalGAN():
     def conditional_generator(self, z, y, layer_sizes=[64, 128, 1024]):
         '''Given y and noise (z) generate data.'''
         input_signal = tf.concat(concat_dim=1, values=[z, y])
-        out_signal = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes)
+        out_signal = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes)
         return out_signal
 
     def conditional_discriminator(self, x, y, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
         input_signal = tf.concat(concat_dim=1, values=[x, y])
 
-        d_logits = decoder_with_fc_only(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
+        d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
 
         if scope is not None:
             scope_i = scope.name + '/linear-mlp'
