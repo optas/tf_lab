@@ -13,11 +13,14 @@ from tflearn.layers.core import fully_connected
 
 class ConditionalGAN():
 
-    def __init__(self, learning_rate,  n_gt_latent=1024, n_part_latent=1024, noise_dim=128,):
+    def __init__(self, learning_rate, n_gt_latent=1024, n_part_latent=1024, noise_dim=128,):
         self.noise_dim = noise_dim
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
+
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
-        self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])      # Latent code of full shape.
+        self.part_latent = fully_connected(self.part_latent, 128, 'relu', weights_init='xavier', 'part_to_fc')
+
+        self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])        # Latent code of full shape.
 
         with tf.variable_scope('generator'):
             self.generator_out = self.conditional_generator(self.z, self.part_latent)
@@ -51,7 +54,7 @@ class ConditionalGAN():
         feed_dict = {self.part_latent: part_latent, self.z: noise}
         return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
+    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def conditional_generator(self, z, y, layer_sizes=[64, 128, 1024]):
@@ -64,7 +67,6 @@ class ConditionalGAN():
     def conditional_discriminator(self, x, y, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
         input_signal = tf.concat(concat_dim=1, values=[x, y])
-
         d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
 
         if scope is not None:
@@ -95,7 +97,7 @@ class ConditionalGAN():
 #             decay,
 #             staircase=True
 #         )
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, var_list=var_list)
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
 #         optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
@@ -111,12 +113,8 @@ class ConditionalGAN():
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-#         discriminator_boost = 20
-
         # Loop over all batches
         for _ in xrange(n_batches):
-
-#             for _ in xrange(discriminator_boost):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
