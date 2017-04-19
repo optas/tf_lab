@@ -18,16 +18,17 @@ class ConditionalGAN():
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
 
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
-        self.part_latent = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='part_to_fc')
+        
+        part_latent_c = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='part_to_fc')
 
         self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])        # Latent code of full shape.
 
         with tf.variable_scope('generator'):
-            self.generator_out = self.conditional_generator(self.z, self.part_latent)
+            self.generator_out = self.conditional_generator(self.z, part_latent_c)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, self.part_latent, scope=scope)
-            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, self.part_latent, reuse=True, scope=scope)
+            self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, part_latent_c, scope=scope)
+            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, part_latent_c, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
