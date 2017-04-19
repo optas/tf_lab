@@ -179,9 +179,10 @@ class PointCloudDataSet(object):
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
     '''
 
-    def __init__(self, point_clouds, noise=None, labels=None, copy=True):
+    def __init__(self, point_clouds, noise=None, labels=None, copy=True, init_shuffle=True):
         '''Construct a DataSet.
         Args:
+            init_shuffle, shuffle data before first epoch has been reached.
         Output:
             original_pclouds, labels, (None or Feed) # TODO Rename
         '''
@@ -215,7 +216,8 @@ class PointCloudDataSet(object):
 
         self.epochs_completed = 0
         self._index_in_epoch = 0
-        self.shuffle_data()
+        if init_shuffle:
+            self.shuffle_data()
 
     def shuffle_data(self, seed=None):
         if seed is not None:
