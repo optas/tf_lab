@@ -13,14 +13,15 @@ from tflearn.layers.core import fully_connected
 
 class ConditionalGAN():
 
-    def __init__(self, learning_rate, n_gt_latent=1024, n_part_latent=1024, noise_dim=128,):
+    def __init__(self, learning_rate, random_proj=False, n_gt_latent=1024, n_part_latent=1024, noise_dim=128):
         self.noise_dim = noise_dim
         self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
 
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
 
         part_latent_c = self.part_latent
-#         = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='part_to_fc')
+        if random_proj:
+            part_latent_c = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='random_projeciton_of_part')
 
         self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])        # Latent code of full shape.
 
