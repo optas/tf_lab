@@ -24,7 +24,7 @@ def _prepare_io(data_top_dir, out_top_dir, synth_id, boot_n):
     points_top_dir = osp.join(data_top_dir, synth_id, 'points')
     segs_top_dir = osp.join(data_top_dir, synth_id, 'expert_verified', 'points_label')
     original_density_dir = osp.join(out_top_dir, synth_id, 'original_density')
-    bstrapped_out_dir = osp.join(out_top_dir, synth_id, 'bootstrapped_' + str(boot_n))
+    bstrapped_out_dir = osp.join(out_top_dir, str(boot_n) + '_bootstrapped', synth_id)
     create_dir(original_density_dir)
     create_dir(bstrapped_out_dir)
     return segs_top_dir, points_top_dir, original_density_dir, bstrapped_out_dir
