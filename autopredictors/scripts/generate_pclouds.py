@@ -144,49 +144,6 @@ def uniform_sampling_of_connected_components(file_name, out_folder, n_samples, a
         return n_cc
 
 
-def eric_prepare_io(data_top_dir, out_top_dir, synth_id, boot_n):
-    points_top_dir = osp.join(data_top_dir, synth_id, 'points')
-    segs_top_dir = osp.join(data_top_dir, synth_id, 'expert_verified', 'points_label')
-    original_density_dir = osp.join(out_top_dir, synth_id, 'original_density')
-    bstrapped_out_dir = osp.join(out_top_dir, synth_id, 'bootstrapped_' + str(boot_n))
-    create_dir(original_density_dir)
-    create_dir(bstrapped_out_dir)
-    return segs_top_dir, points_top_dir, original_density_dir, bstrapped_out_dir
-
-
-def eric_annotated(data_top_dir, out_top_dir, synth_id, boot_n=2700):
-    ''' Writes out point clouds with a segmentation mask according to Eric's annotation.
-    The point clouds are 1) the original point clouds that Eric sampled  2) a bootstrapped version of them.
-    '''
-
-    segs_top_dir, points_top_dir, original_density_dir, bstrapped_out_dir = eric_prepare_io(data_top_dir, out_top_dir, synth_id, boot_n)
-
-    erics_seg_extension = '.seg'
-    erics_points_extension = '.pts'
-
-    for file_name in glob.glob(osp.join(segs_top_dir, '*' + erics_seg_extension)):
-        model_name = osp.basename(file_name)[:-len(erics_seg_extension)]
-        pt_file = osp.join(points_top_dir, model_name + erics_points_extension)
-        points = gio.load_crude_point_cloud(pt_file, permute=[0, 2, 1])
-        n_points = points.shape[0]
-        pc = Point_Cloud(points=points)
-        pc = pc.center_in_unit_sphere()
-        pc, lex_index = pc.lex_sort()
-
-        gt_seg = np.loadtxt(file_name, dtype=np.float32)
-        gt_seg = gt_seg[lex_index]
-        gt_seg = gt_seg.reshape((n_points, 1))
-        seg_ids = np.unique(gt_seg)
-        if seg_ids[0] == 0:
-            seg_ids = seg_ids[1:]   # Zero is not a real segment.
-
-        header_str = 'erics-annotated_segs\nseg_ids=%s' % (str(seg_ids.astype(np.int)).strip('[]'))
-        out_data = np.hstack((pc.points, gt_seg))
-        out_file = osp.join(original_density_dir, model_name + segs_ext)
-        np.savetxt(out_file, out_data, header=header_str)
-        boot_strap_lines_of_file(out_file, boot_n, osp.join(bstrapped_out_dir, model_name + segs_ext), skip_rows=2)
-
-
 def laplacian_coloring(file_name, out_folder, n_samples, n_eigs, swap_y_z=True):
     in_mesh = Mesh(file_name=file_name)
     model_id = file_name.split('/')[-2]
