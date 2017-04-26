@@ -87,14 +87,14 @@ def plot_mesh_2(in_mesh, show=True, in_u_sphere=False):
 
 
 def find_neighbors(X, Y=None, k=10):
-    '''If Y is provided, it returns the k-neighbors for each point in the X dataset. Otherwise, it finds the
-    neighbors of X in Y.
+    '''If Y is not provided, it returns the k neighbors of each point in the X dataset. Otherwise, it returns the
+    k neighbors of X in Y.
     '''
     s = 0
     if Y is None:
         Y = X
         k = k + 1   # First neighbor is one's shelf.
-        s = 1   # Used to drop the first-returned neighbor if needed.
+        s = 1       # Used to drop the first-returned neighbor if needed.
 
     nn = NearestNeighbors(n_neighbors=k).fit(X)
     distances, indices = nn.kneighbors(Y)
@@ -104,6 +104,10 @@ def find_neighbors(X, Y=None, k=10):
 
 
 def write_out_neighborhoods(write_out_file, X_labels, neighbors, distances, Y_labels=None):
+    '''
+    write_out_neighborhoods('train_10_neighbs.txt', tr_labels, neighbors, distances)
+    '''
+
     if Y_labels is None:
         Y_labels = X_labels
 
