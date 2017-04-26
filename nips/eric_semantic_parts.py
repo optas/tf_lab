@@ -16,7 +16,6 @@ from geo_tool.in_out.soup import load_crude_point_cloud
 erics_seg_extension = '.seg'
 erics_points_extension = '.pts'
 
-
 eric_part_pattern = '__?__.ply'    # Function 'equisample_parts_via_bootstrap' saved the parts with this pattern as ending.
 
 

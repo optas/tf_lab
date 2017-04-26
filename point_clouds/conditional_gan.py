@@ -15,13 +15,17 @@ class ConditionalGAN():
 
     def __init__(self, learning_rate, random_proj=False, n_gt_latent=1024, n_part_latent=1024, noise_dim=128):
         self.noise_dim = noise_dim
-        self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
 
+        self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
         self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
 
         part_latent_c = self.part_latent
         if random_proj:
             part_latent_c = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='random_projeciton_of_part')
+
+
+#         if type_2_loss:
+#             self.bad_part = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
 
         self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])        # Latent code of full shape.
 
@@ -31,6 +35,7 @@ class ConditionalGAN():
         with tf.variable_scope('discriminator') as scope:
             self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, part_latent_c, scope=scope)
             self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, part_latent_c, reuse=True, scope=scope)
+#             self.synthetic_prob_type_2, self.synthetic_logit_type_2 = self.conditional_discriminator(self.gt_latent, part_latent_c, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
@@ -119,6 +124,7 @@ class ConditionalGAN():
         # Loop over all batches
         for _ in xrange(n_batches):
             gt_latent, _, part_latent = train_data.next_batch(batch_size)
+
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
