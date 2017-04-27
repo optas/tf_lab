@@ -1,5 +1,5 @@
 '''
-Created on Apr 11, 2017
+Created on Apr 26, 2017
 
 @author: optas
 '''
@@ -11,29 +11,26 @@ from . encoders_decoders import decoder_with_fc_only_new
 from tflearn.layers.core import fully_connected
 
 
-class ConditionalGAN():
+class RawConditionalGAN():
 
-    def __init__(self, learning_rate, random_proj=False, n_gt_latent=1024, n_part_latent=1024, noise_dim=128):
+    def __init__(self, learning_rate, n_input, n_output, noise_dim=128):
         self.noise_dim = noise_dim
-        self.z = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
-        self.part_latent = tf.placeholder(tf.float32, shape=[None, n_part_latent])    # Latent code of part.
+        self.n_input = n_input
+        self.n_output = n_output
+        in_shape = [None] + self.n_input
+        out_shape = [None] + self.n_output
 
-        part_latent_c = self.part_latent
-        if random_proj:
-            part_latent_c = fully_connected(self.part_latent, 128, activation='softplus', weights_init='xavier', name='random_projeciton_of_part')
-
-#         if type_2_loss:
-#             self.bad_part = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
-
-        self.gt_latent = tf.placeholder(tf.float32, shape=[None, n_gt_latent])        # Latent code of full shape.
+        self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
+        self.input_pc = tf.placeholder(tf.float32, in_shape)                          # Conditional pc.
+        
+        self.out_pc = tf.placeholder(tf.float32, out_shape)                             # Ground-truth.
 
         with tf.variable_scope('generator'):
-            self.generator_out = self.conditional_generator(self.z, part_latent_c)
+            self.generator_out = self.conditional_generator(self.noise, self.input_pc)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, self.real_logit = self.conditional_discriminator(self.gt_latent, part_latent_c, scope=scope)
-            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, part_latent_c, reuse=True, scope=scope)
-#             self.synthetic_prob_type_2, self.synthetic_logit_type_2 = self.conditional_discriminator(self.gt_latent, part_latent_c, reuse=True, scope=scope)
+            self.real_prob, self.real_logit = self.conditional_discriminator(self.output_pc, self.input_pc, scope=scope)
+            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, self.input_pc, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
@@ -56,8 +53,8 @@ class ConditionalGAN():
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
-    def generate(self, part_latent, noise):
-        feed_dict = {self.part_latent: part_latent, self.z: noise}
+    def generate(self, conditional_input, noise):
+        feed_dict = {self.part_latent: conditional_input, self.z: noise}
         return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
