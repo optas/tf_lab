@@ -12,6 +12,11 @@ def expand_scope_by_name(scope, name):
     '''
     tflearn seems to not append the name in the scope automatically.
     '''
+
+    if isinstance(scope, basestring):
+        scope += '/' + name
+        return scope
+
     if scope is not None:
         return scope.name + '/' + name
     else:
