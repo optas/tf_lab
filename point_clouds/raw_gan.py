@@ -48,7 +48,7 @@ class RawGAN():
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
-    def generator(self, z, layer_sizes=[64, 128]):
+    def generator(self, z, layer_sizes=[64, 128, 512, 1028]):
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
@@ -66,22 +66,22 @@ class RawGAN():
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-#         name += '_bnorm'
-#         scope_e = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-#         name += '_bnorm'
-#         scope_e = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
 
         layer = tf.reduce_max(layer, axis=1)
 
-        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128, 128, 64], reuse=reuse, scope=scope)
+        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
