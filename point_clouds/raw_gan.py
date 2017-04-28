@@ -65,7 +65,7 @@ class RawGAN():
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(in_signal, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+        layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
         name += '_bnorm'
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
@@ -73,18 +73,19 @@ class RawGAN():
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(in_signal, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+        layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
         name += '_bnorm'
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
         layer = tf.reduce_max(layer, axis=1)
 
-#         name = 'decoding_logits'
+        name = 'decoding_logits'
+        scope_e = expand_scope_by_name(scope, name)
 #         scope_e = expand_scope_by_name(scope, name)
-#         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
-        d_logits = layer
-        
+        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
+#         d_logits = layer
+
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
