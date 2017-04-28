@@ -10,6 +10,8 @@ import tensorflow as tf
 from . encoders_decoders import decoder_with_fc_only_new
 from tflearn.layers.core import fully_connected
 from .. fundamentals.utils import expand_scope_by_name
+from tflearn.layers.conv import conv_1d
+from tflearn.layers.normalization import batch_normalization
 
 
 class RawGAN():
@@ -52,62 +54,41 @@ class RawGAN():
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
-    
-    def discriminator(self, x, reuse=False, scope=None):
-        
+    def discriminator(self, in_signal, reuse=False, scope=None):
         name = 'conv_layer_0'
-        expand_scope_by_name(scope, )
-        
-        layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, )
+        scope_e = expand_scope_by_name(scope, name)
+        layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        layer = tf.sigmoid(layer)
 
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+        name = 'conv_layer_1'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = conv_1d(in_signal, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        layer = tf.sigmoid(layer)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+        name = 'conv_layer_2'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = conv_1d(in_signal, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        layer = tf.sigmoid(layer)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    if dropout_prob is not None:
-        layer = dropout(layer, dropout_prob)
-
-    layer = symmetry(layer, axis=1)
-        
-        
-        
-        
-        
-        input_signal = x
-        
-        
-        
-        
-        d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
-
-        if scope is not None:
-            scope_i = scope.name + '/linear-mlp'
-        else:
-            scope_i = None
-
-        d_logits = fully_connected(d_logits, layer_sizes[-1], activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
-
-        if scope is not None:
-            scope_i = scope.name + '/single-logit'
-        else:
-            scope_i = None
-
-        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
+        layer = tf.reduce_max(layer, axis=1)
+        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128], reuse=reuse, scope=scope)
+        name = 'single-logit'
+        scope_e = expand_scope_by_name(scope, name)
+        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
-    def generate(self, conditional_input, noise):
-        feed_dict = {self.part_latent: conditional_input, self.z: noise}
+    def generate(self, noise):
+        feed_dict = {self.z: noise}
         return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):

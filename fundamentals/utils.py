@@ -9,11 +9,13 @@ import numpy as np
 
 
 def expand_scope_by_name(scope, name):
-    return scope
-#     if scope is not None:
-#         return scope.name + '/' + name
-#     else:
-#         return scope
+    '''
+    tflearn seems to not append the name in the scope automatically.
+    '''
+    if scope is not None:
+        return scope.name + '/' + name
+    else:
+        return scope
 
 
 def get_incoming_shape(incoming):
