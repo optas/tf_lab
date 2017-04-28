@@ -76,12 +76,6 @@ class ConditionalGAN():
 
         d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes, reuse=reuse, scope=scope)
 
-#         if scope is not None:
-#             scope_i = scope.name + '/linear-mlp'
-#         else:
-#             scope_i = None
-#         d_logits = fully_connected(d_logits, layer_sizes[-1], activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
-
         if scope is not None:
             scope_i = scope.name + '/single-logit'
         else:

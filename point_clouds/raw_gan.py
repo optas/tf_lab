@@ -7,8 +7,9 @@ Created on Apr 27, 2017
 import numpy as np
 import time
 import tensorflow as tf
-from . encoders_decoders import decoder_with_fc_only_new, encoder_with_convs_and_symmetry
+from . encoders_decoders import decoder_with_fc_only_new
 from tflearn.layers.core import fully_connected
+from .. fundamentals.utils import expand_scope_by_name
 
 
 class RawGAN():
@@ -51,8 +52,36 @@ class RawGAN():
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
+    
     def discriminator(self, x, reuse=False, scope=None):
-        '''Decipher if input x is real or fake given y.'''
+        
+        name = 'conv_layer_0'
+        
+        layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, )
+
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    if dropout_prob is not None:
+        layer = dropout(layer, dropout_prob)
+
+    layer = symmetry(layer, axis=1)
+        
+        
+        
+        
+        
         input_signal = x
         
         

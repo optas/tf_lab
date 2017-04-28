@@ -9,16 +9,11 @@ import numpy as np
 import os
 
 
-def set_visible_GPUs(accessible=[0]):
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # See issue #152 stack-overflow.
-    accessible = ','.join(str(e) for e in accessible)
-    os.environ["CUDA_VISIBLE_DEVICES"] = accessible
-
-
-def reset_tf_graph():   # TODO- move to utilities for notebook
-    if 'sess' in globals() and sess:
-        sess.close()
-    tf.reset_default_graph()
+def expand_scope_by_name(scope, name):
+    if scope is not None:
+        return scope.name + '/' + name
+    else:
+        return scope
 
 
 def get_incoming_shape(incoming):
