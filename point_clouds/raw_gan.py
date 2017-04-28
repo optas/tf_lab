@@ -56,6 +56,7 @@ class RawGAN():
     def discriminator(self, x, reuse=False, scope=None):
         
         name = 'conv_layer_0'
+        expand_scope_by_name(scope, )
         
         layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, )
 

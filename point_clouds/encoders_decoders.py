@@ -18,8 +18,7 @@ from .. fundamentals.utils import expand_scope_by_name
 try:
     from tflearn.layers.conv import conv_3d_transpose
 except:
-    print('Loading manual conv_3d_transpose.')
-    from tf_lab.fundamentals.conv import conv_3d_transpose
+    print('conv_3d_transpose function not found.')
 
 
 def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
