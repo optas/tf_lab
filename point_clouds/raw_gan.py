@@ -1,5 +1,5 @@
 '''
-Created on Apr 26, 2017
+Created on Apr 27, 2017
 
 @author: optas
 '''
@@ -11,33 +11,25 @@ from . encoders_decoders import decoder_with_fc_only_new
 from tflearn.layers.core import fully_connected
 
 
-class RawConditionalGAN():
+class RawGAN():
 
-    def __init__(self, learning_rate, n_input, n_output, noise_dim=128):
+    def __init__(self, learning_rate, n_output, noise_dim=128):
+
         self.noise_dim = noise_dim
-        self.n_input = n_input
         self.n_output = n_output
-        in_shape = [None] + self.n_input
         out_shape = [None] + self.n_output
-
-        self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])                # Noise vector.
-        self.input_pc = tf.placeholder(tf.float32, in_shape)                            # Conditional pc.
-        
-        self.out_pc = tf.placeholder(tf.float32, out_shape)                             # Ground-truth.
+        self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
+        self.real_pc = tf.placeholder(tf.float32, out_shape)                 # Ground-truth.
 
         with tf.variable_scope('generator'):
-            self.generator_out = self.conditional_generator(self.noise, self.input_pc)
+            self.generator_out = self.generator(self.noise)
 
         with tf.variable_scope('discriminator') as scope:
-            self.real_prob, self.real_logit = self.conditional_discriminator(self.output_pc, self.input_pc, scope=scope)
-            self.synthetic_prob, self.synthetic_logit = self.conditional_discriminator(self.generator_out, self.input_pc, reuse=True, scope=scope)
+            self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope)
+            self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
-
-        # one-sided label smoothing (.9 vs. .0) instead of (1.0 vs .0)
-#         self.d_loss = tf.nn.sigmoid_cross_entropy_with_logits(self.real_logit, .9) + tf.nn.sigmoid_cross_entropy_with_logits(self.synthetic_logit, .0)
-#         self.d_loss = tf.reduce_mean(self.d_loss)
 
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
@@ -53,23 +45,13 @@ class RawConditionalGAN():
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
-    def generate(self, conditional_input, noise):
-        feed_dict = {self.part_latent: conditional_input, self.z: noise}
-        return self.sess.run([self.generator_out], feed_dict=feed_dict)
-
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
-        return np.random.normal(mu, sigma, (n_samples, ndims))
-
-    def conditional_generator(self, z, y, layer_sizes=[64, 128, 1024]):
-        '''Given y and noise (z) generate data.'''
-
-        input_signal = tf.concat(concat_dim=1, values=[z, y])
-        out_signal = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes)
+    def generator(self, z, layer_sizes=[64, 128, 1024]):
+        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes)
         return out_signal
 
-    def conditional_discriminator(self, x, y, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
+    def discriminator(self, x, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
-        input_signal = tf.concat(concat_dim=1, values=[x, y])
+        input_signal = x
         d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
 
         if scope is not None:
@@ -88,20 +70,16 @@ class RawConditionalGAN():
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
+    def generate(self, conditional_input, noise):
+        feed_dict = {self.part_latent: conditional_input, self.z: noise}
+        return self.sess.run([self.generator_out], feed_dict=feed_dict)
+
+    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
+        return np.random.normal(mu, sigma, (n_samples, ndims))
+
     def optimizer(self, learning_rate, loss, var_list):
         initial_learning_rate = learning_rate
-#         decay = 0.95
-#         num_decay_steps = 100
-#         batch = tf.Variable(0)
-#         learning_rate = tf.train.exponential_decay(
-#             initial_learning_rate,
-#             batch,
-#             num_decay_steps,
-#             decay,
-#             staircase=True
-#         )
         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
-#         optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
     def _single_epoch_train(self, train_data, batch_size, sigma):
@@ -118,17 +96,12 @@ class RawConditionalGAN():
 
         # Loop over all batches
         for _ in xrange(n_batches):
-            gt_latent, _, part_latent = train_data.next_batch(batch_size)
+            feed, _, _ = train_data.next_batch(batch_size)
 
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
-            feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
+            feed_dict = {self.real_pc: feed, self.z: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-
-            # Update generator.
-#             gt_latent, _, part_latent = train_data.next_batch(batch_size)
-#             z = self.generator_noise_distribution(batch_size, self.noise_dim)
-#             feed_dict = {self.part_latent: part_latent, self.gt_latent: gt_latent, self.z: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
