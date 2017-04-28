@@ -22,7 +22,7 @@ class RawGAN():
         self.n_output = n_output
         out_shape = [None] + self.n_output
         self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-        self.real_pc = tf.placeholder(tf.float32, out_shape)                 # Ground-truth.
+        self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
         with tf.variable_scope('generator'):
             self.generator_out = self.generator(self.noise)
@@ -58,32 +58,33 @@ class RawGAN():
         name = 'conv_layer_0'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         layer = tf.reduce_max(layer, axis=1)
-        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128], reuse=reuse, scope=scope)
+
+#         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
-        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
+        d_logit = fully_connected(layer, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
