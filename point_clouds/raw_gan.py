@@ -49,7 +49,7 @@ class RawGAN():
         self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 1024]):
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, bnorm=False)
+        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
