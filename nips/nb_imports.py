@@ -11,7 +11,7 @@ import os.path as osp
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from tf_lab.fundamentals.utils import reset_tf_graph
+from general_tools.notebook.tf import reset_tf_graph
 
 import tf_lab.point_clouds.in_out as pio
 from tf_lab.point_clouds.in_out import PointCloudDataSet, write_model_ids_of_datasets
