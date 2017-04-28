@@ -81,10 +81,10 @@ class RawGAN():
 
         layer = tf.reduce_max(layer, axis=1)
 
-#         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128], reuse=reuse, scope=scope)
+        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[512, 128, 128, 64], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
-        d_logit = fully_connected(layer, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
+        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
