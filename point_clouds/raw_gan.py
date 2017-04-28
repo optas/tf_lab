@@ -50,33 +50,34 @@ class RawGAN():
 
     def generator(self, z, layer_sizes=[64, 128, 1024]):
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes)
-        out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='tanh', weights_init='xavier')
+        out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
+        print out_signal
         return out_signal
 
     def discriminator(self, in_signal, reuse=False, scope=None):
         name = 'conv_layer_0'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-#         name += '_bnorm'
-#         scope_e = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-#         name += '_bnorm'
-#         scope_e = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-#         name += '_bnorm'
-#         scope_e = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+        name += '_bnorm'
+        scope_e = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.sigmoid(layer)
 
         layer = tf.reduce_max(layer, axis=1)
