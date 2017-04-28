@@ -81,6 +81,8 @@ class RawGAN():
 
         layer = tf.reduce_max(layer, axis=1)
 
+        name = 'decoding_logits'
+        scope_e = expand_scope_by_name(scope, name)
         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
