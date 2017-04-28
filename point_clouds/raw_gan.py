@@ -88,7 +88,7 @@ class RawGAN():
         return d_prob, d_logit
 
     def generate(self, noise):
-        feed_dict = {self.z: noise}
+        feed_dict = {self.noise: noise}
         return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
@@ -117,7 +117,7 @@ class RawGAN():
 
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
-            feed_dict = {self.real_pc: feed, self.z: z}
+            feed_dict = {self.real_pc: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
