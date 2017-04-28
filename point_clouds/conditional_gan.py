@@ -80,7 +80,6 @@ class ConditionalGAN():
 #             scope_i = scope.name + '/linear-mlp'
 #         else:
 #             scope_i = None
-# 
 #         d_logits = fully_connected(d_logits, layer_sizes[-1], activation='linear', weights_init='xavier', reuse=reuse, scope=scope_i)
 
         if scope is not None:

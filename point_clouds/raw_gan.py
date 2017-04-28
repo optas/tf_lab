@@ -54,6 +54,10 @@ class RawGAN():
     def discriminator(self, x, reuse=False, scope=None):
         '''Decipher if input x is real or fake given y.'''
         input_signal = x
+        
+        
+        
+        
         d_logits = decoder_with_fc_only_new(input_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
 
         if scope is not None:
