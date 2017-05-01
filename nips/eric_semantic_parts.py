@@ -19,14 +19,9 @@ erics_points_extension = '.pts'
 eric_part_pattern = '__?__.ply'    # Function 'equisample_parts_via_bootstrap' saved the parts with this pattern as ending.
 
 
-
-
-# def int_to_part_name_dict(part_id, syn_id):
-#     d = {'030001627': {'back': 4, 'seat': 2, 'arm': 3, 'leg': 1}}
-#     return d
-
-
-# def log_part_ids_of_models_ids_t 
+all_syn_ids = ['02691156', '02773838', '02954340', '02958343', '03001627', '03261776', '03467517',
+               '03624134', '03636649', '03790512', '03797390', '03948459', '04099429', '04225987',
+               '04379243']
 
 
 def _prepare_io(data_top_dir, out_top_dir, synth_id, boot_n):

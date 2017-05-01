@@ -59,6 +59,9 @@ def match_incomplete_to_complete_data(complete_model_names, incomplete_model_nam
     return np.array(mapping)
 
 
+
+
+
 def syn_id_to_class_id_dict():
     d1 = shape_net_core_synth_id_to_category
     return {key: i for i, key in enumerate(d1)}  # Map syn-ids to integers
