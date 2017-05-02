@@ -77,13 +77,6 @@ def load_filenames_of_input_data(top_directory, file_extension=points_extension,
     return res
 
 
-def chunks(l, n):
-    '''Yield successive n-sized chunks from l (last chunk might be smaller than l).
-    '''
-    for i in xrange(0, len(l), n):
-        yield l[i:i + n]
-
-
 def train_validate_test_split(arrays, train_perc=0, validate_perc=0, test_perc=0, shuffle=True, seed=None):
     ''' This is a memory expensive operation since by using slicing it copies the arrays.
     '''

@@ -1,6 +1,7 @@
 '''
 Created on April 26, 2017
 
+@author: optas
 '''
 
 import numpy as np
@@ -22,7 +23,7 @@ def compute_3D_grid(resolution=32):
     return grid, spacing
 
 
-def entropy_of_occupancy_grid(pclouds, grid_resolution):
+def entropy_of_occupancy_grid_(pclouds, grid_resolution):
     '''
     Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.
@@ -43,21 +44,18 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
             grid_counters[i] += 1
 
     acc_entropy = 0.0
-    n = len(pclouds)
-    assert(np.max(grid_counters) <= n)
-    counter = 0.0
+    n = float(len(pclouds))
     for g in grid_counters:
         if g > 0:
-            counter += 1
-            p = g / float(n)
+            p = float(g) / n
             acc_entropy += entropy([p, 1.0 - p])
-    return acc_entropy / counter
+    return acc_entropy / len(grid_counters)
 
 
 def classification_confidences(classification_net, pclouds, class_id):
     '''
     Inputs:
-        classification_net: 
+        classification_net:
         pclouds: (numpy array) #point-clouds x points per point-cloud x 3
         class_id: (int) index corresponding to the 'target' class in the classsification_net
     '''
