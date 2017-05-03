@@ -108,7 +108,7 @@ class RawGAN(GAN):
         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
         return optimizer
 
-    def _single_epoch_train(self, train_data, batch_size, sigma):
+    def _single_epoch_train(self, train_data, batch_size, noise_params):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -125,7 +125,7 @@ class RawGAN(GAN):
             feed, _, _ = train_data.next_batch(batch_size)
 
             # Update discriminator.
-            z = self.generator_noise_distribution(batch_size, self.noise_dim, sigma=sigma)
+            z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
             feed_dict = {self.real_pc: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
