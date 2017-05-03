@@ -16,37 +16,44 @@ from tflearn.layers.normalization import batch_normalization
 
 class RawGAN():
 
-    def __init__(self, learning_rate, n_output, noise_dim=128):
+    def __init__(self, name, learning_rate, n_output, noise_dim=128):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
         out_shape = [None] + self.n_output
-        self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-        self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
-        with tf.variable_scope('generator'):
-            self.generator_out = self.generator(self.noise)
+        with tf.variable_scope(name):
 
-        with tf.variable_scope('discriminator') as scope:
-            self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope)
-            self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
+            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
+            self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
-        self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-        self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+            with tf.variable_scope('generator'):
+                self.generator_out = self.generator(self.noise)
 
-        train_vars = tf.trainable_variables()
-        d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
-        g_params = [v for v in train_vars if v.name.startswith('generator/')]
+            with tf.variable_scope('discriminator') as scope:
+                self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope)
+                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
-        self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-        self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
-        self.init = tf.global_variables_initializer()
+                self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+                self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
 
-        # Launch the session
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
-        self.sess.run(self.init)
+                train_vars = tf.trainable_variables()
+
+                d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
+                g_params = [v for v in train_vars if v.name.startswith('generator/')]
+                
+                print d_params
+
+                self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
+                self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+                self.saver = tf.train.Saver(tf.global_variables())
+                self.init = tf.global_variables_initializer()
+
+                # Launch the session
+                config = tf.ConfigProto()
+                config.gpu_options.allow_growth = True
+                self.sess = tf.Session(config=config)
+                self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 512, 1024]):
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
@@ -82,9 +89,7 @@ class RawGAN():
 
         name = 'decoding_logits'
         scope_e = expand_scope_by_name(scope, name)
-#         scope_e = expand_scope_by_name(scope, name)
         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
-#         d_logits = layer
 
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
