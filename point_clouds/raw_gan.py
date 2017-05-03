@@ -59,8 +59,10 @@ class RawGAN(GAN):
                 self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 512, 1024]):
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes)
+        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
+        out_signal = tf.nn.relu(out_signal)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
+#         out_signal = tf.tanh(out_signal)
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
@@ -102,11 +104,6 @@ class RawGAN(GAN):
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
         return np.random.normal(mu, sigma, (n_samples, ndims))
-
-    def optimizer(self, learning_rate, loss, var_list):
-        initial_learning_rate = learning_rate
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
-        return optimizer
 
     def _single_epoch_train(self, train_data, batch_size, noise_params):
         '''

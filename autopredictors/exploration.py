@@ -21,6 +21,7 @@ from geo_tool import Point_Cloud
 from .. point_clouds.in_out import apply_augmentations, PointCloudDataSet
 from .. point_clouds import in_out as pio
 
+from general_tools.simpletons import iterate_in_chunks
 
 def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True, apply_augmentation=False):
     '''
@@ -41,7 +42,7 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
         feed_data = apply_augmentations(feed, conf)
 
     latent = []
-    for b in pio.chunks(feed_data, batch_size):
+    for b in iterate_in_chunks(feed_data, batch_size):
         latent.append(model.transform(b.reshape([len(b)] + conf.n_input)))
 
     latent = np.vstack(latent)

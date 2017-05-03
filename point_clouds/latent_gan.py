@@ -30,13 +30,13 @@ class RawGAN(GAN):
         with tf.variable_scope(name):
 
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-            self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
+            self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
                 self.generator_out = self.generator(self.noise)
 
             with tf.variable_scope('discriminator') as scope:
-                self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope)
+                self.real_prob, self.real_logit = self.discriminator(self.gt_data, scope=scope)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
                 self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
@@ -58,59 +58,22 @@ class RawGAN(GAN):
                 self.sess = tf.Session(config=config)
                 self.sess.run(self.init)
 
-    def generator(self, z, layer_sizes=[64, 128, 1024]):
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes)
-        
-        
-        
+    def generator(self, z, layer_sizes=[64, 128]):
+        layer_sizes = layer_sizes + self.n_output
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
-        out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
-        out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
+        out_signal = tf.nn.relu(out_signal)
         return out_signal
 
-    def discriminator(self, in_signal, reuse=False, scope=None):
-        name = 'conv_layer_0'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
-
-        name = 'conv_layer_1'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
-
-        name = 'conv_layer_2'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
-        layer = tf.reduce_max(layer, axis=1)
-
-        name = 'decoding_logits'
-        scope_e = expand_scope_by_name(scope, name)
-        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
-
+    def discriminator(self, in_signal, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
+        d_logits = decoder_with_fc_only_new(in_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
-        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
+        d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
         return np.random.normal(mu, sigma, (n_samples, ndims))
-
-    def optimizer(self, learning_rate, loss, var_list):
-        initial_learning_rate = learning_rate
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
-        return optimizer
 
     def _single_epoch_train(self, train_data, batch_size, noise_params):
         '''
@@ -130,7 +93,7 @@ class RawGAN(GAN):
 
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            feed_dict = {self.real_pc: feed, self.noise: z}
+            feed_dict = {self.gt_data: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 

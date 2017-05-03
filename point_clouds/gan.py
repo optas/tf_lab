@@ -16,9 +16,6 @@ model_saver_id = 'models.ckpt'
 
 
 class GAN(object):
-    '''
-    classdocs
-    '''
 
     def __init__(self, name):
         '''
@@ -28,6 +25,11 @@ class GAN(object):
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+
+    def optimizer(self, learning_rate, loss, var_list):
+        initial_learning_rate = learning_rate
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
+        return optimizer
 
     def generate(self, n_samples, noise_params):
         noise = self.generator_noise_distribution(n_samples, self.noise_dim, **noise_params)
