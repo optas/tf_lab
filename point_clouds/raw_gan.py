@@ -7,11 +7,14 @@ Created on Apr 27, 2017
 import numpy as np
 import time
 import tensorflow as tf
-from . encoders_decoders import decoder_with_fc_only_new
+
 from tflearn.layers.core import fully_connected
-from .. fundamentals.utils import expand_scope_by_name
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
+
+from . gan import GAN
+from . encoders_decoders import decoder_with_fc_only_new
+from .. fundamentals.utils import expand_scope_by_name
 
 
 class RawGAN():
@@ -21,6 +24,8 @@ class RawGAN():
         self.noise_dim = noise_dim
         self.n_output = n_output
         out_shape = [None] + self.n_output
+
+        GAN.__init__(self, name)      # TODO - push more sharable code in GAN class.
 
         with tf.variable_scope(name):
 
@@ -41,8 +46,6 @@ class RawGAN():
 
                 d_params = [v for v in train_vars if v.name.startswith(name + '/discriminator/')]
                 g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
-
-                print d_params
 
                 self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
                 self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
@@ -96,10 +99,6 @@ class RawGAN():
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
-
-    def generate(self, noise):
-        feed_dict = {self.noise: noise}
-        return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
         return np.random.normal(mu, sigma, (n_samples, ndims))

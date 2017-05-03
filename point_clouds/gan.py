@@ -19,15 +19,17 @@ class GAN(object):
     classdocs
     '''
 
-    def __init__(self, params):
+    def __init__(self, name):
         '''
         Constructor
         '''
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
-        
-        
+
+    def generate(self, noise):
+        feed_dict = {self.noise: noise}
+        return self.sess.run([self.generator_out], feed_dict=feed_dict)
 
     def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved model.
