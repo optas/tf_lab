@@ -29,16 +29,10 @@ class GAN(object):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
-    def generate(self, noise):
+    def generate(self, n_samples, noise_params):
+        noise = self.generator_noise_distribution(n_samples, self.noise_dim, **noise_params)
         feed_dict = {self.noise: noise}
-        return self.sess.run([self.generator_out], feed_dict=feed_dict)
-
-    def generate_many(self, n_samples, sigma=1):
-        gen_samples = np.zeros(([n_samples] + self.n_output))
-        for i in xrange(n_samples):
-            pc_gen = self.generate(self.generator_noise_distribution(1, self.noise_dim, sigma=sigma))[0][0]
-            gen_samples[i] = pc_gen
-        return gen_samples
+        return self.sess.run([self.generator_out], feed_dict=feed_dict)[0]
 
     def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved model.
