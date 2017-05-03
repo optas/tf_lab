@@ -39,9 +39,9 @@ class RawGAN():
 
                 train_vars = tf.trainable_variables()
 
-                d_params = [v for v in train_vars if v.name.startswith('discriminator/')]
-                g_params = [v for v in train_vars if v.name.startswith('generator/')]
-                
+                d_params = [v for v in train_vars if v.name.startswith(name + '/discriminator/')]
+                g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
+
                 print d_params
 
                 self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
