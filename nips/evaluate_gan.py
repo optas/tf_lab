@@ -23,7 +23,7 @@ def compute_3D_grid(resolution=32):
     return grid, spacing
 
 
-def entropy_of_occupancy_grid_(pclouds, grid_resolution):
+def entropy_of_occupancy_grid(pclouds, grid_resolution):
     '''
     Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.
