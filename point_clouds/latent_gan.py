@@ -17,7 +17,7 @@ from . encoders_decoders import decoder_with_fc_only_new
 from .. fundamentals.utils import expand_scope_by_name
 
 
-class RawGAN(GAN):
+class LatentGAN(GAN):
 
     def __init__(self, name, learning_rate, n_output, noise_dim=128):
 
