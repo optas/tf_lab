@@ -3,7 +3,7 @@ Created on February 27, 2017
 
 @author: optas
 
- Data used by Dai et al. in  
+ Data used by Dai et al. in
 '''
 
 import struct
