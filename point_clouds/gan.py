@@ -23,6 +23,7 @@ class GAN(object):
         '''
         Constructor
         '''
+        self.name = name
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
