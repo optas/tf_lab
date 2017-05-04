@@ -19,7 +19,7 @@ from .. fundamentals.utils import expand_scope_by_name
 
 class RawWGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, noise_dim=128):
+    def __init__(self, name,  n_output, learning_rate=5e-5, clamp=0.01, noise_dim=128):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
@@ -48,10 +48,10 @@ class RawWGAN(GAN):
                 g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
 
                 # Clip parameters of discriminator
-                self.d_clipper = [p.assign(tf.clip_by_value(p, -0.01, 0.01)) for p in d_params]
+                self.d_clipper = [p.assign(tf.clip_by_value(p, -clamp, clamp)) for p in d_params]
 
-                self.opt_d = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.loss_d, var_list=d_params)
-                self.opt_g = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.loss_g, var_list=g_params)
+                self.opt_d = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
+                self.opt_g = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
                 self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
                 self.init = tf.global_variables_initializer()
