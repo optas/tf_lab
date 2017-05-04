@@ -135,7 +135,9 @@ class RawWGAN(GAN):
 
         discriminator_boost = 5
         iterations_for_epoch = n_batches / discriminator_boost
-
+        
+        print iterations_for_epoch
+        
         # Loop over all batches
         for _ in xrange(iterations_for_epoch):
             for _ in range(discriminator_boost):
