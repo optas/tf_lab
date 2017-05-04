@@ -149,7 +149,7 @@ class RawWGAN(GAN):
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
             epoch_loss_g += loss_g
 
-        epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
-        epoch_loss_g /= iterations_for_epoch
+#         epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
+#         epoch_loss_g /= iterations_for_epoch
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration
