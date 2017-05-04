@@ -11,7 +11,7 @@ import tensorflow as tf
 from tflearn.layers.core import fully_connected
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
-from tflearn.tflearn.activations import leaky_relu
+from tflearn.activations import leaky_relu
 
 from . gan import GAN
 from . encoders_decoders import decoder_with_fc_only_new
