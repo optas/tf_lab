@@ -136,7 +136,7 @@ class RawWGAN(GAN):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-        discriminator_boost = 1
+        discriminator_boost = 5
         iterations_for_epoch = n_batches / discriminator_boost
 
         # Loop over all batches
