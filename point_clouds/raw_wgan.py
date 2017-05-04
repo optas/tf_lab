@@ -11,11 +11,17 @@ import tensorflow as tf
 from tflearn.layers.core import fully_connected
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
-from tflearn.activations import leaky_relu
+# from tflearn.activations import leaky_relu
 
 from . gan import GAN
 from . encoders_decoders import decoder_with_fc_only_new
 from .. fundamentals.utils import expand_scope_by_name
+
+
+def leaky_relu(x, leak=0.3):
+    f1 = 0.5 * (1 + leak)
+    f2 = 0.5 * (1 - leak)
+    return f1 * x + f2 * abs(x)
 
 
 class RawWGAN(GAN):
