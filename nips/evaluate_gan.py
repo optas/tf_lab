@@ -9,7 +9,7 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
-from .helper import compute_3D_grid
+from . helper import compute_3D_grid
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
@@ -20,7 +20,6 @@ try:
         from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
 except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
-
 
 
 def entropy_of_occupancy_grid(pclouds, grid_resolution):
