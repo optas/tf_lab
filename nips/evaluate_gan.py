@@ -9,7 +9,7 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
-# from . helper import compute_3D_grid
+from . helper import compute_3D_grid
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
