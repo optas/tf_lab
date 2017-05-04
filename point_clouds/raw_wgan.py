@@ -57,11 +57,11 @@ class RawWGAN(GAN):
                 # Clip parameters of discriminator
                 self.d_clipper = [p.assign(tf.clip_by_value(p, -clamp, clamp)) for p in d_params]
 
-#                 self.opt_d = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
-#                 self.opt_g = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
+                self.opt_d = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
+                self.opt_g = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
-                self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-                self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+#                 self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
+#                 self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
 
                 self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
                 self.init = tf.global_variables_initializer()
@@ -135,9 +135,7 @@ class RawWGAN(GAN):
 
         discriminator_boost = 5
         iterations_for_epoch = n_batches / discriminator_boost
-        
-        print iterations_for_epoch
-        
+
         # Loop over all batches
         for _ in xrange(iterations_for_epoch):
             for _ in range(discriminator_boost):
@@ -151,7 +149,7 @@ class RawWGAN(GAN):
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
             epoch_loss_g += loss_g
 
-#         epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
-#         epoch_loss_g /= iterations_for_epoch
+        epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
+        epoch_loss_g /= iterations_for_epoch
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration
