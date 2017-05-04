@@ -26,7 +26,7 @@ def leaky_relu(x, leak=0.3):
 
 class RawWGAN(GAN):
 
-    def __init__(self, name, n_output, learning_rate=5e-5, clamp=0.01, noise_dim=128):
+    def __init__(self, name, n_output, learning_rate=5e-5, clamp=0.02, noise_dim=128):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
@@ -45,9 +45,12 @@ class RawWGAN(GAN):
             with tf.variable_scope('discriminator') as scope:
                 self.real_logit = self.discriminator(self.real_pc, scope=scope)
                 self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
+                self.loss_d = tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit)
+                self.loss_g = tf.reduce_mean(self.synthetic_logit)
+#                 self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
+#                 self.loss_g = -tf.reduce_mean(self.synthetic_logit)
 
-                self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
-                self.loss_g = -tf.reduce_mean(self.synthetic_logit)
+
 
                 train_vars = tf.trainable_variables()
 
@@ -114,6 +117,7 @@ class RawWGAN(GAN):
 
         name = 'decoding_logits'
         scope_e = expand_scope_by_name(scope, name)
+        # try to remove bnorm here
         d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
 
         name = 'single-logit'
