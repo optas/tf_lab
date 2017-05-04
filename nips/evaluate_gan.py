@@ -9,9 +9,18 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
+import os
+import sys
+#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tf_ops'))
+#from IPython import embed; embed()
+#import build_assignment
+#import hungarian_match
+#import hungarian_match_cost
 
 try:
-    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
+    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu' or \
+       socket.gethostname() == socket.gethostname() == 'oriong3.stanford.edu':
+        print "here"
         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
         from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
     else:
@@ -64,15 +73,55 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
     return acc_entropy / len(grid_counters)
 
 
-def emd_distances(pclouds, batch_size):
-    # TODO -> Jinwei
+def emd_distances(pclouds, unit_size, sess):
+    # author: Jingwei Ji
     # Iterate over all pairs + batch them.
     # Need tf session 
     # suggestion -> open it in a different function so we can use it also for Chamfer distances.
-    pc_1 = None
-    pc_2 = None
-    match = approx_match(pc_1, pc_2)
-    tf.reduce_mean(match_cost(pc_1, pc_2, match))
+    # pclouds: (num_clouds, num_points, 3)
+    # every batch evaluate (unit_size * (unit_size - 1)) pairs of pclouds
+    # TODO: fix import problem
+    import os
+    import sys
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.append(os.path.join(base_dir, '../external/Chamfer_EMD_losses'))
+    from tf_nndistance import nn_distance
+    from tf_approxmatch import approx_match, match_cost
+    from scipy.spatial.distance import cdist
+
+    num_clouds, num_points, dim = pclouds.shape
+    batch_size = unit_size * (unit_size - 1)
+    num_units = num_clouds // unit_size
+    pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
+    pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
+    match = approx_match(pc_1_pl, pc_2_pl)
+    mat_loss = match_cost(pc_1_pl, pc_2_pl, match)
+    loss = tf.reduce_mean(match_cost(pc_1_pl, pc_2_pl, match))
+
+    loss_list = []
+    for u in range(num_units):
+        pc_idx = np.arange(u * unit_size, (u+1) * unit_size)
+        pc_idx1 = np.repeat(pc_idx, unit_size - 1)
+        pc_idx2 = np.tile(pc_idx, unit_size)
+        mask = np.arange(unit_size ** 2)
+        mask = mask[mask % (unit_size+1) != 0]
+        pc_idx2 = pc_idx2[mask]
+        pc1 = pclouds[pc_idx1, :, :]
+        pc2 = pclouds[pc_idx2, :, :]
+
+        loss_d, mat_loss_d = sess.run([loss, mat_loss], feed_dict={pc_1_pl:pc1, pc_2_pl:pc2})
+        loss_list.append(loss_d)
+    return np.mean(loss_list)
+
+if __name__ == "__main__":
+    unit_size = 2
+    sess = tf.Session()
+    data_path = '/orions4-zfs/projects/lins2/Panos_Space/DATA/NIPS/our_samples/gt_chair.npz'
+    data = np.load(data_path)['arr_0']
+    dist = emd_distances(data[:50,...], 5, sess)
+    dist2 = emd_distances(data[:50,...], 50, sess)
+    from pdb import set_trace; set_trace()
+
 
 
 def classification_confidences(classification_net, pclouds, class_id):
