@@ -46,8 +46,8 @@ class RawWGAN(GAN):
                 self.real_logit = self.discriminator(self.real_pc, scope=scope)
                 self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
-                self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
-                self.loss_g = -tf.reduce_mean(self.synthetic_logit)
+                self.loss_d = (tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
+                self.loss_g = tf.reduce_mean(self.synthetic_logit)
 
                 train_vars = tf.trainable_variables()
 
@@ -60,11 +60,11 @@ class RawWGAN(GAN):
 #                 self.opt_d = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
 #                 self.opt_g = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
-                self.opt_d = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
-                self.opt_g = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
+#                 self.opt_d = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
+#                 self.opt_g = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
-#                 self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-#                 self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+                self.opt_d = self.optimizer(learning_rate, -self.loss_d, d_params)
+                self.opt_g = self.optimizer(learning_rate, -self.loss_g, g_params)
 
                 self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
                 self.init = tf.global_variables_initializer()
