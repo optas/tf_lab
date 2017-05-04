@@ -9,6 +9,7 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
+from .helper import compute_3D_grid
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
@@ -20,19 +21,6 @@ try:
 except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
-
-def compute_3D_grid(resolution=32):
-    '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.
-    '''
-    grid = np.ndarray((resolution, resolution, resolution, 3), np.float32)
-    spacing = 1.0 / float(resolution - 1)
-    for i in xrange(resolution):
-        for j in xrange(resolution):
-            for k in xrange(resolution):
-                grid[i, j, k, 0] = i * spacing - 0.5
-                grid[i, j, k, 1] = j * spacing - 0.5
-                grid[i, j, k, 2] = k * spacing - 0.5
-    return grid, spacing
 
 
 def entropy_of_occupancy_grid(pclouds, grid_resolution):
