@@ -5,8 +5,20 @@ Created on April 26, 2017
 '''
 
 import numpy as np
+import socket
+import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
+
+try:
+    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
+        from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+    else:
+        from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+except:
+    print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
 def compute_3D_grid(resolution=32):
@@ -50,6 +62,17 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
             p = float(g) / n
             acc_entropy += entropy([p, 1.0 - p])
     return acc_entropy / len(grid_counters)
+
+
+def emd_distances(pclouds, batch_size):
+    # TODO -> Jinwei
+    # Iterate over all pairs + batch them.
+    # Need tf session 
+    # suggestion -> open it in a different function so we can use it also for Chamfer distances.
+    pc_1 = None
+    pc_2 = None
+    match = approx_match(pc_1, pc_2)
+    tf.reduce_mean(match_cost(pc_1, pc_2, match))
 
 
 def classification_confidences(classification_net, pclouds, class_id):
