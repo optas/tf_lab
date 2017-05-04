@@ -46,7 +46,7 @@ class RawWGAN(GAN):
                 self.real_logit = self.discriminator(self.real_pc, scope=scope)
                 self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
-                self.loss_d = tf.reduce_mean(self.synthetic_logit) - tf.reduce_mean(self.real_logit)
+                self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
                 self.loss_g = -tf.reduce_mean(self.synthetic_logit)
 
                 train_vars = tf.trainable_variables()
@@ -149,6 +149,8 @@ class RawWGAN(GAN):
                 epoch_loss_d += loss_d
 
             # Update generator.
+#             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
+#             feed_dict = {self.noise: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
             epoch_loss_g += loss_g
 
