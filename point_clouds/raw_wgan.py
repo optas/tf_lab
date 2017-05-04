@@ -11,6 +11,7 @@ import tensorflow as tf
 from tflearn.layers.core import fully_connected
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
+from tflearn.tflearn.activations import leaky_relu
 
 from . gan import GAN
 from . encoders_decoders import decoder_with_fc_only_new
@@ -63,20 +64,22 @@ class RawWGAN(GAN):
                 self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 512, 1024]):
+        # WGAN with bnorm true - didn't work so far.
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
-    def discriminator(self, in_signal, reuse=False, scope=None):
+    def discriminator(self, in_signal, reuse=False, scope=None, leak=0.3):
         name = 'conv_layer_0'
         scope_e = expand_scope_by_name(scope, name)
         layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
         name += '_bnorm'
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
+#         layer = tf.nn.relu(layer)
+        layer = leaky_relu(layer, alpha=leak)
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
@@ -84,7 +87,8 @@ class RawWGAN(GAN):
         name += '_bnorm'
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
+#         layer = tf.nn.relu(layer)
+        layer = leaky_relu(layer, alpha=leak)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
@@ -92,7 +96,8 @@ class RawWGAN(GAN):
         name += '_bnorm'
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
+#         layer = tf.nn.relu(layer)
+        layer = leaky_relu(layer, alpha=leak)
         layer = tf.reduce_max(layer, axis=1)
 
         name = 'decoding_logits'
@@ -119,7 +124,7 @@ class RawWGAN(GAN):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-        discriminator_boost = 4
+        discriminator_boost = 5
         iterations_for_epoch = n_batches / discriminator_boost
 
         # Loop over all batches
