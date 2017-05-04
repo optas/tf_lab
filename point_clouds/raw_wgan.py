@@ -50,7 +50,7 @@ class RawWGAN(GAN):
                 # Clip parameters of discriminator
                 self.d_clipper = [p.assign(tf.clip_by_value(p, -0.01, 0.01)) for p in d_params]
 
-                self.opt_d = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(-self.loss_d, var_list=d_params)
+                self.opt_d = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.loss_d, var_list=d_params)
                 self.opt_g = tf.train.RMSPropOptimizer(learning_rate=5e-5).minimize(self.loss_g, var_list=g_params)
 
                 self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
@@ -128,7 +128,7 @@ class RawWGAN(GAN):
                 feed, _, _ = train_data.next_batch(batch_size)
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.real_pc: feed, self.noise: z}
-                loss_d, _, _ = self.sess.run([-self.loss_d, self.opt_d, self.d_clipper], feed_dict=feed_dict)
+                loss_d, _, _ = self.sess.run([self.loss_d, self.opt_d, self.d_clipper], feed_dict=feed_dict)
                 epoch_loss_d += loss_d
 
             # Update generator.
