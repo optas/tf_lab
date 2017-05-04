@@ -46,8 +46,8 @@ class RawWGAN(GAN):
                 self.real_logit = self.discriminator(self.real_pc, scope=scope)
                 self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
 
-                self.loss_d = (tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
-                self.loss_g = tf.reduce_mean(self.synthetic_logit)
+                self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
+                self.loss_g = -tf.reduce_mean(self.synthetic_logit)
 
                 train_vars = tf.trainable_variables()
 
@@ -60,11 +60,11 @@ class RawWGAN(GAN):
 #                 self.opt_d = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
 #                 self.opt_g = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
-#                 self.opt_d = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
-#                 self.opt_g = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
+                self.opt_d = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_d, var_list=d_params)
+                self.opt_g = tf.train.AdagradOptimizer(learning_rate=learning_rate).minimize(self.loss_g, var_list=g_params)
 
-                self.opt_d = self.optimizer(learning_rate, -self.loss_d, d_params)
-                self.opt_g = self.optimizer(learning_rate, -self.loss_g, g_params)
+#                 self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
+#                 self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
 
                 self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
                 self.init = tf.global_variables_initializer()
@@ -136,7 +136,7 @@ class RawWGAN(GAN):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-        discriminator_boost = 5
+        discriminator_boost = 1
         iterations_for_epoch = n_batches / discriminator_boost
 
         # Loop over all batches
@@ -145,13 +145,13 @@ class RawWGAN(GAN):
                 feed, _, _ = train_data.next_batch(batch_size)
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.real_pc: feed, self.noise: z}
-                loss_d, _, _ = self.sess.run([self.loss_d, self.opt_d, self.d_clipper], feed_dict=feed_dict)
+                _, loss_d, _ = self.sess.run([self.opt_d, self.loss_d, self.d_clipper], feed_dict=feed_dict)
                 epoch_loss_d += loss_d
 
             # Update generator.
 #             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
 #             feed_dict = {self.noise: z}
-            loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
+            _, loss_g = self.sess.run([self.opt_g, self.loss_g], feed_dict=feed_dict)
             epoch_loss_g += loss_g
 
         epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
