@@ -124,12 +124,11 @@ class RawWGAN(GAN):
 
         # Loop over all batches
         for _ in xrange(iterations_for_epoch):
-
             for _ in range(discriminator_boost):
                 feed, _, _ = train_data.next_batch(batch_size)
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.real_pc: feed, self.noise: z}
-                loss_d, _, _ = self.sess.run([self.loss_d, self.opt_d, self.d_clipper], feed_dict=feed_dict)
+                loss_d, _, _ = self.sess.run([-self.loss_d, self.opt_d, self.d_clipper], feed_dict=feed_dict)
                 epoch_loss_d += loss_d
 
             # Update generator.
