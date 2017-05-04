@@ -85,7 +85,7 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
 #         layer = tf.nn.relu(layer)
-        layer = leaky_relu(layer, alpha=leak)
+        layer = leaky_relu(layer, leak)
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
@@ -94,7 +94,7 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
 #         layer = tf.nn.relu(layer)
-        layer = leaky_relu(layer, alpha=leak)
+        layer = leaky_relu(layer, leak)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
@@ -103,7 +103,7 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
 #         layer = tf.nn.relu(layer)
-        layer = leaky_relu(layer, alpha=leak)
+        layer = leaky_relu(layer, leak)
         layer = tf.reduce_max(layer, axis=1)
 
         name = 'decoding_logits'
