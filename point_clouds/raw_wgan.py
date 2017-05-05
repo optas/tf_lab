@@ -50,7 +50,7 @@ class RawWGAN(GAN):
 #                 self.loss_g = tf.reduce_mean(self.synthetic_logit)
 
                 self.loss_d = -(tf.reduce_mean(self.real_logit) - tf.reduce_mean(self.synthetic_logit))
-                self.loss_g = tf.reduce_mean(self.synthetic_logit)
+                self.loss_g = -tf.reduce_mean(self.synthetic_logit)
 
                 train_vars = tf.trainable_variables()
 
