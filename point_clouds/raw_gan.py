@@ -126,8 +126,6 @@ class RawGAN(GAN):
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
             # Update generator.
-#             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)  # TODO: try without-seperate noise.
-#             feed_dict = {self.noise: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
