@@ -82,8 +82,7 @@ def emd_distances(pclouds, unit_size, sess):
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d)
-        print len(loss_list)
+        loss_list.append(loss_d[0])
     return loss_list
 
 # TODO: cleanup
