@@ -62,7 +62,6 @@ class RawGAN(GAN):
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
-#         out_signal = tf.tanh(out_signal)
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
@@ -125,6 +124,10 @@ class RawGAN(GAN):
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
             feed_dict = {self.real_pc: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+
+            # Update generator.
+#             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)  # TODO: try without-seperate noise.
+#             feed_dict = {self.noise: z}
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
