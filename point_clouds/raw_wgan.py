@@ -88,7 +88,6 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
-#         layer = leaky_relu(layer, leak)
 
         name = 'conv_layer_1'
         scope_e = expand_scope_by_name(scope, name)
@@ -97,7 +96,6 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
-#         layer = leaky_relu(layer, leak)
 
         name = 'conv_layer_2'
         scope_e = expand_scope_by_name(scope, name)
@@ -106,7 +104,6 @@ class RawWGAN(GAN):
         scope_e = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
         layer = tf.nn.relu(layer)
-#         layer = leaky_relu(layer, leak)
         layer = tf.reduce_max(layer, axis=1)
 
         name = 'decoding_logits'
@@ -143,7 +140,7 @@ class RawWGAN(GAN):
                 feed, _, _ = train_data.next_batch(batch_size)
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.real_pc: feed, self.noise: z}
-                _, loss_d, _ = self.sess.run([self.opt_d, self.loss_d, self.d_clipper], feed_dict=feed_dict)
+                _, _, loss_d = self.sess.run([self.opt_d, self.d_clipper, self.loss_d], feed_dict=feed_dict)
                 epoch_loss_d += loss_d
 
             # Update generator.
