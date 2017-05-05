@@ -68,13 +68,13 @@ def emd_distances(pclouds, unit_size, sess):
     # pclouds: (num_clouds, num_points, 3)
     # every batch evaluate (unit_size * (unit_size - 1)) pairs of pclouds
     # TODO: fix import problem
-    import os
-    import sys
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    sys.path.append(os.path.join(base_dir, '../external/Chamfer_EMD_losses'))
-    from tf_nndistance import nn_distance
-    from tf_approxmatch import approx_match, match_cost
-    from scipy.spatial.distance import cdist
+#     import os
+#     import sys
+#     base_dir = os.path.dirname(os.path.abspath(__file__))
+#     sys.path.append(os.path.join(base_dir, '../external/Chamfer_EMD_losses'))
+#     from tf_nndistance import nn_distance
+#     from tf_approxmatch import approx_match, match_cost
+#     from scipy.spatial.distance import cdist
 
     num_clouds, num_points, dim = pclouds.shape
     batch_size = unit_size * (unit_size - 1)
@@ -82,7 +82,7 @@ def emd_distances(pclouds, unit_size, sess):
     pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
     pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
     match = approx_match(pc_1_pl, pc_2_pl)
-    mat_loss = match_cost(pc_1_pl, pc_2_pl, match)
+#     mat_loss = match_cost(pc_1_pl, pc_2_pl, match)
     loss = tf.reduce_mean(match_cost(pc_1_pl, pc_2_pl, match))
 
     loss_list = []
@@ -96,7 +96,7 @@ def emd_distances(pclouds, unit_size, sess):
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
 
-        loss_d, mat_loss_d = sess.run([loss, mat_loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
+        loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
         loss_list.append(loss_d)
     return np.mean(loss_list)
 
