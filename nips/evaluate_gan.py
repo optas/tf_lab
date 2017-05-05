@@ -9,26 +9,27 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
-import os
-import sys
-#sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tf_ops'))
-#from IPython import embed; embed()
-#import build_assignment
-#import hungarian_match
-#import hungarian_match_cost
 from . helper import compute_3D_grid
 
-try:
-    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu' or \
-       socket.gethostname() == socket.gethostname() == 'oriong3.stanford.edu':
-        print "here"
-        from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
-        from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-    else:
-        from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-        from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-except:
-    print('External Losses (Chamfer-EMD) cannot be loaded.')
+# import os
+# import sys
+# #sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tf_ops'))
+# #from IPython import embed; embed()
+# #import build_assignment
+# #import hungarian_match
+# #import hungarian_match_cost
+
+# 
+# try:
+#     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu' or \
+#        socket.gethostname() == socket.gethostname() == 'oriong3.stanford.edu':
+#         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
+#         from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+#     else:
+#         from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+#         from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+# except:
+#     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
 def entropy_of_occupancy_grid(pclouds, grid_resolution):
