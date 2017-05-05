@@ -19,17 +19,16 @@ from . helper import compute_3D_grid
 # #import hungarian_match
 # #import hungarian_match_cost
 
-# 
-# try:
-#     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu' or \
-#        socket.gethostname() == socket.gethostname() == 'oriong3.stanford.edu':
-#         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
-#         from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-#     else:
-#         from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-#         from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-# except:
-#     print('External Losses (Chamfer-EMD) cannot be loaded.')
+
+try:
+    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
+        from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+    else:
+        from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+        from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+except:
+    print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
 def entropy_of_occupancy_grid(pclouds, grid_resolution):
@@ -88,16 +87,16 @@ def emd_distances(pclouds, unit_size, sess):
 
     loss_list = []
     for u in range(num_units):
-        pc_idx = np.arange(u * unit_size, (u+1) * unit_size)
+        pc_idx = np.arange(u * unit_size, (u + 1) * unit_size)
         pc_idx1 = np.repeat(pc_idx, unit_size - 1)
         pc_idx2 = np.tile(pc_idx, unit_size)
         mask = np.arange(unit_size ** 2)
-        mask = mask[mask % (unit_size+1) != 0]
+        mask = mask[mask % (unit_size + 1) != 0]
         pc_idx2 = pc_idx2[mask]
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
 
-        loss_d, mat_loss_d = sess.run([loss, mat_loss], feed_dict={pc_1_pl:pc1, pc_2_pl:pc2})
+        loss_d, mat_loss_d = sess.run([loss, mat_loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
         loss_list.append(loss_d)
     return np.mean(loss_list)
 
