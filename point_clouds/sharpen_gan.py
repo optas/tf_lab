@@ -29,18 +29,20 @@ class SharpenGAN(GAN):
             self.synthetic_prob, _ = self.discriminator(self.synthetic_pc, reuse=True, scope=scope)
 
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-        self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
 
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith(name + '/sharpen_discriminator/')]
-
-#         g_params = [v for v in train_vars if v.name.startswith(name + '/sharpen_generator/')]
-        output_z_sg = tf.stop_gradient(self.decoder.z)
-        self.generator_out = self.generator(self.noise)
-        self.loss_g
-
         self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-        self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+
+        # J work here
+        self.sharpenning_loss = tf.reduce_mean(-tf.log(self.synthetic_prob))
+        self.opt_sharpen = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(self.sharpenning_loss, var_list=var_list)
+
+        output_z_sg = tf.stop_gradient(self.decoder.z) ??
+
+        
+        # J work here
+        
         self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
         self.init = tf.global_variables_initializer()
 
@@ -98,21 +100,18 @@ class SharpenGAN(GAN):
         batch_size = batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-
-        synthetic_pc = self.in_decoder.decode(self.in_gan.generate(n_examples, noise_params))
-        synthetic_iterator = iterate_in_chunks(synthetic_pc)
-
+        
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
-            syn_feed = synthetic_iterator.next(batch_size)
+            syn_feed = self.in_decoder.decode(self.in_gan.generate(batch_size, noise_params))
 
             # Update discriminator.
             feed_dict = {self.real_pc: feed, self.synthetic_pc: syn_feed}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
             # Update decoder.
-            loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
+            loss_g, _ = self.sess.run([self.sharpenning_loss, self.opt_sharpen], feed_dict=feed_dict)
 
             # Compute average loss
             epoch_loss_d += loss_d
