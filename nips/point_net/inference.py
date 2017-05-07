@@ -6,23 +6,31 @@ import tensorflow as tf
 import numpy as np
 import os
 import sys
+
+from general_tools.simpletons import iterate_in_chunks
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import pointnet_cls_basic as model
+
+from .. model_net import net_40_classes
+
 NUM_CLASSES = 40
+
 
 def softmax(x):
     shape = x.shape
-    probs = np.exp(x - np.max(x, axis=len(shape)-1, keepdims=True))
-    probs /= np.sum(probs, axis=len(shape)-1, keepdims=True)
+    probs = np.exp(x - np.max(x, axis=len(shape) - 1, keepdims=True))
+    probs /= np.sum(probs, axis=len(shape) - 1, keepdims=True)
     return probs
+
 
 def get_model(model_path, gpu_index, batch_size, num_point):
     with tf.Graph().as_default():
-        with tf.device('/gpu:'+str(gpu_index)):
+        with tf.device('/gpu:' + str(gpu_index)):
             pointclouds_pl, _ = model.placeholder_inputs(batch_size, num_point)
             is_training_pl = tf.placeholder(tf.bool, shape=())
-            logits, end_points = model.get_model(pointclouds_pl, is_training_pl)
+            logits, _ = model.get_model(pointclouds_pl, is_training_pl)
             print logits
             saver = tf.train.Saver()
         # Create a session
@@ -37,40 +45,37 @@ def get_model(model_path, gpu_index, batch_size, num_point):
                'logits': logits}
         return sess, ops
 
+
 def inference(sess, ops, pc, batch_size, use_softmax=True):
     ''' pc: BxNx3 array, return BxN probs/logits '''
-    assert pc.shape[0]%batch_size == 0
-    num_batches = pc.shape[0]/batch_size
+    assert pc.shape[0] % batch_size == 0
+    num_batches = pc.shape[0] / batch_size
     logits = np.zeros((pc.shape[0], NUM_CLASSES))
     for i in range(num_batches):
-        feed_dict = {ops['pointclouds_pl']: pc[i*batch_size:(i+1)*batch_size,...],
+        feed_dict = {ops['pointclouds_pl']: pc[i * batch_size:(i + 1) * batch_size, ...],
                      ops['is_training_pl']: False}
         batch_logits = sess.run(ops['logits'], feed_dict=feed_dict)
-        logits[i*batch_size:(i+1)*batch_size,...] = batch_logits
+        logits[i * batch_size:(i + 1) * batch_size, ...] = batch_logits
     if use_softmax:
         return softmax(logits)
     else:
         return logits
 
-def iterate_in_chunks(l, n):
-    '''Yield successive 'n'-sized chunks from iterable 'l'.
-    Note: last chunk will be smaller than l if n doesn't divide l perfectly.
-    '''
-    for i in xrange(0, len(l), n):
-        yield l[i:i + n]
 
-if __name__=='__main__':
+if __name__ == '__main__':
 
     pclouds = np.load(sys.argv[1])
+    gpu_index = int(sys.argv[2])
+    class_name = sys.argv[3]
+
     pclouds = pclouds[pclouds.keys()[0]]
-    
-    pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis = 1), 1)
-    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis = 2)),1)
+
+    # The networks was trained with zero-mean pclouds. Thus we apply this transformation here.
+    pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
+    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
 
-    pclouds = pclouds/dist
-
-    gpu_index = int(sys.argv[2])
+    pclouds = pclouds / dist
 
     class_index = 8
     batch_size = 100
@@ -79,10 +84,9 @@ if __name__=='__main__':
 
     aggregate = list()
     for batch in iterate_in_chunks(pclouds, batch_size):
-    	if len(batch) == batch_size:
-		probs = inference(sess, ops, batch, batch_size=batch_size)
-		print np.argmax(probs, axis=1)
-		aggregate.append(probs[:,class_index])
+        if len(batch) == batch_size:
+            probs = inference(sess, ops, batch, batch_size=batch_size)
+            print np.argmax(probs, axis=1)
+            aggregate.append(probs[:, class_index])
 
     print np.mean(aggregate)
-
