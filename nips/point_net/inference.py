@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import pointnet_cls_basic as model
 
-from ..nips.model_net import net_40_classes
+from .. data_sets.model_net import net_40_classes
 
 NUM_CLASSES = 40
 
