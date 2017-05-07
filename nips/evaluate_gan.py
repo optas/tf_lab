@@ -31,6 +31,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
         grid_resolution (int) size of occupancy grid that will be used.
     '''
     grid_counters = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
+    grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
     grid_coordinates, _ = compute_3D_grid(grid_resolution)
     grid_coordinates = grid_coordinates.reshape(-1, 3)
     nn = NearestNeighbors(n_neighbors=1).fit(grid_coordinates)
@@ -38,20 +39,21 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
     for pc in pclouds:
         _, indices = nn.kneighbors(pc)
         indices = np.squeeze(indices)
-        indices = np.unique(indices)
         for i in indices:
             grid_counters[i] += 1
+        indices = np.unique(indices)
+        for i in indices:
+            grid_bernoulli_rvars[i] += 1
 
     acc_entropy = 0.0
-#     grid_random_vars = []
     n = float(len(pclouds))
-    for g in grid_counters:
+    for g in grid_bernoulli_rvars:
         p = 0.0
         if g > 0:
             p = float(g) / n
             acc_entropy += entropy([p, 1.0 - p])
-#         grid_random_vars.append(p)
-    return acc_entropy / len(grid_counters), np.array(grid_counters)
+
+    return acc_entropy / len(grid_counters), grid_counters
 
 
 def jensen_shannon_divergence(P, Q):
