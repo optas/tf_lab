@@ -43,15 +43,15 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
             grid_counters[i] += 1
 
     acc_entropy = 0.0
-    grid_random_vars = []
+#     grid_random_vars = []
     n = float(len(pclouds))
     for g in grid_counters:
         p = 0.0
         if g > 0:
             p = float(g) / n
             acc_entropy += entropy([p, 1.0 - p])
-        grid_random_vars.append(p)
-    return acc_entropy / len(grid_counters), np.array(grid_random_vars)
+#         grid_random_vars.append(p)
+    return acc_entropy / len(grid_counters), np.array(grid_counters)
 
 
 def jensen_shannon_divergence(P, Q):
