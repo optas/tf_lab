@@ -43,12 +43,24 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
             grid_counters[i] += 1
 
     acc_entropy = 0.0
+    grid_random_vars = []
     n = float(len(pclouds))
     for g in grid_counters:
+        p = 0.0
         if g > 0:
             p = float(g) / n
             acc_entropy += entropy([p, 1.0 - p])
-    return acc_entropy / len(grid_counters)
+        grid_random_vars.append(p)
+    return acc_entropy / len(grid_counters), np.array(grid_random_vars)
+
+
+def jensen_shannon_divergence(P, Q):
+    # J. is this right?
+    # http://stackoverflow.com/questions/15880133/jensen-shannon-divergence
+    #     _P = P / norm(P, ord=1)
+    #     _Q = Q / norm(Q, ord=1)
+    M = 0.5 * (P + Q)
+    return 0.5 * (entropy(P, M) + entropy(Q, M))
 
 
 def point_cloud_distances(pclouds, block_size, sess, dist='emd'):
