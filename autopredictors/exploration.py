@@ -23,6 +23,7 @@ from .. point_clouds import in_out as pio
 
 from general_tools.simpletons import iterate_in_chunks
 
+
 def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True, apply_augmentation=False):
     '''
     Observation: the NN-neighborhoods seem more reasonable when we do not apply the augmentation.
