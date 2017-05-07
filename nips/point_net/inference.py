@@ -13,10 +13,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import pointnet_cls_basic as model
 
-from . data_sets.model_net import net_40_classes
+# from .. data_sets.model_net import net_40_classes   TODO FIX THIS
+
 
 NUM_CLASSES = 40
 
+# net_40_classes = ['airplane', 'bathtub', 'bed', 'bench', 'bookshelf', 'bottle',
+#                   'bowl', 'car', 'chair', 'cone', 'cup', 'curtain', 'desk', 'door',
+#                   'dresser', 'flower_pot', 'glass_box', 'guitar', 'keyboard', 'lamp',
+#                   'laptop', 'mantel', 'monitor', 'night_stand', 'person', 'piano',
+#                   'plant', 'radio', 'range_hood', 'sink', 'sofa', 'stairs', 'stool',
+#                   'table', 'tent', 'toilet', 'tv_stand', 'vase', 'wardrobe', 'xbox']
+
+# classes_to_integers
 
 def softmax(x):
     shape = x.shape
@@ -74,10 +83,18 @@ if __name__ == '__main__':
     pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-
     pclouds = pclouds / dist
 
-    class_index = 8
+    # We also swap the axis to align the models with the model-net ones.
+#     pclouds_rot = np.empty_like(pclouds)
+    for i, pc in enumerate(pclouds):
+        pclouds[i] = pc[:, [0, 2, 1]]
+
+    if class_name == 'chair':
+        class_index = 8
+    else:
+        assert(False)
+
     batch_size = 100
 
     sess, ops = get_model(model_path='log_to_panos/model.ckpt', gpu_index=gpu_index, batch_size=batch_size, num_point=pclouds[0].shape[0])
