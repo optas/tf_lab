@@ -116,7 +116,7 @@ class RawWGAN(GAN):
     def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
-    def _single_epoch_train(self, train_data, batch_size, noise_params):
+    def _single_epoch_train(self, train_data, batch_size, noise_params, discriminator_boost=5):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -128,7 +128,6 @@ class RawWGAN(GAN):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
 
-        discriminator_boost = 5
         iterations_for_epoch = n_batches / discriminator_boost
 
         # Loop over all batches

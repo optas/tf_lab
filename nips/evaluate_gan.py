@@ -55,10 +55,6 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
 
 
 def jensen_shannon_divergence(P, Q):
-    # J. is this right?
-    # http://stackoverflow.com/questions/15880133/jensen-shannon-divergence
-    #     _P = P / norm(P, ord=1)
-    #     _Q = Q / norm(Q, ord=1)
     M = 0.5 * (P + Q)
     return 0.5 * (entropy(P, M) + entropy(Q, M))
 
