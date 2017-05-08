@@ -14,6 +14,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from . helper import compute_3D_grid, compute_3D_sphere
 
+
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
