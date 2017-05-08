@@ -9,7 +9,9 @@ import socket
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
-from . helper import compute_3D_grid
+
+from . helper import compute_3D_grid, compute_3D_sphere
+
 import warnings
 
 try:
@@ -23,7 +25,7 @@ except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
-def entropy_of_occupancy_grid(pclouds, grid_resolution):
+def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     '''
     Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.
@@ -36,7 +38,12 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
 
     grid_counters = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
     grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
-    grid_coordinates, _ = compute_3D_grid(grid_resolution)
+
+    if in_sphere:
+        grid_coordinates, _ = compute_3D_sphere(grid_resolution)
+    else:
+        grid_coordinates, _ = compute_3D_grid(grid_resolution)
+
     grid_coordinates = grid_coordinates.reshape(-1, 3)
     nn = NearestNeighbors(n_neighbors=1).fit(grid_coordinates)
 
