@@ -4,15 +4,15 @@ Created on April 26, 2017
 @author: optas, jingweij
 '''
 
-import numpy as np
+
 import socket
+import warnings
+import numpy as np
 import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
 
 from . helper import compute_3D_grid, compute_3D_sphere
-
-import warnings
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
