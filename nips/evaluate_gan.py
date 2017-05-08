@@ -110,12 +110,20 @@ def point_cloud_distances(pclouds, block_size, sess=None, dist='emd'):
     return loss_list
 
 
-def sample_pclouds_distances(pclouds, batch_size, n_samples, sess=None):
+def sample_pclouds_distances(pclouds, batch_size, n_samples, sess=None, dist='emd'):
     num_clouds, num_points, dim = pclouds.shape
     pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
     pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
-    cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
-    loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+
+    dist = dist.lower()
+    if dist == 'emd':
+        match = approx_match(pc_1_pl, pc_2_pl)
+        loss = tf.reduce_mean(match_cost(pc_1_pl, pc_2_pl, match))
+    elif dist == 'chamfer':
+        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
+        loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+    else:
+        raise ValueError()
 
     if sess is None:
         sess = tf.Session()
@@ -128,7 +136,7 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, sess=None):
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d)
+        loss_list.append(loss_d[0])
     print loss_list
 
 
