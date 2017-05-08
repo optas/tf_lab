@@ -5,6 +5,7 @@ Created on May 3, 2017
 '''
 
 import numpy as np
+from geo_tool import Point_Cloud
 
 
 def compute_3D_grid(resolution=32):
@@ -19,3 +20,9 @@ def compute_3D_grid(resolution=32):
                 grid[i, j, k, 1] = j * spacing - 0.5
                 grid[i, j, k, 2] = k * spacing - 0.5
     return grid, spacing
+
+
+def compute_3d_sphere(resolution=32):
+    grid, _ = compute_3D_grid(resolution=32)
+    pc = Point_Cloud(grid.reshape(-1, 3)).center_in_unit_sphere()
+    return pc.points

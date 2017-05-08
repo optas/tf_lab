@@ -79,11 +79,11 @@ if __name__ == '__main__':
 
     pclouds = pclouds[pclouds.keys()[0]]
 
-    # The networks was trained with zero-mean pclouds. Thus we apply this transformation here.
+    # The networks was trained with zero-mean pclouds AND in UNIT sphere. Thus we apply this transformation here.
     pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / (2.0 * dist)
+    pclouds = pclouds / dist
 
     # We also swap the axis to align the models with the model-net ones.
 #     pclouds_rot = np.empty_like(pclouds)
@@ -92,6 +92,8 @@ if __name__ == '__main__':
 
     if class_name == 'chair':
         class_index = 8
+    elif class_name == 'car':
+        class_index = 7
     else:
         assert(False)
 
