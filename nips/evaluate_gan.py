@@ -32,7 +32,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
         grid_resolution (int) size of occupancy grid that will be used.
     '''
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
-        raise ValueError('Point-clouds are expected to be in unit sphere.')
+        raise ValueError('Point-clouds are expected to be in unit cube.')
 
     grid_counters = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
     grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
@@ -74,7 +74,7 @@ def point_cloud_distances(pclouds, block_size, sess, dist='emd'):
     '''
 
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
-        warnings.warn('Point-clouds are not expected to be in unit sphere.')
+        warnings.warn('Point-clouds are not expected to be in unit cube.')
 
     num_clouds, num_points, dim = pclouds.shape
     batch_size = block_size * (block_size - 1)
