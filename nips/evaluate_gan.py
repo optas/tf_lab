@@ -106,7 +106,7 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d[0])
+        loss_list.append(loss_d[0] * batch_size)
     return loss_list
 
 
@@ -136,8 +136,8 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d[0])
-
+        loss_list.append(loss_d[0] * batch_size)
+        
     return loss_list
 
 
