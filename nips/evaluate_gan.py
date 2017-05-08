@@ -30,6 +30,9 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
         pclouds: (numpy array) #point-clouds x points per point-cloud x 3
         grid_resolution (int) size of occupancy grid that will be used.
     '''
+    if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
+        raise ValueError('Point-clouds are expected to be in unit sphere.')
+
     grid_counters = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
     grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
     grid_coordinates, _ = compute_3D_grid(grid_resolution)
@@ -57,6 +60,9 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution):
 
 
 def jensen_shannon_divergence(P, Q):
+    '''
+    TODO: move to general tools
+    '''
     M = 0.5 * (P + Q)
     return 0.5 * (entropy(P, M) + entropy(Q, M))
 
