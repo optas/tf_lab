@@ -68,7 +68,7 @@ def jensen_shannon_divergence(P, Q):
     return 0.5 * (entropy(P, M) + entropy(Q, M))
 
 
-def point_cloud_distances(pclouds, block_size, sess=None, dist='emd'):
+def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
     ''' pclouds: numpy array (n_pc * n_points * 3)
         block_size: int: pairwise distances among these many point-clouds will be computes.
     '''
@@ -110,7 +110,7 @@ def point_cloud_distances(pclouds, block_size, sess=None, dist='emd'):
     return loss_list
 
 
-def sample_pclouds_distances(pclouds, batch_size, n_samples, sess=None, dist='emd'):
+def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=None):
     num_clouds, num_points, dim = pclouds.shape
     pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
     pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
@@ -137,7 +137,8 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, sess=None, dist='em
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
         loss_list.append(loss_d[0])
-    print loss_list
+
+    return loss_list
 
 
 def classification_confidences(classification_net, pclouds, class_id):
