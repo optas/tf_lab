@@ -83,7 +83,7 @@ if __name__ == '__main__':
     pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / dist
+    pclouds = pclouds / (2.0 * dist)
 
     # We also swap the axis to align the models with the model-net ones.
 #     pclouds_rot = np.empty_like(pclouds)
