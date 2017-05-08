@@ -23,6 +23,6 @@ def compute_3D_grid(resolution=32):
 
 
 def compute_3D_sphere(resolution=32):
-    grid, _ = compute_3D_grid(resolution=32)
+    grid, spacing = compute_3D_grid(resolution=32)
     pc = Point_Cloud(grid.reshape(-1, 3)).center_in_unit_sphere()
-    return pc.points
+    return pc.points, spacing
