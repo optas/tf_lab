@@ -10,6 +10,7 @@ import tensorflow as tf
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
 from . helper import compute_3D_grid
+import warnings
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
@@ -71,6 +72,10 @@ def point_cloud_distances(pclouds, block_size, sess, dist='emd'):
     ''' pclouds: numpy array (n_pc * n_points * 3)
         block_size: int: pairwise distances among these many point-clouds will be computes.
     '''
+
+    if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
+        warnings.warn('Point-clouds are not expected to be in unit sphere.')
+
     num_clouds, num_points, dim = pclouds.shape
     batch_size = block_size * (block_size - 1)
     num_units = num_clouds // block_size
