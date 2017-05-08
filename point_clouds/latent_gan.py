@@ -58,9 +58,9 @@ class LatentGAN(GAN):
                 self.sess = tf.Session(config=config)
                 self.sess.run(self.init)
 
-    def generator(self, z, layer_sizes=[64, 128]):
+    def generator(self, z, layer_sizes=[64, 128, 512]):
         layer_sizes = layer_sizes + self.n_output
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
+        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=True)
         out_signal = tf.nn.relu(out_signal)
         return out_signal
 
