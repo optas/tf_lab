@@ -37,7 +37,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False, njobs=1
         raise ValueError('Point-clouds are expected to be in unit cube.')
 
     grid_counters = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
-    grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
+#     grid_bernoulli_rvars = np.zeros((grid_resolution, grid_resolution, grid_resolution)).reshape(-1)
 
     if in_sphere:
         grid_coordinates, _ = compute_3D_sphere(grid_resolution)
@@ -52,20 +52,25 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False, njobs=1
         indices = np.squeeze(indices)
         for i in indices:
             grid_counters[i] += 1
-        indices = np.unique(indices)
-        for i in indices:
-            grid_bernoulli_rvars[i] += 1
+#         indices = np.unique(indices)
+#         for i in indices:
+#             grid_bernoulli_rvars[i] += 1
 
-    acc_entropy = 0.0
-    n = float(len(pclouds))
-    for g in grid_bernoulli_rvars:
-        p = 0.0
-        if g > 0:
-            p = float(g) / n
-            acc_entropy += entropy([p, 1.0 - p])
+#     acc_entropy = 0.0
+#     n = float(len(pclouds))
+#     for g in grid_bernoulli_rvars:
+#         p = 0.0
+#         if g > 0:
+#             p = float(g) / n
+#             acc_entropy += entropy([p, 1.0 - p])
 
-    return acc_entropy / len(grid_counters), grid_counters
+#     return acc_entropy / len(grid_counters), grid_counters
+    return 0, grid_counters
 
+
+# def entropy_of_grid_counters(grid_counters):
+    
+    
 
 def jensen_shannon_divergence(P, Q):
     '''
