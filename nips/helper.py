@@ -6,7 +6,7 @@ Created on May 3, 2017
 
 import numpy as np
 from geo_tool import Point_Cloud
-
+from numpy.linalg import norm
 
 def compute_3D_grid(resolution=32):
     '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.
@@ -24,5 +24,8 @@ def compute_3D_grid(resolution=32):
 
 def compute_3D_sphere(resolution=32):
     grid, spacing = compute_3D_grid(resolution=32)
-    pc = Point_Cloud(grid.reshape(-1, 3)).center_in_unit_sphere()
-    return pc.points, spacing
+    pts = grid.reshape(-1, 3)
+    pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
+#     pc = Point_Cloud()    
+#     .center_in_unit_sphere()
+    return pts, spacing
