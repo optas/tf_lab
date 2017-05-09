@@ -67,10 +67,6 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     return acc_entropy / len(grid_counters), grid_counters
 
 
-# def entropy_of_grid_counters(grid_counters):
-    
-    
-
 def jensen_shannon_divergence(P, Q):
     '''
     TODO: move to general tools
