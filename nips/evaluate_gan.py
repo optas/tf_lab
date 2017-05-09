@@ -26,7 +26,7 @@ except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
-def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
+def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False, njobs=10):
     '''Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.
     Inputs:
@@ -45,7 +45,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
         grid_coordinates, _ = compute_3D_grid(grid_resolution)
 
     grid_coordinates = grid_coordinates.reshape(-1, 3)
-    nn = NearestNeighbors(n_neighbors=1, n_jobs=5).fit(grid_coordinates)
+    nn = NearestNeighbors(n_neighbors=1, n_jobs=njobs).fit(grid_coordinates)
 
     for pc in pclouds:
         _, indices = nn.kneighbors(pc)
