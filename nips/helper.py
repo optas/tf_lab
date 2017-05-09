@@ -32,7 +32,7 @@ def compute_3D_sphere(resolution=32):
     return pts, spacing
 
 
-def zero_mean_half_sphere(in_pclouds):    
+def zero_mean_half_sphere(in_pclouds):
     ''' Zero MEAN + Max_dist = 0.5
     '''
     pclouds = in_pclouds.copy()
