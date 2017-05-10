@@ -78,6 +78,7 @@ def jensen_shannon_divergence(P, Q):
 def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
     ''' pclouds: numpy array (n_pc * n_points * 3)
         block_size: int: pairwise distances among these many point-clouds will be computes.
+        TODO: (post-deadline) - iterate over all pairs.
     '''
 
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:

@@ -76,8 +76,11 @@ if __name__ == '__main__':
     pclouds = np.load(sys.argv[1])
     gpu_index = int(sys.argv[2])
     class_name = sys.argv[3]
-
     pclouds = pclouds[pclouds.keys()[0]]
+
+    if len(sys.argv) == 5:     # If given - save the probabilities. TODO: check no shuffling.
+        out_file = sys.argv[4]
+
 
     # The networks was trained with zero-mean pclouds AND in UNIT sphere. Thus we apply this transformation here.
     pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
@@ -108,4 +111,5 @@ if __name__ == '__main__':
             print np.argmax(probs, axis=1)
             aggregate.append(probs[:, class_index])
 
+    np.savez(out_file, np.array(aggregate))
     print np.mean(aggregate)
