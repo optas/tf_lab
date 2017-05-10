@@ -37,8 +37,8 @@ class LatentGAN(GAN):
                 self.generator_out = self.generator(self.noise, generator_layers)
 
             with tf.variable_scope('discriminator') as scope:
-                self.real_prob, self.real_logit = self.discriminator(self.gt_data, scope=scope)
-                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope)
+                self.real_prob, self.real_logit = self.discriminator(self.gt_data, discriminator_layers, scope=scope)
+                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, discriminator_layers, reuse=True, scope=scope)
 
                 self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
                 self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
@@ -65,7 +65,7 @@ class LatentGAN(GAN):
         out_signal = tf.nn.relu(out_signal)
         return out_signal
 
-    def discriminator(self, in_signal, layer_sizes=[64, 128, 256, 512, 1024], reuse=False, scope=None):
+    def discriminator(self, in_signal, layer_sizes, reuse=False, scope=None):
         d_logits = decoder_with_fc_only_new(in_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
