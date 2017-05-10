@@ -57,4 +57,5 @@ def pclouds_centered_and_half_sphere(pclouds):
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
     pclouds = pclouds / (dist * 2.0)
+
     return pclouds
