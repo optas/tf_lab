@@ -97,6 +97,10 @@ if __name__ == '__main__':
         class_index = 8
     elif class_name == 'car':
         class_index = 7
+    elif class_name == 'table':
+        class_index = 33
+    elif class_name == 'sofa':
+        class_index = 30
     else:
         assert(False)
 
@@ -110,6 +114,6 @@ if __name__ == '__main__':
             probs = inference(sess, ops, batch, batch_size=batch_size)
             print np.argmax(probs, axis=1)
             aggregate.append(probs[:, class_index])
-    print 
+
     np.savez(out_file, np.array(aggregate))
-    print len(aggregate), np.mean(aggregate)
+    print np.mean(aggregate)
