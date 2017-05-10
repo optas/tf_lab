@@ -19,13 +19,14 @@ from .. fundamentals.utils import expand_scope_by_name
 
 class LatentGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, noise_dim=128):
+    def __init__(self, name, learning_rate, n_output, noise_dim=128, generator_layers=[64, 128, 512],
+                 discriminator_layers=[64, 128, 256, 512, 1024]):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
         out_shape = [None] + self.n_output
 
-        GAN.__init__(self, name)      # TODO - push more sharable code in GAN class.
+        GAN.__init__(self, name)
 
         with tf.variable_scope(name):
 
@@ -33,7 +34,7 @@ class LatentGAN(GAN):
             self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise)
+                self.generator_out = self.generator(self.noise, generator_layers)
 
             with tf.variable_scope('discriminator') as scope:
                 self.real_prob, self.real_logit = self.discriminator(self.gt_data, scope=scope)
@@ -58,10 +59,7 @@ class LatentGAN(GAN):
                 self.sess = tf.Session(config=config)
                 self.sess.run(self.init)
 
-    def generator(self, z, layer_sizes=[64, 128, 512]):
-        '''
-        Adding the 512 layer seems to help.
-        '''
+    def generator(self, z, layer_sizes):
         layer_sizes = layer_sizes + self.n_output
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)

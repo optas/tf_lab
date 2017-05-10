@@ -59,3 +59,18 @@ def pclouds_centered_and_half_sphere(pclouds):
     pclouds = pclouds / (dist * 2.0)
 
     return pclouds
+
+
+def trans_one(pclouds):
+    ### max dist = 0.5
+    ### centered around zero.
+    pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
+
+    for i, pc in enumerate(pclouds):
+        pc, _ = Point_Cloud(pc).center_axis()
+        pclouds[i] = pc.points
+
+    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
+    dist = np.expand_dims(np.expand_dims(dist, 1), 2)
+    pclouds = pclouds / (dist * 2.0)
+    return pclouds
