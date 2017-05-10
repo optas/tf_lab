@@ -49,6 +49,7 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
     latent = np.vstack(latent)
     return feed, latent, ids
 
+
 def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True,
                                             apply_augmentation=False):
     '''
@@ -77,6 +78,7 @@ def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, fee
         latent.append(toappend)
     latent = np.vstack(latent)
     return feed, latent, ids
+
 
 def load_pcloud_with_segmentation(pts_file, seg_file, n_samples):
     '''Specific to Eric' data.
