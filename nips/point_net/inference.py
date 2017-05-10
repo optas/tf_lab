@@ -110,6 +110,6 @@ if __name__ == '__main__':
             probs = inference(sess, ops, batch, batch_size=batch_size)
             print np.argmax(probs, axis=1)
             aggregate.append(probs[:, class_index])
-
+    print 
     np.savez(out_file, np.array(aggregate))
-    print np.mean(aggregate)
+    print len(aggregate), np.mean(aggregate)
