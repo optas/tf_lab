@@ -21,12 +21,12 @@ except:
     print('conv_3d_transpose function not found.')
 
 
-def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
-                                    b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max,
-                                    dropout_prob=None, scope=None, reuse=False):
+def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
+                                    b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+                                    symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
-    n_layers = len(layer_sizes)
+    n_layers = len(n_filters)
 
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
@@ -38,7 +38,7 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 256, 1024],
 
     name = 'encoder_conv_layer_0'
     scope_i = expand_scope_by_name(scope, name)
-    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=filter_sizes[0], strides=strides[0], name=name, reuse=reuse, scope=scope_i)
+    layer = conv_1d(in_signal, nb_filter=n_filters[0], filter_size=filter_sizes[0], strides=strides[0], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
     if b_norm:
         name += '_bnorm'
@@ -50,7 +50,7 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 256, 1024],
     for i in xrange(1, n_layers):
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=layer_sizes[i], filter_size=filter_sizes[i], strides=strides[i], name=name, reuse=reuse, scope=scope_i)
+        layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
         if b_norm:
             name += '_bnorm'
