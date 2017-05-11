@@ -8,6 +8,9 @@ import numpy as np
 from geo_tool import Point_Cloud
 from numpy.linalg import norm
 
+def nips_categoris():
+    
+
 
 def compute_3D_grid(resolution=32):
     '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.

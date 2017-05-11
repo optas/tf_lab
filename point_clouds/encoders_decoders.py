@@ -52,34 +52,44 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_no
     return layer
 
 
-def deeper_encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 256, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
+def encoder_with_convs_and_symmetry_flexible(in_signal, layer_sizes=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
+                                             b_norm=True, spn=False,
+                                             non_linearity=tf.nn.relu, symmetry=tf.reduce_max,
+                                             dropout_prob=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
+    n_layers = len(layer_sizes)
+
+    if n_layers < 2:
+        raise ValueError('More than 1 layers are expected.')
+
     if spn:
         transformer = pcloud_spn(in_signal)
         in_signal = tf.batch_matmul(in_signal, transformer)
         print 'Spatial transformer was activated.'
 
-    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
+    name = 'encoder_conv_layer_0'
+    scope_i = expand_scope_by_name(scope, name)
+    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=filter_sizes[0], strides=strides[0], name=name, reuse=reuse, scope=scope_i)
 
     if b_norm:
-        layer = batch_normalization(layer)
+        name += '_bnorm'
+        scope_i = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
     layer = non_linearity(layer)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+    for i in xrange(1, n_layers):
+        name = 'encoder_conv_layer_' + str(i)
+        scope_i = expand_scope_by_name(scope, name)
+        layer = conv_1d(layer, nb_filter=layer_sizes[i], filter_size=filter_sizes[i], strides=strides[i], name=name, reuse=reuse, scope=scope_i)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+        if b_norm:
+            name += '_bnorm'
+            scope_i = expand_scope_by_name(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+        layer = non_linearity(layer)
 
     if dropout_prob is not None:
         layer = dropout(layer, dropout_prob)
@@ -105,17 +115,20 @@ def decoder_with_fc_only_new(latent_signal, layer_sizes=[], b_norm=True, non_lin
         name = 'decoder_fc_0_bnorm'
         scope_i = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-        layer = non_linearity(layer)
+
+    layer = non_linearity(layer)
 
     for i in xrange(1, n_layers - 1):
         name = 'decoder_fc_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
+
         if b_norm:
-            name += 'bnorm'
+            name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-            layer = non_linearity(layer)
+
+        layer = non_linearity(layer)
 
     # Last decoding layer doesn't have a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)
