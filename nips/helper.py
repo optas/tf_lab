@@ -7,10 +7,33 @@ Created on May 3, 2017
 import numpy as np
 from geo_tool import Point_Cloud
 from numpy.linalg import norm
+import os.path as osp
+
+from .. point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds
+from . data_sets.shape_net import shape_net_category_to_synth_id
+from . data_sets.shape_net import pc_loader as sn_pc_loader
 
 
-def wu_nips_16_categoris():
-    ['airplane', 'car', 'chair', 'sofa', 'rifle', 'boat', 'table']
+def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
+    wu_cat_names, wu_syn_ids = wu_nips_16_categories()
+
+    pclouds = []
+    model_ids = []
+    syn_ids = []
+
+    for cat_name, syn_id in zip(wu_cat_names, wu_syn_ids):
+        print cat_name, syn_id
+        file_names = load_filenames_of_input_data(osp.join(pclouds_path, syn_id), '.ply')
+        pclouds_temp, model_ids_temp, syn_ids_temp = load_crude_point_clouds(file_names=file_names, n_threads=50, loader=sn_pc_loader)
+        print '%d files containing complete point clouds were found.' % (len(pclouds_temp), )
+        pclouds.append(pclouds_temp)
+        model_ids.append(model_ids_temp)
+        syn_ids.append(syn_ids_temp)
+
+    pclouds = np.vstack(pclouds)
+    model_ids = np.hstack(model_ids)
+    syn_ids = np.hstack(syn_ids)
+    return pclouds, model_ids, syn_ids
 
 
 def compute_3D_grid(resolution=32):
@@ -63,6 +86,12 @@ def pclouds_centered_and_half_sphere(pclouds):
     pclouds = pclouds / (dist * 2.0)
 
     return pclouds
+
+
+def wu_nips_16_categories():
+    category_names = ['airplane', 'car', 'chair', 'sofa', 'rifle', 'boat', 'table']
+    syn_id_dict = shape_net_category_to_synth_id()
+    return category_names, [syn_id_dict[i] for i in category_names]
 
 
 def center_pclouds_in_unit_sphere(pclouds):
