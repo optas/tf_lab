@@ -36,6 +36,20 @@ def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
     return pclouds, model_ids, syn_ids
 
 
+def average_per_class(lsvc, test_emb, gt_labels):
+    y_pred = lsvc.predict(test_emb)
+    gt_labels = np.array(gt_labels)
+    scores_per_class = []
+
+    for c in np.unique(gt_labels):
+        index_c = gt_labels == c
+        n_class = float(np.sum(index_c))
+        s = np.sum(gt_labels[index_c] == y_pred[index_c]) 
+        s /= n_class
+        scores_per_class.append(s)
+    return np.mean(scores_per_class)
+
+
 def compute_3D_grid(resolution=32):
     '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.
     '''
