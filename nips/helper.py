@@ -72,7 +72,7 @@ def center_pclouds_in_unit_sphere(pclouds):
 
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / dist * (2.0)
+    pclouds = pclouds / (dist * 2.0)
 
     for i, pc in enumerate(pclouds):
         pc, _ = Point_Cloud(pc).center_axis()
