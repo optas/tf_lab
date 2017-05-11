@@ -8,8 +8,9 @@ import numpy as np
 from geo_tool import Point_Cloud
 from numpy.linalg import norm
 
-def nips_categoris():
-    
+
+def wu_nips_16_categoris():
+    ['airplane', 'car', 'chair', 'sofa', 'rifle', 'boat', 'table']
 
 
 def compute_3D_grid(resolution=32):
@@ -64,16 +65,19 @@ def pclouds_centered_and_half_sphere(pclouds):
     return pclouds
 
 
-def trans_one(pclouds):
-    ### max dist = 0.5
-    ### centered around zero.
-    pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
-
+def center_pclouds_in_unit_sphere(pclouds):
     for i, pc in enumerate(pclouds):
         pc, _ = Point_Cloud(pc).center_axis()
         pclouds[i] = pc.points
 
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / (dist * 2.0)
+    pclouds = pclouds / dist * (2.0)
+
+    for i, pc in enumerate(pclouds):
+        pc, _ = Point_Cloud(pc).center_axis()
+        pclouds[i] = pc.points
+
+    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
+    assert(np.all(abs(dist - 0.5) < 0.0001))
     return pclouds
