@@ -50,8 +50,7 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
     return feed, latent, ids
 
 
-def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True,
-                                            apply_augmentation=False):
+def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True, apply_augmentation=False):
     '''
     Observation: the next layer after latent (z) might be something interesting.
     tensor_name: e.g. model.name + '_1/decoder_fc_0/BiasAdd:0'

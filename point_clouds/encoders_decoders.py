@@ -52,6 +52,42 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_no
     return layer
 
 
+def deeper_encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 256, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
+    '''An Encoder (recognition network), which maps inputs onto a latent space.
+    '''
+    if spn:
+        transformer = pcloud_spn(in_signal)
+        in_signal = tf.batch_matmul(in_signal, transformer)
+        print 'Spatial transformer was activated.'
+
+    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
+
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
+    if b_norm:
+        layer = batch_normalization(layer)
+    layer = non_linearity(layer)
+
+    if dropout_prob is not None:
+        layer = dropout(layer, dropout_prob)
+
+    layer = symmetry(layer, axis=1)
+    return layer
+
+
 def decoder_with_fc_only_new(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
