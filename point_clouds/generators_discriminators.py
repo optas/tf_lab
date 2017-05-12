@@ -13,6 +13,9 @@ from .. fundamentals.utils import expand_scope_by_name, leaky_relu
 
 
 def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
+
+    print reuse, scope, non_linearity
+
     encoder_args = {'n_filters': [64, 128, 256, 256, 512], 'filter_sizes': [1, 1, 1, 1, 1], 'strides': [1, 1, 1, 1, 1]}
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
@@ -43,9 +46,6 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False
 
 
 def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], bnorm=True):
-    print layer_sizes
-    print bnorm
-
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=bnorm)
     out_signal = tf.nn.relu(out_signal)
     out_signal = fully_connected(out_signal, np.prod([n_points, 3]), activation='linear', weights_init='xavier')

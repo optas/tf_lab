@@ -34,6 +34,7 @@ class LatentGAN(GAN):
             self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
+                self.generator_out = self.generator(self.noise, self.n_output[0])
                 self.generator_out = self.generator(self.noise, generator_layers)
 
             with tf.variable_scope('discriminator') as scope:
