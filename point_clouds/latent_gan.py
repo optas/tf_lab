@@ -13,13 +13,13 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
 from . gan import GAN
-from . encoders_decoders import decoder_with_fc_only_new
+from . encoders_decoders import decoder_with_fc_only
 from .. fundamentals.utils import expand_scope_by_name
 
 
 class LatentGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, noise_dim=128, generator_layers=[64, 128, 512],
+    def __init__(self, name, learning_rate, n_output, noise_dim=512, generator_layers=[64, 128, 512],
                  discriminator_layers=[64, 128, 256, 512, 1024]):
 
         self.noise_dim = noise_dim
@@ -61,19 +61,19 @@ class LatentGAN(GAN):
 
     def generator(self, z, layer_sizes):
         layer_sizes = layer_sizes + self.n_output
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
+        out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)
         return out_signal
 
     def discriminator(self, in_signal, layer_sizes, reuse=False, scope=None):
-        d_logits = decoder_with_fc_only_new(in_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
+        d_logits = decoder_with_fc_only(in_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope_e)
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
+    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, batch_size, noise_params):

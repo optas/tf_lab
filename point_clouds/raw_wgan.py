@@ -18,12 +18,6 @@ from . encoders_decoders import decoder_with_fc_only_new
 from .. fundamentals.utils import expand_scope_by_name
 
 
-def leaky_relu(x, leak=0.3):
-    f1 = 0.5 * (1 + leak)
-    f2 = 0.5 * (1 - leak)
-    return f1 * x + f2 * abs(x)
-
-
 class RawWGAN(GAN):
 
     def __init__(self, name, n_output, learning_rate=5e-5, clamp=0.02, noise_dim=128):
@@ -70,7 +64,6 @@ class RawWGAN(GAN):
                 self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 512, 1024]):
-        # WGAN with bnorm true - didn't work so far.
         out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')

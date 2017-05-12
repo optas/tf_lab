@@ -13,7 +13,8 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
 from . gan import GAN
-from . encoders_decoders import decoder_with_fc_only_new
+from . encoders_decoders import decoder_with_fc_only
+from . encoders_decoders import encoder_with_convs_and_symmetry
 from .. fundamentals.utils import expand_scope_by_name
 
 
@@ -59,41 +60,47 @@ class RawGAN(GAN):
                 self.sess.run(self.init)
 
     def generator(self, z, layer_sizes=[64, 128, 512, 1024]):
-        out_signal = decoder_with_fc_only_new(z, layer_sizes=layer_sizes, b_norm=False)
+        out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=False)
         out_signal = tf.nn.relu(out_signal)
         out_signal = fully_connected(out_signal, np.prod(self.n_output), activation='linear', weights_init='xavier')
         out_signal = tf.reshape(out_signal, [-1, self.n_output[0], self.n_output[1]])
         return out_signal
 
     def discriminator(self, in_signal, reuse=False, scope=None):
-        name = 'conv_layer_0'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
 
-        name = 'conv_layer_1'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
+        encoder_args = {'n_filters': [64, 128, 256, 256, 512], 'filter_sizes': [1, 1, 1, 1, 1], 'strides': [1, 1, 1, 1, 1]}
+        encoder_args['reuse'] = reuse
+        encoder_args['scope'] = scope
+        layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
 
-        name = 'conv_layer_2'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
-        name += '_bnorm'
-        scope_e = expand_scope_by_name(scope, name)
-        layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
-        layer = tf.nn.relu(layer)
-        layer = tf.reduce_max(layer, axis=1)
+#         name = 'conv_layer_0'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         layer = tf.nn.relu(layer)
+# 
+#         name = 'conv_layer_1'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         layer = tf.nn.relu(layer)
+# 
+#         name = 'conv_layer_2'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name=name, scope=scope_e, reuse=reuse)
+#         name += '_bnorm'
+#         scope_e = expand_scope_by_name(scope, name)
+#         layer = batch_normalization(layer, scope=scope_e, reuse=reuse)
+#         layer = tf.nn.relu(layer)
+#         layer = tf.reduce_max(layer, axis=1)
 
         name = 'decoding_logits'
         scope_e = expand_scope_by_name(scope, name)
-        d_logits = decoder_with_fc_only_new(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
+        d_logits = decoder_with_fc_only(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
 
         name = 'single-logit'
         scope_e = expand_scope_by_name(scope, name)
@@ -101,7 +108,7 @@ class RawGAN(GAN):
         d_prob = tf.nn.sigmoid(d_logit)
         return d_prob, d_logit
 
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=1):
+    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, batch_size, noise_params):
