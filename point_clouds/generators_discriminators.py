@@ -13,7 +13,6 @@ from .. fundamentals.utils import expand_scope_by_name, leaky_relu
 
 
 def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
-
     encoder_args = {'n_filters': [64, 128, 256, 256, 512], 'filter_sizes': [1, 1, 1, 1, 1], 'strides': [1, 1, 1, 1, 1]}
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
@@ -29,7 +28,6 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
 
 
 def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
-
     encoder_args = {'n_filters': [128, 128, 256, 512], 'filter_sizes': [40, 20, 10, 10], 'strides': [1, 2, 2, 1]}
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
