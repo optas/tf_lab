@@ -20,7 +20,7 @@ from .. fundamentals.utils import expand_scope_by_name
 
 class RawGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, disciminator, generator, gen_kwargs={}, disc_kwargs={}, noise_dim=128):
+    def __init__(self, name, learning_rate, n_output, discriminator, generator, gen_kwargs={}, disc_kwargs={}, noise_dim=128):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
@@ -33,7 +33,7 @@ class RawGAN(GAN):
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
             self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
-            self.disciminator = disciminator
+            self.discriminator = discriminator
             self.generator = generator
 
             with tf.variable_scope('generator'):
