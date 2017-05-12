@@ -23,7 +23,7 @@ except:
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
-                                    symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
+                                    symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False, interleave_max=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     n_layers = len(n_filters)
@@ -40,6 +40,9 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     scope_i = expand_scope_by_name(scope, name)
     layer = conv_1d(in_signal, nb_filter=n_filters[0], filter_size=filter_sizes[0], strides=strides[0], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
+    if interleave_max:
+        layer = tf.reduce_max(layer, axis=1)
+
     if b_norm:
         name += '_bnorm'
         scope_i = expand_scope_by_name(scope, name)
@@ -51,6 +54,9 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
         layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
+
+        if interleave_max:
+            layer = tf.reduce_max(layer, axis=1)
 
         if b_norm:
             name += '_bnorm'

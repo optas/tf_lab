@@ -73,7 +73,7 @@ def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, fee
     latent_tensor = model.graph.get_tensor_by_name(tensor_name)
     for b in iterate_in_chunks(feed_data, batch_size):
         toappend = model.sess.run(latent_tensor,
-                                  feed_dict={model.x : b.reshape([len(b)]+conf.n_input)})
+                                  feed_dict={model.x: b.reshape([len(b)] + conf.n_input)})
         latent.append(toappend)
     latent = np.vstack(latent)
     return feed, latent, ids
