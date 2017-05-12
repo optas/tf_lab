@@ -17,7 +17,6 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
     encoder_args['non_linearity'] = non_linearity
-
     layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
 
     name = 'decoding_logits'
@@ -32,7 +31,6 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
     encoder_args['non_linearity'] = non_linearity
-
     layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
 
     name = 'decoding_logits'
@@ -52,6 +50,16 @@ def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], bnorm=T
 
 def latent_code_generator(z, out_dim, layer_sizes=[64, 128], bnorm=True):
     layer_sizes = layer_sizes + [out_dim]
+    print layer_sizes
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=bnorm)
     out_signal = tf.nn.relu(out_signal)
     return out_signal
+
+
+# def discriminator(self, in_signal, layer_sizes, reuse=False, scope=None):
+#         d_logits = decoder_with_fc_only(in_signal, layer_sizes=layer_sizes[:-1], reuse=reuse, scope=scope)
+#         name = 'single-logit'
+#         scope_e = expand_scope_by_name(scope, name)
+#         d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', reuse=reuse, scope=scope_e)
+#         d_prob = tf.nn.sigmoid(d_logit)
+#         return d_prob, d_logit

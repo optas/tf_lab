@@ -55,7 +55,8 @@ class RawGAN(GAN):
                 self.sess = tf.Session(config=config)
                 self.sess.run(self.init)
 
-    def generator_noise_distribution(self, n_samples, ndims, mu=0, sigma=0.5):
+    def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
+        print mu, sigma
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, batch_size, noise_params={}):
