@@ -33,7 +33,6 @@ def get_incoming_shape(incoming):
         raise Exception("Invalid incoming layer.")
 
 
-def leaky_relu(x, leak=0.2):
-    f1 = 0.5 * (1 + leak)
-    f2 = 0.5 * (1 - leak)
-    return f1 * x + f2 * abs(x)
+def leaky_relu(alpha):
+    assert(alpha < 1 and alpha > 0)
+    return lambda x: tf.maximum(alpha * x, x)

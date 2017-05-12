@@ -8,14 +8,7 @@ import numpy as np
 import time
 import tensorflow as tf
 
-from tflearn.layers.core import fully_connected
-from tflearn.layers.conv import conv_1d
-from tflearn.layers.normalization import batch_normalization
-
 from . gan import GAN
-from . encoders_decoders import decoder_with_fc_only
-from . encoders_decoders import encoder_with_convs_and_symmetry
-from .. fundamentals.utils import expand_scope_by_name
 
 
 class RawGAN(GAN):

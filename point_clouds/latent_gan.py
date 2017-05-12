@@ -3,18 +3,11 @@ Created on April 27, 2017
 
 @author: optas
 '''
-
 import numpy as np
 import time
 import tensorflow as tf
 
-from tflearn.layers.core import fully_connected
-from tflearn.layers.conv import conv_1d
-from tflearn.layers.normalization import batch_normalization
-
 from . gan import GAN
-from . encoders_decoders import decoder_with_fc_only
-from .. fundamentals.utils import expand_scope_by_name
 
 
 class LatentGAN(GAN):
@@ -34,8 +27,7 @@ class LatentGAN(GAN):
             self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise, self.n_output[0])
-                self.generator_out = self.generator(self.noise, generator_layers)
+                self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
                 self.real_prob, self.real_logit = self.discriminator(self.gt_data, discriminator_layers, scope=scope)
