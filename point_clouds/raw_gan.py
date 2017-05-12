@@ -25,6 +25,8 @@ class RawGAN(GAN):
         self.noise_dim = noise_dim
         self.n_output = n_output
         out_shape = [None] + self.n_output
+        self.discriminator = discriminator
+        self.generator = generator
 
         GAN.__init__(self, name)      # TODO - push more sharable code in GAN class.
 
@@ -33,11 +35,8 @@ class RawGAN(GAN):
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
             self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
-            self.discriminator = discriminator
-            self.generator = generator
-
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise, self.n_output[0])
+                self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope)
