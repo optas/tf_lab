@@ -36,24 +36,24 @@ class RawGAN(GAN):
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
-                self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-                self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+            self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+            self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
 
-                train_vars = tf.trainable_variables()
+            train_vars = tf.trainable_variables()
 
-                d_params = [v for v in train_vars if v.name.startswith(name + '/discriminator/')]
-                g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
+            d_params = [v for v in train_vars if v.name.startswith(name + '/discriminator/')]
+            g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
 
-                self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-                self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
-                self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
-                self.init = tf.global_variables_initializer()
+            self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
+            self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+            self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
+            self.init = tf.global_variables_initializer()
 
-                # Launch the session
-                config = tf.ConfigProto()
-                config.gpu_options.allow_growth = True
-                self.sess = tf.Session(config=config)
-                self.sess.run(self.init)
+            # Launch the session
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
+            self.sess.run(self.init)
 
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
         return np.random.normal(mu, sigma, (n_samples, ndims))
