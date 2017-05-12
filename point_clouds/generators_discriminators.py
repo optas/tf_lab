@@ -40,23 +40,23 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False
     return d_prob, d_logit
 
 
-def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], bnorm=True):
-    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=bnorm)
+def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], b_norm=True):
+    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=b_norm)
     out_signal = tf.nn.relu(out_signal)
     out_signal = fully_connected(out_signal, np.prod([n_points, 3]), activation='linear', weights_init='xavier')
     out_signal = tf.reshape(out_signal, [-1, n_points, 3])
     return out_signal
 
 
-def latent_code_generator(z, out_dim, layer_sizes=[64, 128], bnorm=True):
+def latent_code_generator(z, out_dim, layer_sizes=[64, 128], b_norm=True):
     layer_sizes = layer_sizes + out_dim
-    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=bnorm)
+    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=b_norm)
     out_signal = tf.nn.relu(out_signal)
     return out_signal
 
 
-def latent_code_discriminator(in_singnal, layer_sizes=[64, 128, 256, 256, 512], bnorm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
+def latent_code_discriminator(in_singnal, layer_sizes=[64, 128, 256, 256, 512], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
     layer_sizes = layer_sizes + [1]
-    d_logit = decoder_with_fc_only(in_singnal, layer_sizes=layer_sizes, non_linearity=non_linearity, bnorm=bnorm, reuse=reuse, scope=scope)
+    d_logit = decoder_with_fc_only(in_singnal, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm, reuse=reuse, scope=scope)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
