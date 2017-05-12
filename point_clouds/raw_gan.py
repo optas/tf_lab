@@ -56,7 +56,6 @@ class RawGAN(GAN):
                 self.sess.run(self.init)
 
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
-        print mu, sigma
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, batch_size, noise_params={}):
@@ -74,9 +73,9 @@ class RawGAN(GAN):
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
-            print 'mesa'
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
+            print z.shape
             feed_dict = {self.real_pc: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
