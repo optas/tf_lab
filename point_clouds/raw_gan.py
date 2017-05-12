@@ -75,7 +75,6 @@ class RawGAN(GAN):
             feed, _, _ = train_data.next_batch(batch_size)
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            print z.shape
             feed_dict = {self.real_pc: feed, self.noise: z}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
