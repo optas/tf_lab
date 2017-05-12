@@ -74,7 +74,7 @@ class RawGAN(GAN):
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
-
+            print 'mesa'
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
             feed_dict = {self.real_pc: feed, self.noise: z}
