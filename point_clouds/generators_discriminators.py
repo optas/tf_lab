@@ -24,11 +24,6 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
     d_logit = decoder_with_fc_only(layer, layer_sizes=[128, 64, 1], reuse=reuse, scope=scope_e)
-
-#     layer = non_linearity(layer)
-#     name = 'single-logit'
-#     scope_e = expand_scope_by_name(scope, name)
-#     d_logit = fully_connected(layer, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
 
@@ -44,12 +39,7 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False
 
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
-    d_logits = decoder_with_fc_only(layer, layer_sizes=[128, 64], reuse=reuse, scope=scope_e)
-    d_logits = non_linearity(d_logits)
-
-    name = 'single-logit'
-    scope_e = expand_scope_by_name(scope, name)
-    d_logit = fully_connected(d_logits, 1, activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_e)
+    d_logit = decoder_with_fc_only(layer, layer_sizes=[128, 64, 1], reuse=reuse, scope=scope_e)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
 
