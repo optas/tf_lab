@@ -55,8 +55,8 @@ def latent_code_generator(z, out_dim, layer_sizes=[64, 128], bnorm=True):
     return out_signal
 
 
-def latent_code_discriminator(z, n_points, layer_sizes=[64, 128, 256, 256, 512], bnorm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
+def latent_code_discriminator(in_singnal, layer_sizes=[64, 128, 256, 256, 512], bnorm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
     layer_sizes = layer_sizes + [1]
-    d_logit = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, bnorm=bnorm, reuse=reuse, scope=scope)
+    d_logit = decoder_with_fc_only(in_singnal, layer_sizes=layer_sizes, non_linearity=non_linearity, bnorm=bnorm, reuse=reuse, scope=scope)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
