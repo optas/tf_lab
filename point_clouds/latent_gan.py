@@ -19,8 +19,7 @@ from .. fundamentals.utils import expand_scope_by_name
 
 class LatentGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, noise_dim=512, generator_layers=[64, 128, 512],
-                 discriminator_layers=[64, 128, 256, 512, 1024]):
+    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, gen_kwargs={}, disc_kwargs={}): 
 
         self.noise_dim = noise_dim
         self.n_output = n_output

@@ -20,7 +20,7 @@ from .. fundamentals.utils import expand_scope_by_name
 
 class RawGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, discriminator, generator, gen_kwargs={}, disc_kwargs={}, noise_dim=128):
+    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, gen_kwargs={}, disc_kwargs={}):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
