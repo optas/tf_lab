@@ -1,9 +1,8 @@
 '''
-Created on Apr 27, 2017
+Created on April 27, 2017
 
 @author: optas
 '''
-
 import numpy as np
 import time
 import tensorflow as tf
@@ -11,28 +10,27 @@ import tensorflow as tf
 from . gan import GAN
 
 
-class RawGAN(GAN):
-
+class LatentGAN(GAN):
     def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, gen_kwargs={}, disc_kwargs={}):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
-        out_shape = [None] + self.n_output
         self.discriminator = discriminator
         self.generator = generator
 
-        GAN.__init__(self, name)      # TODO - push more sharable code in GAN class.
+        GAN.__init__(self, name)
 
         with tf.variable_scope(name):
 
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-            self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
+            out_shape = [None] + self.n_output
+            self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
+                self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
-                self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
+                self.real_prob, self.real_logit = self.discriminator(self.gt_data, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
             self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
@@ -57,7 +55,7 @@ class RawGAN(GAN):
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
-    def _single_epoch_train(self, train_data, batch_size, noise_params={}, adaptive=None):
+    def _single_epoch_train(self, train_data, batch_size, noise_params):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -68,37 +66,22 @@ class RawGAN(GAN):
         batch_size = batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-        updated_d = 0
+
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
+
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            feed_dict = {self.real_pc: feed, self.noise: z}
-
-            if adaptive is not None:
-                s1 = tf.reduce_mean(self.real_prob)
-                s2 = tf.reduce_mean(1 - self.synthetic_prob)
-                sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
-                if np.mean([sr, sf]) < adaptive:
-                    loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-                    updated_d += 1
-                    epoch_loss_d += loss_d
-
-            else:
-                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-                updated_d += 1
-                epoch_loss_d += loss_d
-
-            # Update generator.
+            feed_dict = {self.gt_data: feed, self.noise: z}
+            loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
-#             epoch_loss_d += loss_d
+            epoch_loss_d += loss_d
             epoch_loss_g += loss_g
 
-#         epoch_loss_d /= n_batches
-        epoch_loss_d /= updated_d
+        epoch_loss_d /= n_batches
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration

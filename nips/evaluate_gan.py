@@ -26,7 +26,7 @@ except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
 
-def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False, njobs=10):
+def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     '''Given a collection of point-clouds, estimate the entropy of the random variables
     corresponding to occupancy-grid activation patterns.
     Inputs:
@@ -45,7 +45,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False, njobs=1
         grid_coordinates, _ = compute_3D_grid(grid_resolution)
 
     grid_coordinates = grid_coordinates.reshape(-1, 3)
-    nn = NearestNeighbors(n_neighbors=1, n_jobs=njobs).fit(grid_coordinates)
+    nn = NearestNeighbors(n_neighbors=1).fit(grid_coordinates)
 
     for pc in pclouds:
         _, indices = nn.kneighbors(pc)
@@ -78,6 +78,7 @@ def jensen_shannon_divergence(P, Q):
 def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
     ''' pclouds: numpy array (n_pc * n_points * 3)
         block_size: int: pairwise distances among these many point-clouds will be computes.
+        TODO: (post-deadline) - iterate over all pairs.
     '''
 
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
@@ -113,7 +114,7 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d[0] * batch_size)
+        loss_list.append(loss_d[0])
     return loss_list
 
 
@@ -143,7 +144,7 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
         pc1 = pclouds[pc_idx1, :, :]
         pc2 = pclouds[pc_idx2, :, :]
         loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d[0] * batch_size)
+        loss_list.append(loss_d[0])
 
     return loss_list
 

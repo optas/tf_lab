@@ -49,8 +49,8 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
     latent = np.vstack(latent)
     return feed, latent, ids
 
-def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True,
-                                            apply_augmentation=False):
+
+def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True, apply_augmentation=False):
     '''
     Observation: the next layer after latent (z) might be something interesting.
     tensor_name: e.g. model.name + '_1/decoder_fc_0/BiasAdd:0'
@@ -73,10 +73,11 @@ def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, fee
     latent_tensor = model.graph.get_tensor_by_name(tensor_name)
     for b in iterate_in_chunks(feed_data, batch_size):
         toappend = model.sess.run(latent_tensor,
-                                  feed_dict={model.x : b.reshape([len(b)]+conf.n_input)})
+                                  feed_dict={model.x: b.reshape([len(b)] + conf.n_input)})
         latent.append(toappend)
     latent = np.vstack(latent)
     return feed, latent, ids
+
 
 def load_pcloud_with_segmentation(pts_file, seg_file, n_samples):
     '''Specific to Eric' data.
