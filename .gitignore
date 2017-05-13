@@ -1,7 +1,7 @@
 *.pyc
 .project
 .pydevproject
-.ipynb_checkpoints/*
+.ipynb_checkpoints
 *.swp
 notebooks/jingwei/c_*l_*/
 
