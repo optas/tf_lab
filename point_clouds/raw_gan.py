@@ -32,7 +32,6 @@ class RawGAN(GAN):
                 self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
-
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
@@ -58,7 +57,7 @@ class RawGAN(GAN):
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
-    def _single_epoch_train(self, train_data, batch_size, noise_params={}):
+    def _single_epoch_train(self, train_data, batch_size, noise_params={}, adaptive):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -76,7 +75,16 @@ class RawGAN(GAN):
             # Update discriminator.
             z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
             feed_dict = {self.real_pc: feed, self.noise: z}
-            loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+
+            if adaptive is not None:
+                c1 = tf.reduce_mean(self.real_prob)
+                c2 = tf.reduce_mean(1 - self.synthetic_prob)
+                loss_d = self.sess.run([self.loss_d], feed_dict=feed_dict)[0]
+                if np.mean(c1, c2) < adaptive:
+                    print np.mean(c1, c2)
+                    self.sess.run([self.opt_d], feed_dict=feed_dict)
+            else:
+                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
 
             # Update generator.
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
