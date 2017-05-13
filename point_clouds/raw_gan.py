@@ -98,7 +98,8 @@ class RawGAN(GAN):
             epoch_loss_g += loss_g
 
 #         epoch_loss_d /= n_batches
-        epoch_loss_d /= updated_d
+        if updated_d > 1:
+            epoch_loss_d /= updated_d
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration
