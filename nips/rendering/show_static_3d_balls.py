@@ -102,7 +102,9 @@ def showpoints(xyz,c_gt=None, c_pred = None ,waittime=0,showrot=False,magnifyBlu
             cv2.putText(show,'zoom %d%%'%(int(zoom*100)),(30,showsz-70),0,0.5,cv2.cv.CV_RGB(255,0,0))
     changed=True
     render()
-    cv2.imwrite('show3d.png', show)
+    cv2.imshow('show3d.png', show)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     return 0
 if __name__=='__main__':
     np.random.seed(100)
