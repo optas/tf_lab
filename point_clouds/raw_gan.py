@@ -77,11 +77,10 @@ class RawGAN(GAN):
             feed_dict = {self.real_pc: feed, self.noise: z}
 
             if adaptive is not None:
-                c1 = tf.reduce_mean(self.real_prob)
-                c2 = tf.reduce_mean(1 - self.synthetic_prob)
-                loss_d = self.sess.run([self.loss_d], feed_dict=feed_dict)[0]
-                if np.mean(c1, c2) < adaptive:
-                    print np.mean(c1, c2)
+                score = tf.reduce_mean(tf.reduce_mean(self.real_prob), tf.reduce_mean(1 - self.synthetic_prob))
+                s = self.sess.run([score], feed_dict=feed_dict)[0]
+                if s < adaptive:
+                    print s
                     self.sess.run([self.opt_d], feed_dict=feed_dict)
             else:
                 loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
