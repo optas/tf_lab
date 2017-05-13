@@ -80,7 +80,6 @@ class RawGAN(GAN):
                 s1 = tf.reduce_mean(self.real_prob)
                 s2 = tf.reduce_mean(1 - self.synthetic_prob)
                 sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
-                print sr, sf
                 if np.mean([sr, sf]) < adaptive:
                     loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
                     updated_d += 1
