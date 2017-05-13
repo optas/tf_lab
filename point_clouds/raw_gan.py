@@ -68,7 +68,7 @@ class RawGAN(GAN):
         batch_size = batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-
+        updated_d = 0
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
@@ -82,18 +82,24 @@ class RawGAN(GAN):
                 sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
                 print sr, sf
                 if np.mean([sr, sf]) < adaptive:
-                    self.sess.run([self.opt_d], feed_dict=feed_dict)
+                    loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+                    updated_d += 1
+                    epoch_loss_d += loss_d
+
             else:
                 loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+                updated_d += 1
+                epoch_loss_d += loss_d
 
             # Update generator.
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
-            epoch_loss_d += loss_d
+#             epoch_loss_d += loss_d
             epoch_loss_g += loss_g
 
-        epoch_loss_d /= n_batches
+#         epoch_loss_d /= n_batches
+        epoch_loss_d /= updated_d
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration
