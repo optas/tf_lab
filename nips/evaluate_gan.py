@@ -34,10 +34,12 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
         pclouds: (numpy array) #point-clouds x points per point-cloud x 3
         grid_resolution (int) size of occupancy grid that will be used.
     '''
-    if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
+    epsilon = 10e-4
+    bound = 0.5 + epsilon
+    if abs(np.max(pclouds)) > bound or abs(np.min(pclouds)) > bound:
         warnings.warn('Point-clouds not in in unit cube.')
 
-    if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
+    if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > bound:
         warnings.warn('Point-clouds not unit sphere.')
 
     if in_sphere:
@@ -84,7 +86,7 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
         TODO: (post-deadline) - iterate over all pairs.
     '''
 
-    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
+    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5 + 10e-4:
         raise ValueError('Point-clouds have to be in unit sphere.')
 
     num_clouds, num_points, dim = pclouds.shape
@@ -122,7 +124,7 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
 
 
 def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=None):
-    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
+    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5 + 10e-4:
         raise ValueError('Point-clouds have to be in unit sphere.')
 
     num_clouds, num_points, dim = pclouds.shape
