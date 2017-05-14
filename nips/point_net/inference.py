@@ -80,7 +80,8 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 5:     # If given - save the probabilities. TODO: check no shuffling.
         out_file = sys.argv[4]
-
+    else:
+        out_file = None
 
     # The networks was trained with zero-mean pclouds AND in UNIT sphere. Thus we apply this transformation here.
     pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
@@ -115,5 +116,6 @@ if __name__ == '__main__':
             print np.argmax(probs, axis=1)
             aggregate.append(probs[:, class_index])
 
-    np.savez(out_file, np.array(aggregate))
+    if out_file is not None:
+        np.savez(out_file, np.array(aggregate))
     print np.mean(aggregate)
