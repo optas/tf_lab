@@ -35,10 +35,10 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
         grid_resolution (int) size of occupancy grid that will be used.
     '''
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
-        raise ValueError('Point-clouds are expected to be in unit cube.')
+        warnings.warn('Point-clouds not in in unit cube.')
 
     if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
-        raise ValueError('Point-clouds have to be in unit sphere in parameter setting.')
+        warnings.warn('Point-clouds not unit sphere.')
 
     if in_sphere:
         grid_coordinates, _ = compute_3D_sphere(grid_resolution)
