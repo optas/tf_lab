@@ -50,7 +50,7 @@ def average_per_class(lsvc, test_emb, gt_labels):
     return np.mean(scores_per_class)
 
 
-def compute_3D_grid(resolution=32):
+def compute_3D_grid(resolution):
     '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.
     '''
     grid = np.ndarray((resolution, resolution, resolution, 3), np.float32)
@@ -64,8 +64,8 @@ def compute_3D_grid(resolution=32):
     return grid, spacing
 
 
-def compute_3D_sphere(resolution=32):
-    grid, spacing = compute_3D_grid(resolution=32)
+def compute_3D_sphere(resolution):
+    grid, spacing = compute_3D_grid(resolution=resolution)
     pts = grid.reshape(-1, 3)
     pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
     print len(pts)
