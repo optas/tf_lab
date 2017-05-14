@@ -4,13 +4,14 @@ Created on April 26, 2017
 @author: optas, jingweij
 '''
 
-
 import socket
 import numpy as np
 import tensorflow as tf
+import warnings
+
+from numpy.linalg import norm
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
-from numpy.linalg import norm
 
 from . helper import compute_3D_grid, compute_3D_sphere
 
@@ -36,7 +37,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
         raise ValueError('Point-clouds are expected to be in unit cube.')
 
-    if in_sphere and any(norm(pclouds, axis=1) >= 0.5):
+    if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
         raise ValueError('Point-clouds have to be in unit sphere in parameter setting.')
 
     if in_sphere:
@@ -83,8 +84,8 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
         TODO: (post-deadline) - iterate over all pairs.
     '''
 
-    if abs(np.max(pclouds)) > 0.5 or abs(np.min(pclouds)) > 0.5:
-        warnings.warn('Point-clouds are not expected to be in unit cube.')
+    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
+        raise ValueError('Point-clouds have to be in unit sphere.')
 
     num_clouds, num_points, dim = pclouds.shape
     batch_size = block_size * (block_size - 1)
@@ -121,6 +122,9 @@ def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
 
 
 def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=None):
+    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5:
+        raise ValueError('Point-clouds have to be in unit sphere.')
+
     num_clouds, num_points, dim = pclouds.shape
     pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
     pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
