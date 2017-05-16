@@ -21,7 +21,7 @@ class RawGAN(GAN):
         self.discriminator = discriminator
         self.generator = generator
 
-        GAN.__init__(self, name)      # TODO - push more sharable code in GAN class.
+        GAN.__init__(self, name)
 
         with tf.variable_scope(name):
 

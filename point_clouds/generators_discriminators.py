@@ -26,8 +26,11 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     return d_prob, d_logit
 
 
-def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
-    encoder_args = {'n_filters': [128, 128, 256, 512], 'filter_sizes': [40, 20, 10, 10], 'strides': [1, 2, 2, 1]}
+def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
+                                encoder_args={'n_filters': [128, 128, 256, 512], 'filter_sizes': [40, 20, 10, 10], 'strides': [1, 2, 2, 1]},
+                                decoder_layer_sizes=[128, 64, 1],
+                                reuse=False, scope=None):
+
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
     encoder_args['non_linearity'] = non_linearity
@@ -35,7 +38,7 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False
 
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
-    d_logit = decoder_with_fc_only(layer, layer_sizes=[128, 64, 1], reuse=reuse, scope=scope_e)
+    d_logit = decoder_with_fc_only(layer, layer_sizes=decoder_layer_sizes, reuse=reuse, scope=scope_e)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
 

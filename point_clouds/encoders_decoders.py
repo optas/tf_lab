@@ -3,7 +3,6 @@ Created on February 4, 2017
 
 @author: optas
 
-TODO - Clean up new/old versions.
 '''
 
 import tensorflow as tf
