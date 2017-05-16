@@ -27,7 +27,7 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     return d_prob, d_logit
 
 
-def mlp_discriminator_3(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
+def mlp_discriminator_2(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
     encoder_args = {'n_filters': [64, 128, 256, 256, 512, 1024], 'filter_sizes': [1, 1, 1, 1, 1, 1], 'strides': [1, 1, 1, 1, 1, 1]}
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
