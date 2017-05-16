@@ -44,9 +44,9 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
     return d_prob, d_logit
 
 
-def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], b_norm=False, b_norm_last=False):
-    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=b_norm)
-    out_signal = tf.nn.relu(out_signal)
+def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], non_linearity=tf.nn.relu, b_norm=False, b_norm_last=False):
+    out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm)
+    out_signal = non_linearity(out_signal)
     if b_norm_last:
         out_signal = batch_normalization(out_signal)
 
