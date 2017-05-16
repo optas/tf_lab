@@ -39,7 +39,7 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
 
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
-    d_logit = decoder_with_fc_only(layer, layer_sizes=decoder_layer_sizes, reuse=reuse, scope=scope_e)
+    d_logit = decoder_with_fc_only(layer, layer_sizes=decoder_layer_sizes, non_linearity=non_linearity, reuse=reuse, scope=scope_e)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
 
