@@ -7,6 +7,7 @@ Created on May 11, 2017
 import numpy as np
 import tensorflow as tf
 from tflearn.layers.core import fully_connected
+from tflearn.layers.normalization import batch_normalization
 
 from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
 from .. fundamentals.utils import expand_scope_by_name, leaky_relu
@@ -43,9 +44,12 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
     return d_prob, d_logit
 
 
-def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], b_norm=True):
+def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], b_norm=False, b_norm_last=False):
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=b_norm)
     out_signal = tf.nn.relu(out_signal)
+    if b_norm_last:
+        out_signal = batch_normalization(out_signal)
+
     out_signal = fully_connected(out_signal, np.prod([n_points, 3]), activation='linear', weights_init='xavier')
     out_signal = tf.reshape(out_signal, [-1, n_points, 3])
     return out_signal

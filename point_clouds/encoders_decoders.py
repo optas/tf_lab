@@ -14,11 +14,6 @@ from tflearn.layers.normalization import batch_normalization
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name
 
-try:
-    from tflearn.layers.conv import conv_3d_transpose
-except:
-    print('conv_3d_transpose function not found.')
-
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
