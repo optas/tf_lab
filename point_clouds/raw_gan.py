@@ -70,6 +70,8 @@ class RawGAN(GAN):
         start_time = time.time()
         updated_d = 0
         # Loop over all batches
+        _real_s = []
+        _fake_s = []
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
             # Update discriminator.
@@ -80,6 +82,8 @@ class RawGAN(GAN):
                 s1 = tf.reduce_mean(self.real_prob)
                 s2 = tf.reduce_mean(1 - self.synthetic_prob)
                 sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
+                _real_s.append(sr)
+                _fake_s.append(sf)
                 if np.mean([sr, sf]) < adaptive:
                     loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
                     updated_d += 1
@@ -102,6 +106,8 @@ class RawGAN(GAN):
             epoch_loss_d /= updated_d
         else:
             print 'Discriminator was not updated in this epoch.'
+        if adaptive:
+            print np.mean(_real_s), np.mean(_fake_s)
 
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
