@@ -106,7 +106,7 @@ class RawGAN(GAN):
             epoch_loss_d /= updated_d
         else:
             print 'Discriminator was not updated in this epoch.'
-        
+
         if adaptive is not None:
             print np.mean(_real_s), np.mean(_fake_s)
 
