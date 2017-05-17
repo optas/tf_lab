@@ -105,7 +105,7 @@ if __name__ == '__main__':
     else:
         assert(False)
 
-    batch_size = 10
+    batch_size = 100
 
     sess, ops = get_model(model_path='log_to_panos/model.ckpt', gpu_index=gpu_index, batch_size=batch_size, num_point=pclouds[0].shape[0])
 
