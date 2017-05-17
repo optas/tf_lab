@@ -6,7 +6,6 @@ Created on May 3, 2017
 
 import os.path as osp
 import warnings
-import numpy as np
 import tensorflow as tf
 
 from general_tools.in_out.basics import create_dir
@@ -26,10 +25,9 @@ class GAN(object):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
-    def optimizer(self, learning_rate, loss, var_list):
+    def optimizer(self, learning_rate, beta, loss, var_list):
         initial_learning_rate = learning_rate
-#         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, var_list=var_list)
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=beta).minimize(loss, var_list=var_list)
         return optimizer
 
     def generate(self, n_samples, noise_params):
