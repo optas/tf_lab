@@ -54,7 +54,6 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         layer = non_linearity(layer)
 
     if dropout_prob is not None:
-#         tf.nn.dropout(layer, dropout_prob)
         layer = dropout(layer, dropout_prob)
 
     layer = symmetry(layer, axis=1)

@@ -50,7 +50,6 @@ def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], non_lin
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm)
     out_signal = non_linearity(out_signal)
     if dropout_prob is not None:
-#         out_signal = tf.nn.dropout(out_signal, dropout_prob)
         out_signal = dropout(out_signal, dropout_prob)
 
     if b_norm_last:
