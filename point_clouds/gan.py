@@ -28,7 +28,8 @@ class GAN(object):
 
     def optimizer(self, learning_rate, loss, var_list):
         initial_learning_rate = learning_rate
-        optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
+#         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
+        optimizer = tf.train.AdamOptimizer(initial_learning_rate).minimize(loss, var_list=var_list)
         return optimizer
 
     def generate(self, n_samples, noise_params):
