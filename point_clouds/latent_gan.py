@@ -11,7 +11,7 @@ from . gan import GAN
 
 
 class LatentGAN(GAN):
-    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, gen_kwargs={}, disc_kwargs={}):
+    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, beta=0.9, gen_kwargs={}, disc_kwargs={}):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
@@ -41,8 +41,8 @@ class LatentGAN(GAN):
             d_params = [v for v in train_vars if v.name.startswith(name + '/discriminator/')]
             g_params = [v for v in train_vars if v.name.startswith(name + '/generator/')]
 
-            self.opt_d = self.optimizer(learning_rate, self.loss_d, d_params)
-            self.opt_g = self.optimizer(learning_rate, self.loss_g, g_params)
+            self.opt_d = self.optimizer(learning_rate, beta, self.loss_d, d_params)
+            self.opt_g = self.optimizer(learning_rate, beta, self.loss_g, g_params)
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=None)
             self.init = tf.global_variables_initializer()
 
