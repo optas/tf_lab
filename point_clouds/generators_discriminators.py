@@ -29,21 +29,6 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     return d_prob, d_logit
 
 
-def mlp_discriminator_2(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None):
-    encoder_args = {'n_filters': [64, 128, 256, 256, 512, 1024], 'filter_sizes': [1, 1, 1, 1, 1, 1], 'strides': [1, 1, 1, 1, 1, 1]}
-    encoder_args['reuse'] = reuse
-    encoder_args['scope'] = scope
-    encoder_args['non_linearity'] = non_linearity
-    layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
-
-    name = 'decoding_logits'
-    scope_e = expand_scope_by_name(scope, name)
-    d_logit = decoder_with_fc_only(layer, layer_sizes=[128, 64, 1], reuse=reuse, scope=scope_e)
-    d_prob = tf.nn.sigmoid(d_logit)
-    return d_prob, d_logit
-
-
-
 def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
                                 encoder_args={'n_filters': [128, 128, 256, 512], 'filter_sizes': [40, 20, 10, 10], 'strides': [1, 2, 2, 1]},
                                 decoder_layer_sizes=[128, 64, 1],
@@ -65,7 +50,8 @@ def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], non_lin
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm)
     out_signal = non_linearity(out_signal)
     if dropout_prob is not None:
-        out_signal = dropout(out_signal, dropout_prob)
+        out_signal = tf.nn.dropout(out_signal, dropout_prob)
+#         out_signal = dropout(out_signal, dropout_prob)
 
     if b_norm_last:
         out_signal = batch_normalization(out_signal)
