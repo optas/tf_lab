@@ -1,0 +1,19 @@
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_1.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_3.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_10.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_30.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_100.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_300.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_400.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_car_2048_pts/epoch_500.npz 0 car
+
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_100.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_200.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_300.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_400.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_500.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_600.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_700.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_800.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_900.npz 0 car
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/car_mlp_arch_raw_gan_2048_pts/epoch_1000.npz 0 car
