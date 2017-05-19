@@ -115,7 +115,7 @@ if __name__ == '__main__':
     for batch in iterate_in_chunks(pclouds, batch_size):
         if len(batch) == batch_size:
             probs = inference(sess, ops, batch, batch_size=batch_size)
-            print np.argmax(probs, axis=1)
+#             print np.argmax(probs, axis=1)
             aggregate.append(probs[:, class_index])
 
     if out_file is not None:
