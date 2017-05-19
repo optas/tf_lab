@@ -102,6 +102,8 @@ if __name__ == '__main__':
         class_index = 33
     elif class_name == 'sofa':
         class_index = 30
+    elif class_name == 'airplane':
+        class_index = 0
     else:
         assert(False)
 
@@ -118,4 +120,4 @@ if __name__ == '__main__':
 
     if out_file is not None:
         np.savez(out_file, np.array(aggregate))
-    print np.mean(aggregate)
+    print np.mean(aggregate) * 100
