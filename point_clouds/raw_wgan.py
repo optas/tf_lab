@@ -9,7 +9,6 @@ import time
 import tensorflow as tf
 
 from . gan import GAN
-from statsmodels import duration
 
 
 class RawWGAN(GAN):
