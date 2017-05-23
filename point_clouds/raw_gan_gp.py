@@ -50,6 +50,8 @@ class RawGAN_GP(GAN):
             alpha = tf.random_uniform(shape=[batch_size] + [1] * (ndims - 1), minval=0., maxval=1.)
             differences = self.generator_out - self.real_pc
             interpolates = self.real_pc + (alpha * differences)
+            
+            
             with tf.variable_scope('discriminator') as scope:
                 gradients = tf.gradients(self.discriminator(interpolates, reuse=True, scope=scope, **disc_kwargs), [interpolates])[0]
             #     Reduce over all but the first dimension
