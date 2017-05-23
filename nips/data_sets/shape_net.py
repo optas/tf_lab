@@ -10,7 +10,6 @@ Associate code and data for manipulating the shapes of Shape-Net.
 import six
 from geo_tool.in_out.soup import load_ply
 
-
 shape_net_core_synth_id_to_category = {
     '02691156': 'airplane',  '02773838': 'bag',        '02801938': 'basket',
     '02808440': 'bathtub',   '02818832': 'bed',        '02828884': 'bench',

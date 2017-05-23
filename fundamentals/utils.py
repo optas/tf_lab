@@ -34,5 +34,7 @@ def get_incoming_shape(incoming):
 
 
 def leaky_relu(alpha):
-    assert(alpha < 1 and alpha > 0)
+    if not (alpha < 1 and alpha > 0):
+        raise ValueError()
+
     return lambda x: tf.maximum(alpha * x, x)
