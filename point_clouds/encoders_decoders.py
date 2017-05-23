@@ -60,45 +60,6 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
-# def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
-#     '''A decoding network which maps points from the latent space back onto the data space.
-#     '''
-# 
-#     n_layers = len(layer_sizes)
-# 
-#     if n_layers < 2:
-#         raise ValueError('For an FC decoder with single a layer use simpler code.')
-# 
-#     name = 'decoder_fc_0'
-#     scope_i = expand_scope_by_name(scope, name)
-#     layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
-# 
-#     if b_norm:
-#         name = 'decoder_fc_0_bnorm'
-#         scope_i = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-# 
-#     layer = non_linearity(layer)
-# 
-#     for i in xrange(1, n_layers - 1):
-#         name = 'decoder_fc_' + str(i)
-#         scope_i = expand_scope_by_name(scope, name)
-#         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
-# 
-#         if b_norm:
-#             name += '_bnorm'
-#             scope_i = expand_scope_by_name(scope, name)
-#             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-# 
-#         layer = non_linearity(layer)
-# 
-#     # Last decoding layer doesn't have a non-linearity.
-#     name = 'decoder_fc_' + str(n_layers - 1)
-#     scope_i = expand_scope_by_name(scope, name)
-#     layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
-# 
-#     return layer
-
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
@@ -108,20 +69,10 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     if n_layers < 2:
         raise ValueError('For an FC decoder with single a layer use simpler code.')
 
-#     name = 'decoder_fc_0'
-#     scope_i = expand_scope_by_name(scope, name)
-#     layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
-# 
-#     if b_norm:
-#         name = 'decoder_fc_0_bnorm'
-#         scope_i = expand_scope_by_name(scope, name)
-#         layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-# 
-#     layer = non_linearity(layer)
-
     for i in xrange(0, n_layers - 1):
         name = 'decoder_fc_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
+
         if i == 0:
             layer = latent_signal
 
