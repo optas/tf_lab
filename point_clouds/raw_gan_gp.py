@@ -13,6 +13,7 @@ from . gan import GAN
 
 class RawGAN_GP(GAN):
     '''Gradient Penalty.
+    https://arxiv.org/abs/1704.00028
     '''
 
     def __init__(self, name, learning_rate, lam, n_output, noise_dim, discriminator, generator, beta=0.5, gen_kwargs={}, disc_kwargs={}):
@@ -44,14 +45,15 @@ class RawGAN_GP(GAN):
             # Compute gradient penalty at interpolated points
             ndims = self.real_pc.get_shape().ndims
             batch_size = self.real_pc.get_shape().as_list()[0]
-            
+
             print [batch_size] + [1] * (ndims - 1)
-            
+
             alpha = tf.random_uniform(shape=[batch_size] + [1] * (ndims - 1), minval=0., maxval=1.)
+            print alpha
+
             differences = self.generator_out - self.real_pc
             interpolates = self.real_pc + (alpha * differences)
-            
-            
+
             with tf.variable_scope('discriminator') as scope:
                 gradients = tf.gradients(self.discriminator(interpolates, reuse=True, scope=scope, **disc_kwargs), [interpolates])[0]
             #     Reduce over all but the first dimension

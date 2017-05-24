@@ -35,6 +35,7 @@ class RawWGAN(GAN):
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
+            # Compute WGAN losses
             self.loss_d = tf.reduce_mean(self.synthetic_logit) - tf.reduce_mean(self.real_logit)
             self.loss_g = -tf.reduce_mean(self.synthetic_logit)
 
