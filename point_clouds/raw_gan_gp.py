@@ -53,7 +53,8 @@ class RawGAN_GP(GAN):
                 gradients = tf.gradients(self.discriminator(interpolates, reuse=True, scope=scope, **disc_kwargs)[1], [interpolates])[0]
 
             # Reduce over all but the first dimension
-            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=range(1, ndims)))
+#             slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=range(1, ndims)))
+            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
             print tf.shape(slopes)
             gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
             self.loss_d += lam * gradient_penalty
