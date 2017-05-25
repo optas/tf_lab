@@ -44,27 +44,18 @@ class RawGAN_GP(GAN):
 
             # Compute gradient penalty at interpolated points
             ndims = self.real_pc.get_shape().ndims
-#             batch_size = self.real_pc.get_shape().as_list()[0]
             batch_size = tf.shape(self.real_pc)[0]
-
-            print [batch_size] + [1] * (ndims - 1)
-
             alpha = tf.random_uniform(shape=[batch_size] + [1] * (ndims - 1), minval=0., maxval=1.)
-            print alpha
-            print alpha.get_shape()
-
             differences = self.generator_out - self.real_pc
-            print differences.get_shape()
-            
             interpolates = self.real_pc + (alpha * differences)
-
 
             with tf.variable_scope('discriminator') as scope:
                 gradients = tf.gradients(self.discriminator(interpolates, reuse=True, scope=scope, **disc_kwargs)[1], [interpolates])[0]
-            #     Reduce over all but the first dimension
+
+            # Reduce over all but the first dimension
             slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=range(1, ndims)))
             gradient_penalty = (slopes - 1.) ** 2
-            self.loss_d += tf.reduce_mean(lam * gradient_penalty)
+#             self.loss_d += tf.reduce_mean(lam * gradient_penalty)
 
             train_vars = tf.trainable_variables()
 
