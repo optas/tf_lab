@@ -44,7 +44,8 @@ class RawGAN_GP(GAN):
 
             # Compute gradient penalty at interpolated points
             ndims = self.real_pc.get_shape().ndims
-            batch_size = self.real_pc.get_shape().as_list()[0]
+#             batch_size = self.real_pc.get_shape().as_list()[0]
+            batch_size = tf.shape(self.real_pc, 0)
 
             print [batch_size] + [1] * (ndims - 1)
 
