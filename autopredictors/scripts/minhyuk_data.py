@@ -17,8 +17,8 @@ from tf_lab.autopredictors.evaluate import accuracy_of_completion
 from tf_lab.point_clouds.in_out import PointCloudDataSet
 
 
-top_gt_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/ground_truth_datasets'
-top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/benchmark_results/'
+top_gt_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/ground_truth_datasets'   # Complete data top dir.
+top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/benchmark_results/'   # Incomplete data top-dir.
 
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
 test_axis_swaps = [[2, 0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]                                            # Not all data classes come with a standard x-y-z system.
