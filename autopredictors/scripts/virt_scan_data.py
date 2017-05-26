@@ -10,7 +10,9 @@ import struct
 import numpy as np
 import os.path as osp
 from collections import defaultdict
+
 from geo_tool import Point_Cloud
+from general_tools.simpletons import indices_in_iterable
 
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet, train_validate_test_split
 from . helper import points_extension
@@ -148,7 +150,7 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_id
         scan_ids[i] = item[1]
 
     # # Match incomplete to complete data.
-    mapping = match_incomplete_to_complete_data(full_model_names, incomplete_model_names)
+    mapping = indices_in_iterable(full_model_names, incomplete_model_names)
     full_pclouds_matched = full_pclouds[mapping]
     ids = class_ids + '.' + incomplete_model_names + '.' + scan_ids
     return full_pclouds_matched, ids
@@ -163,7 +165,6 @@ def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, cl
     incomplete_pclouds, initial_ids, class_ids = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
     full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_ids)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
-
 
 
 def mask_of_permissible(model_names, permissible_file, class_syn_id=None):

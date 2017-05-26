@@ -60,7 +60,8 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu, reuse=False, scope=None):
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
+                         regularizer=None, weight_decay=0.001, reuse=False, scope=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
 
@@ -76,7 +77,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         if i == 0:
             layer = latent_signal
 
-        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
+        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
 
         if b_norm:
             name += '_bnorm'
@@ -88,6 +89,6 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     # Last decoding layer doesn't have a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)
     scope_i = expand_scope_by_name(scope, name)
-    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, reuse=reuse, scope=scope_i)
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
 
     return layer

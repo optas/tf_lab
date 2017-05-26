@@ -33,7 +33,7 @@ def plot_original_pclouds_vs_reconstructed(reconstructions, feed_data, ids, orig
         counter += 1
 
 
-def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=None, show=True):
+def plot_train_val_test_curves(stats, save_dir=None, has_validation=True, best_epoch=None, show=True):
     create_dir(save_dir)
     n_epochs = stats.shape[0]
     x = range(n_epochs)
@@ -66,7 +66,8 @@ def plot_train_val_test_curves(stats, save_dir, has_validation=True, best_epoch=
     else:
         tag = 'train-test-curves.png'
 
-    fig.savefig(osp.join(save_dir, tag))
+    if save_dir is not None:
+        fig.savefig(osp.join(save_dir, tag))
 
 
 def plot_reconstructions_at_epoch(epoch, model, in_data, configuration, save_dir, in_u_sphere=False, max_plot=None):
