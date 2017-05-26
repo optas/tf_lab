@@ -55,7 +55,7 @@ class PointNetAutoEncoder(AutoEncoder):
             if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
                 growth = c.allow_gpu_growth
             else:
-                growth = False
+                growth = True
 
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = growth

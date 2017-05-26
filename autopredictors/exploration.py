@@ -21,6 +21,8 @@ from geo_tool import Point_Cloud
 from .. point_clouds.in_out import apply_augmentations, PointCloudDataSet
 from .. point_clouds import in_out as pio
 
+from general_tools.simpletons import iterate_in_chunks
+
 
 def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True, apply_augmentation=False):
     '''
@@ -41,9 +43,38 @@ def latent_embedding_of_entire_dataset(dataset, model, conf, feed_original=True,
         feed_data = apply_augmentations(feed, conf)
 
     latent = []
-    for b in pio.chunks(feed_data, batch_size):
+    for b in iterate_in_chunks(feed_data, batch_size):
         latent.append(model.transform(b.reshape([len(b)] + conf.n_input)))
 
+    latent = np.vstack(latent)
+    return feed, latent, ids
+
+
+def embedding_of_entire_dataset_at_tensor(dataset, model, conf, tensor_name, feed_original=True, apply_augmentation=False):
+    '''
+    Observation: the next layer after latent (z) might be something interesting.
+    tensor_name: e.g. model.name + '_1/decoder_fc_0/BiasAdd:0'
+    '''
+    batch_size = conf.batch_size
+    original, ids, noise = dataset.full_epoch_data(shuffle=False)
+
+    if feed_original:
+        feed = original
+    else:
+        feed = noise
+        if feed is None:
+            feed = original
+
+    feed_data = feed
+    if apply_augmentation:
+        feed_data = apply_augmentations(feed, conf)
+
+    latent = []
+    latent_tensor = model.graph.get_tensor_by_name(tensor_name)
+    for b in iterate_in_chunks(feed_data, batch_size):
+        toappend = model.sess.run(latent_tensor,
+                                  feed_dict={model.x: b.reshape([len(b)] + conf.n_input)})
+        latent.append(toappend)
     latent = np.vstack(latent)
     return feed, latent, ids
 
@@ -87,14 +118,14 @@ def plot_mesh_2(in_mesh, show=True, in_u_sphere=False):
 
 
 def find_neighbors(X, Y=None, k=10):
-    '''If Y is provided, it returns the k-neighbors for each point in the X dataset. Otherwise, it finds the
-    neighbors of X in Y.
+    '''If Y is not provided, it returns the k neighbors of each point in the X dataset. Otherwise, it returns the
+    k neighbors of X in Y.
     '''
     s = 0
     if Y is None:
         Y = X
         k = k + 1   # First neighbor is one's shelf.
-        s = 1   # Used to drop the first-returned neighbor if needed.
+        s = 1       # Used to drop the first-returned neighbor if needed.
 
     nn = NearestNeighbors(n_neighbors=k).fit(X)
     distances, indices = nn.kneighbors(Y)
@@ -104,6 +135,10 @@ def find_neighbors(X, Y=None, k=10):
 
 
 def write_out_neighborhoods(write_out_file, X_labels, neighbors, distances, Y_labels=None):
+    '''
+    write_out_neighborhoods('train_10_neighbs.txt', tr_labels, neighbors, distances)
+    '''
+
     if Y_labels is None:
         Y_labels = X_labels
 

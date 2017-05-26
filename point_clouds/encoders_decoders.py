@@ -2,6 +2,7 @@
 Created on February 4, 2017
 
 @author: optas
+
 '''
 
 import tensorflow as tf
@@ -11,37 +12,46 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
 from . spatial_transformer import transformer as pcloud_spn
-
-try:
-    from tflearn.layers.conv import conv_3d_transpose
-except:
-    print('Loading manual conv_3d_transpose.')
-    from tf_lab.fundamentals.conv import conv_3d_transpose
+from .. fundamentals.utils import expand_scope_by_name
 
 
-def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_norm=True, spn=False, non_linearity=tf.nn.relu, symmetry=tf.reduce_max, dropout_prob=None):
+def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
+                                    b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+                                    symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
+    n_layers = len(n_filters)
+
+    if n_layers < 2:
+        raise ValueError('More than 1 layers are expected.')
+
     if spn:
         transformer = pcloud_spn(in_signal)
         in_signal = tf.batch_matmul(in_signal, transformer)
         print 'Spatial transformer was activated.'
 
-    layer = conv_1d(in_signal, nb_filter=layer_sizes[0], filter_size=1, strides=1, name='encoder_conv_layer_0')
+    name = 'encoder_conv_layer_0'
+    scope_i = expand_scope_by_name(scope, name)
+    layer = conv_1d(in_signal, nb_filter=n_filters[0], filter_size=filter_sizes[0], strides=strides[0], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
     if b_norm:
-        layer = batch_normalization(layer)
+        name += '_bnorm'
+        scope_i = expand_scope_by_name(scope, name)
+        layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
     layer = non_linearity(layer)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[1], filter_size=1, strides=1, name='encoder_conv_layer_1')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+    for i in xrange(1, n_layers):
+        name = 'encoder_conv_layer_' + str(i)
+        scope_i = expand_scope_by_name(scope, name)
+        layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
-    layer = conv_1d(layer, nb_filter=layer_sizes[2], filter_size=1, strides=1, name='encoder_conv_layer_2')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+        if b_norm:
+            name += '_bnorm'
+            scope_i = expand_scope_by_name(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
+        layer = non_linearity(layer)
 
     if dropout_prob is not None:
         layer = dropout(layer, dropout_prob)
@@ -50,87 +60,35 @@ def encoder_with_convs_and_symmetry(in_signal, layer_sizes=[64, 128, 1024], b_no
     return layer
 
 
-def encoder_with_convs_and_symmetry_and_multiple_dropout_lines(in_signal, layers=[64, 128, 1024], b_norm=True, spn=False,
-                                                               non_linearity=tf.nn.relu, symmetry=tf.reduce_max):
-    # TODO Investigate more.
-    '''An Encoder (recognition network), which maps inputs onto a latent space.
-    '''
-
-    layer = conv_1d(in_signal, nb_filter=64, filter_size=1, strides=1, name='encoder_conv_layer_0')
-    layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    layer = conv_1d(layer, nb_filter=128, filter_size=1, strides=1, name='encoder_conv_layer_1')
-    layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    layer = conv_1d(layer, nb_filter=1024, filter_size=1, strides=1, name='encoder_conv_layer_1')
-    layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    layerd1 = dropout(layer, 0.5)
-    layerd1 = symmetry(layerd1, axis=1)
-
-    layerd2 = dropout(layer, 0.5)
-    layerd2 = symmetry(layerd2, axis=1)
-
-    layer = tf.concat(1, [layerd1, layerd2])
-    layer = tf.reshape(layer, [-1, 2, 1024])
-    layer = symmetry(layer, axis=1)
-    return layer
-
-
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu):
-    ''' A decoding network which maps points from the latent space back onto the data space.
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
+                         regularizer=None, weight_decay=0.001, reuse=False, scope=None):
+    '''A decoding network which maps points from the latent space back onto the data space.
     '''
 
     n_layers = len(layer_sizes)
+
     if n_layers < 2:
         raise ValueError('For an FC decoder with single a layer use simpler code.')
 
-    layer = fully_connected(latent_signal, layer_sizes[0], activation='linear', weights_init='xavier', name='decoder_fc_0')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
+    for i in xrange(0, n_layers - 1):
+        name = 'decoder_fc_' + str(i)
+        scope_i = expand_scope_by_name(scope, name)
 
-    for i in xrange(1, n_layers - 1):
-        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name='decoder_fc_' + str(i))
+        if i == 0:
+            layer = latent_signal
+
+        layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
+
         if b_norm:
-            layer = batch_normalization(layer)
+            name += '_bnorm'
+            scope_i = expand_scope_by_name(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
         layer = non_linearity(layer)
 
-    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name='decoder_fc_' + str(n_layers - 1))  # Last decoding layer doesn't have a non-linearity.
+    # Last decoding layer doesn't have a non-linearity.
+    name = 'decoder_fc_' + str(n_layers - 1)
+    scope_i = expand_scope_by_name(scope, name)
+    layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
 
-    return layer
-
-
-def decoder_in_voxel_space_v0(latent_signal, b_norm=True, non_linearity=tf.nn.relu):
-    # TODO make it work with variable input/filter sizes
-    layer = fully_connected(latent_signal, 1024, activation='linear', weights_init='xavier')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    layer = fully_connected(layer, 32 * 4 * 4 * 4, activation='linear', weights_init='xavier')
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    # Virtually treat the signal as 4 x 4 x 4 Voxels, each having 32 channels.
-    layer = tf.reshape(layer, [-1, 4, 4, 4, 32])
-
-    # Up-sample signal in an 8 x 8 x 8 voxel-space, with 16 channels.
-    layer = conv_3d_transpose(layer, nb_filter=16, filter_size=4, output_shape=[8, 8, 8], strides=2)
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    # Up-sample signal in an 16 x 16 x 16 voxel-space, with 8 channels.
-    layer = conv_3d_transpose(layer, nb_filter=8, filter_size=4, output_shape=[16, 16, 16], strides=2)
-    if b_norm:
-        layer = batch_normalization(layer)
-    layer = non_linearity(layer)
-
-    # Up-sample signal in an 32 x 32 x 32 voxel-space, with 1 channel.
-    layer = conv_3d_transpose(layer, nb_filter=1, filter_size=4, output_shape=[32, 32, 32], strides=2)
     return layer

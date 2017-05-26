@@ -1,0 +1,19 @@
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_1.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_3.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_10.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_30.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_100.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_300.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_400.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/nb_ae_emd_sofa_2048_pts/epoch_500.npz 3 sofa
+
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_100.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_200.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_300.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_400.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_500.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_600.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_700.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_800.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_900.npz 3 sofa
+python inference.py /orions4-zfs/projects/lins2/Panos_Space/DATA/OUT/nips/our_synthetic_samples/sofa_mlp_arch_raw_gan_2048_pts/epoch_1000.npz 3 sofa

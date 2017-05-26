@@ -166,7 +166,7 @@ class AutoEncoder(object):
             z = np.expand_dims(z, 0)
         return self.sess.run((self.x_reconstr), {self.z: z})
 
-    def train(self, train_data, configuration):
+    def train(self, train_data, configuration, log_file=None):
         c = configuration
         stats = []
 
@@ -180,6 +180,8 @@ class AutoEncoder(object):
 
             if epoch % c.loss_display_step == 0:
                 print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
+                if log_file is not None:
+                    log_file.write('%04d\t%.9f\t%.4f\n' % (epoch, loss, duration / 60.0))
 
             # Save the models checkpoint periodically.
             if c.saver_step is not None and (epoch % c.saver_step == 0 or epoch - 1 == 0):

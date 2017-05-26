@@ -3,22 +3,22 @@ Created on February 27, 2017
 
 @author: optas
 
- Data used by Dai et al. in  
+ Data used by Dai et al. in
 '''
 
 import struct
 import numpy as np
 import os.path as osp
 from collections import defaultdict
+
 from geo_tool import Point_Cloud
+from general_tools.simpletons import indices_in_iterable
 
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet, train_validate_test_split
-from . helper import match_incomplete_to_complete_data, points_extension
+from . helper import points_extension
 
 
-######################## New code ########################
-
-
+# Plotting Parameters for ICCV submission.
 in_u_sphere_plotting = {'chair': True, 'airplane': False, 'cabinet': False, 'car': False, 'lamp': True, 'sofa': True, 'table': True, 'vessel': False}
 
 azimuth_angles = {'chair': -50, 'airplane': 0, 'cabinet': -40, 'car': -60, 'lamp': 0, 'sofa': -60, 'table': 60, 'vessel': -60}
@@ -28,7 +28,8 @@ plotting_color = {'chair': 'g', 'airplane': 'b', 'cabinet': 'orange', 'car': 'r'
 
 def plotting_default_params(category):
     kwdict = {}
-    kwdict['in_u_sphere'] = False
+    kwdict['show_axis'] = False
+    kwdict['in_u_sphere'] = in_u_sphere_plotting[category]
     kwdict['azim'] = azimuth_angles[category]
     kwdict['color'] = plotting_color[category]
     return kwdict
@@ -70,6 +71,24 @@ def load_partial_pointclouds(file_list, top_in_dir, n_threads, ending='.ply', cl
     pclouds, model_ids, class_ids = load_crude_point_clouds(file_names=file_names, n_threads=n_threads, loader=pc_loader)
     print('{0} partial point clouds were loaded.'.format(len(pclouds)))
     return pclouds, model_ids, class_ids
+
+
+def make_validation_from_train_data(train_data, validation_percent):
+    ''' TODO: check it is deterministic.
+    '''
+    all_tr_labels = np.array([x[:-6] for x in train_data.labels], dtype=object)  # Remove the scan_id.
+    all_tr_labels_u = np.unique(all_tr_labels)
+    train_new = train_validate_test_split(all_tr_labels_u, train_perc=1.0 - validation_percent, validate_perc=validation_percent, test_perc=0.0, shuffle=False)[0]
+    tr_indicator = set(train_new)
+    mask = np.zeros(len(all_tr_labels), dtype=np.bool)
+    for i, label in enumerate(all_tr_labels):
+        if label in tr_indicator:
+            mask[i] = True
+
+    train_data_ = PointCloudDataSet(train_data.point_clouds[mask], labels=train_data.labels[mask], noise=train_data.noisy_point_clouds[mask], init_shuffle=False)
+    mask = np.logical_not(mask)
+    val_data = PointCloudDataSet(train_data.point_clouds[mask], labels=train_data.labels[mask], noise=train_data.noisy_point_clouds[mask], init_shuffle=False)
+    return train_data_, val_data
 
 
 ######################## Code used in ICCV submission ########################
@@ -131,7 +150,7 @@ def match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_id
         scan_ids[i] = item[1]
 
     # # Match incomplete to complete data.
-    mapping = match_incomplete_to_complete_data(full_model_names, incomplete_model_names)
+    mapping = indices_in_iterable(full_model_names, incomplete_model_names)
     full_pclouds_matched = full_pclouds[mapping]
     ids = class_ids + '.' + incomplete_model_names + '.' + scan_ids
     return full_pclouds_matched, ids
@@ -146,23 +165,6 @@ def load_single_class_incomplete_dataset(top_data_dir, permissible_file_list, cl
     incomplete_pclouds, initial_ids, class_ids = load_incomplete_pointclouds(top_data_dir, data_dict, n_threads, search_pattern)
     full_pclouds_matched, ids = match_to_complete_data(initial_ids, full_model_names, full_pclouds, class_ids)
     return PointCloudDataSet(full_pclouds_matched, noise=incomplete_pclouds, labels=ids)
-
-
-def make_validation_from_train_data(train_data, sample_percent):
-    all_tr_labels = [x[:-6] for x in train_data.labels]  # remove the scan_id
-    all_tr_labels = np.array(all_tr_labels, dtype=object)
-    all_tr_labels_u = np.unique(all_tr_labels)
-    train_new = train_validate_test_split(all_tr_labels_u, train_perc=1 - sample_percent, validate_perc=sample_percent, test_perc=0, shuffle=False)[0]
-    tr_indicator = set(train_new)
-    mask = np.zeros(len(all_tr_labels), dtype=np.bool)
-    for i, label in enumerate(all_tr_labels):
-        if label in tr_indicator:
-            mask[i] = True
-
-    train_data_ = PointCloudDataSet(train_data.point_clouds[mask], labels=train_data.labels[mask], noise=train_data.noisy_point_clouds[mask])
-    mask = np.logical_not(mask)
-    val_data = PointCloudDataSet(train_data.point_clouds[mask], labels=train_data.labels[mask], noise=train_data.noisy_point_clouds[mask])
-    return train_data_, val_data
 
 
 def mask_of_permissible(model_names, permissible_file, class_syn_id=None):

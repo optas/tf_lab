@@ -77,13 +77,6 @@ def load_filenames_of_input_data(top_directory, file_extension=points_extension,
     return res
 
 
-def chunks(l, n):
-    '''Yield successive n-sized chunks from l (last chunk might be smaller than l).
-    '''
-    for i in xrange(0, len(l), n):
-        yield l[i:i + n]
-
-
 def train_validate_test_split(arrays, train_perc=0, validate_perc=0, test_perc=0, shuffle=True, seed=None):
     ''' This is a memory expensive operation since by using slicing it copies the arrays.
     '''
@@ -179,9 +172,10 @@ class PointCloudDataSet(object):
     See https://github.com/tensorflow/tensorflow/blob/a5d8217c4ed90041bea2616c14a8ddcf11ec8c03/tensorflow/examples/tutorials/mnist/input_data.py
     '''
 
-    def __init__(self, point_clouds, noise=None, labels=None, copy=True):
+    def __init__(self, point_clouds, noise=None, labels=None, copy=True, init_shuffle=True):
         '''Construct a DataSet.
         Args:
+            init_shuffle, shuffle data before first epoch has been reached.
         Output:
             original_pclouds, labels, (None or Feed) # TODO Rename
         '''
@@ -215,7 +209,8 @@ class PointCloudDataSet(object):
 
         self.epochs_completed = 0
         self._index_in_epoch = 0
-        self.shuffle_data()
+        if init_shuffle:
+            self.shuffle_data()
 
     def shuffle_data(self, seed=None):
         if seed is not None:
