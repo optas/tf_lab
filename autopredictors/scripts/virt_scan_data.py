@@ -13,7 +13,7 @@ from collections import defaultdict
 from geo_tool import Point_Cloud
 
 from ... point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds, PointCloudDataSet, train_validate_test_split
-from . helper import match_incomplete_to_complete_data, points_extension
+from . helper import points_extension
 
 
 # Plotting Parameters for ICCV submission.
