@@ -179,10 +179,9 @@ class AutoEncoder(object):
             stats.append((epoch, loss, duration))
 
             if epoch % c.loss_display_step == 0:
-                display_msg = "Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss)
-                print(display_msg)
+                print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
                 if log_file is not None:
-                    log_file.write(display_msg + '\n')
+                    log_file.write('%04d\t%.9f\t%.4f\n' % (epoch, loss, duration / 60.0))
 
             # Save the models checkpoint periodically.
             if c.saver_step is not None and (epoch % c.saver_step == 0 or epoch - 1 == 0):
