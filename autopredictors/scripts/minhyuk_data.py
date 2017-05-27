@@ -43,32 +43,46 @@ def bounding_box_of_3d_points(points):
     return xmin, ymin, zmin
 
 
-def load_file_names_of_category(category_id):
+def load_file_names_of_category(category_name):
     ''' Will return for a given category of data, all the incomplete file names, with corresponding completions.
     '''
-    category = test_categories[category_id]
-    gt_off_dir = osp.join(top_gt_dir, category, 'off')
+
+    gt_off_dir = osp.join(top_gt_dir, category_name, 'off')
     gt_off_files = [f for f in files_in_subdirs(gt_off_dir, 'off$')]
     gt_names = [osp.basename(f)[:-len('.off')] for f in gt_off_files]
 
-    manifold_files = [osp.join(top_gt_dir, category, 'manifold', name + '.obj') for name in gt_names]
-    ply_file_prefix = osp.join(top_bench_dir, category, 'output')
+    manifold_files = [osp.join(top_gt_dir, category_name, 'manifold', name + '.obj') for name in gt_names]
+    ply_file_prefix = osp.join(top_bench_dir, category_name, 'output')
     ply_incomplete_files = [osp.join(ply_file_prefix, name, name + '_input.ply') for name in gt_names]
     ply_minhyuk_files = [osp.join(ply_file_prefix, name, name + '_0_fusion.ply') for name in gt_names]
     return ply_incomplete_files, ply_minhyuk_files, gt_off_files, manifold_files, gt_names
 
 
-def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
+def minhyuk_completions(category_name, n_samples=4096):
+    _, ply_minhyuk_files, _, _, _ = load_file_names_of_category(category_name)
+    swap = test_axis_swaps[category_name]
+    n_examples = len(ply_minhyuk_files)
+    minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
+    np.random.seed(42)  # TODO Is this enough? Push inside for loop? Need to save at disk?
+    for i in xrange(n_examples):
+        minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
+        minhyuk_pc.permute_points(swap)
+        minhyuk_pc, _ = minhyuk_pc.sample(n_samples)
+        minhyuk_pc.lex_sort()
+        minhyuk_pc_data[i] = minhyuk_pc.points
+    return minhyuk_pc_data
+
+
+def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
     ''' TODO: fix randomness.
     '''
-    ply_incomplete_files, ply_minhyuk_files, gt_off_files, manifold_files, gt_names = load_file_names_of_category(category_id)
-    swap = test_axis_swaps[category_id]
+    ply_incomplete_files, _, gt_off_files, manifold_files, gt_names = load_file_names_of_category(category_name)
+    swap = test_axis_swaps[category_name]
     bline_acc = []
     n_examples = len(ply_incomplete_files)
     inc_pc_data = np.zeros((n_examples, incomplete_n_samples, 3))
-    minhyuk_pc_data = np.zeros((n_examples, incomplete_n_samples, 3))
     comp_pc_data = np.zeros((n_examples, complete_n_samples, 3))
-    labels_data = np.array([test_categories[category_id] + '.' + name for name in gt_names], dtype=object)
+    labels_data = np.array([category_name + '.' + name for name in gt_names], dtype=object)
 
     if manifold:
         gt_files = manifold_files
@@ -76,17 +90,12 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         gt_files = gt_off_files
 
     np.random.seed(42)
+
     for i in xrange(n_examples):
         inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
         inc_pc.permute_points(swap)
         inc_pc, _ = inc_pc.sample(incomplete_n_samples)
         inc_pc.lex_sort()
-
-        minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
-        minhyuk_pc.permute_points(swap)
-        minhyuk_pc, _ = minhyuk_pc.sample(incomplete_n_samples)
-        minhyuk_pc.lex_sort()
-        minhyuk_pc_data[i] = minhyuk_pc.points
 
         in_mesh = Mesh(file_name=gt_files[i])
         in_mesh = cleaning.clean_mesh(in_mesh)
@@ -98,18 +107,17 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         # Lin
         gap = comp_pc.center_axis()[1]
         inc_pc.points = inc_pc.points - gap
-        inc_pc.rotate_z_axis_by_degrees(rotation_categories[test_categories[category_id]][i])
-        comp_pc.rotate_z_axis_by_degrees(rotation_categories[test_categories[category_id]][i])
+        inc_pc.rotate_z_axis_by_degrees(rotation_categories[category_name][i])
+        comp_pc.rotate_z_axis_by_degrees(rotation_categories[category_name][i])
         xmin, ymin, zmin = bounding_box_of_3d_points(comp_pc.points)
-        shrink_categories[test_categories[category_id]][i] = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
-        inc_pc_data[i] = inc_pc.points / (shrink_categories[test_categories[category_id]][i])
-        comp_pc_data[i] = comp_pc.points / (shrink_categories[test_categories[category_id]][i])
+        shrink_categories[category_name][i] = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
+        inc_pc_data[i] = inc_pc.points / (shrink_categories[category_name][i])
+        comp_pc_data[i] = comp_pc.points / (shrink_categories[category_name][i])
         # end Lin
 
-#         bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
-        bline_acc = 0.0
+        bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
 
-    return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc, minhyuk_pc_data
+    return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
 
 
 
