@@ -29,15 +29,18 @@ test_axis_swaps = {'assembly_chairs': [2, 0, 1],
                    'shapenet_tables': [0, 1, 2]
                    }
 
-rotation_categories = {'assembly_chairs':[0]*64,
-                       'assembly_airplanes':[0]*58,
-                       'coseg_chairs':[-90]*291,
-                       'shapenet_tables':[0]*37}
+rotation_categories = {'assembly_chairs': [0] * 64,
+                       'assembly_airplanes': [0] * 58,
+                       'coseg_chairs': [-90] * 291,
+                       'shapenet_tables': [0] * 37
+                       }
 
-shrink_categories = {'assembly_chairs':[1]*64,
-                     'assembly_airplanes':[1]*58,
-                     'coseg_chairs':[1]*291,
-                     'shapenet_tables':[1]*37}
+shrink_categories = {'assembly_chairs': [1] * 64,
+                     'assembly_airplanes': [1] * 58,
+                     'coseg_chairs': [1] * 291,
+                     'shapenet_tables': [1] * 37
+                     }
+
 
 def bounding_box_of_3d_points(points):
     xmin = np.min(points[:, 0])
@@ -65,12 +68,17 @@ def load_file_names_of_category(category_name):
 
 
 def minhyuk_completions(category_name, n_samples=4096):
+    '''
+    Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
+    '''
+    print 'inside'
     _, ply_minhyuk_files, _, _, _ = load_file_names_of_category(category_name)
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
     np.random.seed(42)  # TODO Is this enough? Push inside for loop? Need to save at disk?
-    for i in xrange(n_examples):
+    for i in xrange(n_examples[:5]):
+        print ply_minhyuk_files[i]
         minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
         minhyuk_pc.permute_points(swap)
         minhyuk_pc, _ = minhyuk_pc.sample(n_samples)
