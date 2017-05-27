@@ -68,24 +68,37 @@ def load_file_names_of_category(category_name):
 
 
 def minhyuk_completions(category_name, n_samples=4096):
+    '''Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
     '''
-    Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
-    '''
-    print 'inside'
     _, ply_minhyuk_files, _, _, _ = load_file_names_of_category(category_name)
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
     np.random.seed(42)  # TODO Is this enough? Push inside for loop? Need to save at disk?
-#     for i in xrange(n_examples):
-    for i in xrange(5):
-        print ply_minhyuk_files[i]
+    for i in xrange(n_examples):
         minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
         minhyuk_pc.permute_points(swap)
         minhyuk_pc, _ = minhyuk_pc.sample(n_samples)
         minhyuk_pc.lex_sort()
         minhyuk_pc_data[i] = minhyuk_pc.points
     return minhyuk_pc_data
+
+
+def groundtruth_point_clouds(category_name, n_samples):
+    _, _, gt_off_files, _, gt_names = load_file_names_of_category(category_name)
+    swap = test_axis_swaps[category_name]
+    n_examples = len(gt_off_files)
+    comp_pc_data = np.zeros((n_examples, n_samples, 3))
+    np.random.seed(42)
+    for i in xrange(n_examples):
+        in_mesh = Mesh(file_name=gt_off_files[i])
+        in_mesh = cleaning.clean_mesh(in_mesh)
+        in_mesh.swap_axes_of_vertices_and_triangles(swap)
+        comp_pc, _ = in_mesh.sample_faces(n_samples)
+        comp_pc = Point_Cloud(points=comp_pc)
+        comp_pc.lex_sort()
+        comp_pc_data[i] = comp_pc.points
+    return comp_pc_data, gt_names
 
 
 def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
