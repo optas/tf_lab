@@ -21,7 +21,13 @@ top_gt_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_
 top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/benchmark_results/'   # Incomplete data top-dir.
 
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
-test_axis_swaps = [[2, 0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]                                            # Not all data classes come with a standard x-y-z system.
+
+# Not all data classes come with a standard x-y-z system.
+test_axis_swaps = {'assembly_chairs': [2, 0, 1],
+                   'assembly_airplanes': [0, 1, 2],
+                   'coseg_chairs': [0, 1, 2],
+                   'shapenet_tables': [0, 1, 2]
+                   }
 
 rotation_categories = {'assembly_chairs':[0]*64,
                        'assembly_airplanes':[0]*58,
