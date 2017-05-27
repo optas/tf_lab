@@ -70,7 +70,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess.run(self.init)
 
     def trainable_parameters(self):
-        # TODO: what happens if more nets in signle graph?
+        # TODO: what happens if more nets in single graph?
         return count_trainable_parameters(self.graph)
 
     def _create_loss_optimizer(self):
