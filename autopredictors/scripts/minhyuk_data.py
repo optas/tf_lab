@@ -77,7 +77,8 @@ def minhyuk_completions(category_name, n_samples=4096):
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
     np.random.seed(42)  # TODO Is this enough? Push inside for loop? Need to save at disk?
-    for i in xrange(n_examples[:5]):
+#     for i in xrange(n_examples):
+    for i in xrange(5):
         print ply_minhyuk_files[i]
         minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
         minhyuk_pc.permute_points(swap)
