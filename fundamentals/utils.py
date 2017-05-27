@@ -38,3 +38,4 @@ def leaky_relu(alpha):
         raise ValueError()
 
     return lambda x: tf.maximum(alpha * x, x)
+

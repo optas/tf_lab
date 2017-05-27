@@ -18,6 +18,7 @@ from . autoencoder import AutoEncoder
 from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
+from .. fundamentals.inspect import count_trainable_parameters
 
 try:
     if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
@@ -46,6 +47,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
         with tf.variable_scope(name):
             self.z = c.encoder(self.x, **c.encoder_args)
+            self.bottleneck_size = int(self.z.get_shape()[1])
             layer = c.decoder(self.z, **c.decoder_args)
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
@@ -66,7 +68,10 @@ class PointNetAutoEncoder(AutoEncoder):
             # Launch the session
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
-#         print 'Trainable Parameters = %d' % (.count_trainable_parameters(self.graph), )
+
+    def trainable_parameters(self):
+        # TODO: what happens if more nets in signle graph?
+        return count_trainable_parameters(self.graph)
 
     def _create_loss_optimizer(self):
         c = self.configuration
