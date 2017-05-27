@@ -23,12 +23,29 @@ top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Parti
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
 test_axis_swaps = [[2, 0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]                                            # Not all data classes come with a standard x-y-z system.
 
+rotation_categories = {'assembly_chairs':[0]*64,
+		       'assembly_airplanes':[0]*58,
+		       'coseg_chairs':[-90]*291,
+		       'shapenet_tables':[0]*37}
+
+shrink_categories = {'assembly_chairs':[1]*64,
+		    'assembly_airplanes':[1]*58,
+		    'coseg_chairs':[1]*291,
+		    'shapenet_tables':[1]*37}
+
+def bounding_box_of_3d_points(points):
+    xmin = np.min(points[:, 0])
+    xmax = np.max(points[:, 0])
+    ymin = np.min(points[:, 1])
+    ymax = np.max(points[:, 1])
+    zmin = np.min(points[:, 2])
+    zmax = np.max(points[:, 2])
+    return xmin, ymin, zmin
 
 def load_file_names_of_category(category_id):
     ''' Will return for a given category of data, all the incomplete file names, with corresponding completions.
     '''
     category = test_categories[category_id]
-    print category
     gt_off_dir = osp.join(top_gt_dir, category, 'off')
     gt_off_files = [f for f in files_in_subdirs(gt_off_dir, 'off$')]
     gt_names = [osp.basename(f)[:-len('.off')] for f in gt_off_files]
@@ -60,19 +77,24 @@ def dataset_of_category(category_id, incomplete_n_samples=2048, complete_n_sampl
         inc_pc.permute_points(swap)
         inc_pc, _ = inc_pc.sample(incomplete_n_samples)
         inc_pc.lex_sort()
-        inc_pc_data[i] = inc_pc.points
-
+        
         in_mesh = Mesh(file_name=gt_files[i])
         in_mesh = cleaning.clean_mesh(in_mesh)
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
         comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
         comp_pc = Point_Cloud(points=comp_pc)
         comp_pc.lex_sort()
-        comp_pc_data[i] = comp_pc.points
+	gap = comp_pc.center_axis()[1]
+	inc_pc.points = inc_pc.points - gap
+	inc_pc.rotate_z_axis_by_degrees(rotation_categories[test_categories[category_id]][i])
+	comp_pc.rotate_z_axis_by_degrees(rotation_categories[test_categories[category_id]][i])
+	xmin, ymin, zmin = bounding_box_of_3d_points(comp_pc.points)
+        shrink_categories[test_categories[category_id]][i] = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
+	inc_pc_data[i] = inc_pc.points/(shrink_categories[test_categories[category_id]][i])
+        comp_pc_data[i] = comp_pc.points/(shrink_categories[test_categories[category_id]][i])
+        		
         bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
-
     return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
-
 
 class KinectData(object):
     '''Real Scan (Kinect) Data used by Sung.
