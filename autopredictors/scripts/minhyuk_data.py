@@ -23,8 +23,8 @@ top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Parti
 test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
 
 # Not all data classes come with a standard x-y-z system.
-test_axis_swaps = {'assembly_chairs': [2, 0, 1],
-                   'assembly_airplanes': [0, 1, 2],
+test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
+                   'assembly_chairs': [0, 1, 2],
                    'coseg_chairs': [0, 1, 2],
                    'shapenet_tables': [0, 1, 2]
                    }
@@ -70,18 +70,18 @@ def load_file_names_of_category(category_name):
 def minhyuk_completions(category_name, n_samples=4096):
     '''Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
     '''
-    _, ply_minhyuk_files, _, _, _ = load_file_names_of_category(category_name)
+    _, ply_minhyuk_files, _, _, gt_names = load_file_names_of_category(category_name)
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
-    np.random.seed(42)  # TODO Is this enough? Push inside for loop? Need to save at disk?
+    np.random.seed(42)  # TODO Is this enough to eliminate randomness of sampling?
     for i in xrange(n_examples):
         minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
         minhyuk_pc.permute_points(swap)
         minhyuk_pc, _ = minhyuk_pc.sample(n_samples)
         minhyuk_pc.lex_sort()
         minhyuk_pc_data[i] = minhyuk_pc.points
-    return minhyuk_pc_data
+    return minhyuk_pc_data, gt_names
 
 
 def groundtruth_point_clouds(category_name, n_samples):
@@ -99,6 +99,21 @@ def groundtruth_point_clouds(category_name, n_samples):
         comp_pc.lex_sort()
         comp_pc_data[i] = comp_pc.points
     return comp_pc_data, gt_names
+
+
+def incomplete_point_clouds(category_name, n_samples):
+    ply_incomplete_files, _, _, _, gt_names = load_file_names_of_category(category_name)
+    swap = test_axis_swaps[category_name]
+    n_examples = len(ply_incomplete_files)
+    inc_pc_data = np.zeros((n_examples, n_samples, 3))
+    np.random.seed(42)
+    for i in xrange(n_examples):
+        inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
+        inc_pc.permute_points(swap)
+        inc_pc, _ = inc_pc.sample(n_samples)
+        inc_pc.lex_sort()
+        inc_pc_data[i] = inc_pc.points
+    return inc_pc_data, gt_names
 
 
 def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
@@ -148,23 +163,19 @@ def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_sam
     return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
 
 
-
-
-
-
-
-
-
-
 class KinectData(object):
     '''Real Scan (Kinect) Data used by Sung.
     '''
 
-    top_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Minhyuk/kinect_scan_data/'
+    top_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/kinect_scan_data/'
     model_names = ['chair001', 'chair002', 'chair003', 'chair006', 'table002', 'table004']
-    rotation_angles = np.array([-95, -145, 140, 39, 40, 60])  # Pre-processing for NN (i.e., rotate and swap axis)
+
+    # Pre-processing for NN (i.e., rotate and swap axis)
+    rotation_angles = np.array([-95, -145, 140, 39, 40, 60])
     perm = np.array([[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [1, 0, 2], [1, 0, 2]])
-    azimuth_angles = np.array([300, 260, 220, 240, 30, 40])   # Info for Visualization
+
+    # Info for Visualization
+    azimuth_angles = np.array([300, 260, 220, 240, 30, 40])
     in_u_s = [False, False, False, False, True, True]
 
     @classmethod
