@@ -71,6 +71,7 @@ def minhyuk_completions(category_name, n_samples=4096):
     '''Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
     '''
     _, ply_minhyuk_files, _, _, gt_names = load_file_names_of_category(category_name)
+    gt_names = np.array(gt_names, dtype=object)
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
@@ -86,6 +87,7 @@ def minhyuk_completions(category_name, n_samples=4096):
 
 def groundtruth_point_clouds(category_name, n_samples):
     _, _, gt_off_files, _, gt_names = load_file_names_of_category(category_name)
+    gt_names = np.array(gt_names, dtype=object)
     swap = test_axis_swaps[category_name]
     n_examples = len(gt_off_files)
     comp_pc_data = np.zeros((n_examples, n_samples, 3))
@@ -103,6 +105,7 @@ def groundtruth_point_clouds(category_name, n_samples):
 
 def incomplete_point_clouds(category_name, n_samples):
     ply_incomplete_files, _, _, _, gt_names = load_file_names_of_category(category_name)
+    gt_names = np.array(gt_names, dtype=object)
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_incomplete_files)
     inc_pc_data = np.zeros((n_examples, n_samples, 3))
