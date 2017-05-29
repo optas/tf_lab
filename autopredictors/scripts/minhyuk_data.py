@@ -67,7 +67,7 @@ def load_file_names_of_category(category_name):
     return ply_incomplete_files, ply_minhyuk_files, gt_off_files, manifold_files, gt_names
 
 
-def minhyuk_completions(category_name, n_samples=4096):
+def minhyuk_completions(category_name, n_samples):
     '''Returns a point-cloud with n_samples points, that was sub-sampled from the \'completed\' point-cloud Sung's method created.
     '''
     _, ply_minhyuk_files, _, _, gt_names = load_file_names_of_category(category_name)
