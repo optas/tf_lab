@@ -20,7 +20,7 @@ from tf_lab.point_clouds.in_out import PointCloudDataSet
 top_gt_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/ground_truth_datasets'   # Complete data top dir.
 top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/benchmark_results/'   # Incomplete data top-dir.
 
-test_categories = ['assembly_airplanes', 'assembly_bicycles', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
+test_categories = ['assembly_airplanes', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
 
 # Not all data classes come with a standard x-y-z system.
 test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
@@ -29,27 +29,12 @@ test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
                    'shapenet_tables': [0, 1, 2]
                    }
 
-rotation_categories = {'assembly_chairs': [0] * 64,
-                       'assembly_airplanes': [0] * 58,
-                       'coseg_chairs': [-90] * 291,
-                       'shapenet_tables': [0] * 37
-                       }
-
-shrink_categories = {'assembly_chairs': [1] * 64,
-                     'assembly_airplanes': [1] * 58,
-                     'coseg_chairs': [1] * 291,
-                     'shapenet_tables': [1] * 37
-                     }
-
-
-def bounding_box_of_3d_points(points):
-    xmin = np.min(points[:, 0])
-    xmax = np.max(points[:, 0])
-    ymin = np.min(points[:, 1])
-    ymax = np.max(points[:, 1])
-    zmin = np.min(points[:, 2])
-    zmax = np.max(points[:, 2])
-    return xmin, ymin, zmin
+# Applying the following rotations aligns the models with their corresponding ones in Shape-Net.
+rotation_degrees = {'assembly_chairs': 0,
+                    'assembly_airplanes': 0,
+                    'coseg_chairs': -90,
+                    'shapenet_tables': 0
+                    }
 
 
 def load_file_names_of_category(category_name):
@@ -75,8 +60,8 @@ def minhyuk_completions(category_name, n_samples):
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_minhyuk_files)
     minhyuk_pc_data = np.zeros((n_examples, n_samples, 3))
-    np.random.seed(42)  # TODO Is this enough to eliminate randomness of sampling?
     for i in xrange(n_examples):
+        np.random.seed(42)
         minhyuk_pc = Point_Cloud(ply_file=ply_minhyuk_files[i])
         minhyuk_pc.permute_points(swap)
         minhyuk_pc, _ = minhyuk_pc.sample(n_samples)
@@ -91,8 +76,8 @@ def groundtruth_point_clouds(category_name, n_samples):
     swap = test_axis_swaps[category_name]
     n_examples = len(gt_off_files)
     comp_pc_data = np.zeros((n_examples, n_samples, 3))
-    np.random.seed(42)
     for i in xrange(n_examples):
+        np.random.seed(42)
         in_mesh = Mesh(file_name=gt_off_files[i])
         in_mesh = cleaning.clean_mesh(in_mesh)
         in_mesh.swap_axes_of_vertices_and_triangles(swap)
@@ -109,14 +94,43 @@ def incomplete_point_clouds(category_name, n_samples):
     swap = test_axis_swaps[category_name]
     n_examples = len(ply_incomplete_files)
     inc_pc_data = np.zeros((n_examples, n_samples, 3))
-    np.random.seed(42)
     for i in xrange(n_examples):
+        np.random.seed(42)
         inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
         inc_pc.permute_points(swap)
         inc_pc, _ = inc_pc.sample(n_samples)
         inc_pc.lex_sort()
         inc_pc_data[i] = inc_pc.points
     return inc_pc_data, gt_names
+
+
+def normalize_point_clouds(gt_pclouds, other_pclouds, category_name):
+    '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale we apply some transformations to
+    Sung's data before doing comparisons.
+    '''
+
+    gt_pclouds = gt_pclouds.copy()
+    other_pclouds = other_pclouds.copy()
+    rot_degrees = rotation_degrees[category_name]
+    n_examples = len(gt_pclouds)
+
+    for i in xrange(n_examples):
+        gt_pc = Point_Cloud(gt_pclouds[i])    # Center around zero.
+        o_pc = Point_Cloud(other_pclouds[i])
+        _, gap = gt_pc.center_axis()
+        o_pc.points -= gap
+
+        scale = gt_pc.bounding_box().diagonal_length()  # Put GT bounding-box in unit-sphere.
+        gt_pc.points /= scale
+        o_pc.points /= scale
+
+        gt_pc.rotate_z_axis_by_degrees(rot_degrees)  # Rotate by rot_degrees.
+        o_pc.rotate_z_axis_by_degrees(rot_degrees)
+
+        gt_pclouds[i] = gt_pc.points
+        other_pclouds[i] = o_pc.points
+
+    return gt_pclouds, other_pclouds
 
 
 def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
@@ -153,12 +167,12 @@ def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_sam
         # Lin
         gap = comp_pc.center_axis()[1]
         inc_pc.points = inc_pc.points - gap
-        inc_pc.rotate_z_axis_by_degrees(rotation_categories[category_name][i])
-        comp_pc.rotate_z_axis_by_degrees(rotation_categories[category_name][i])
-        xmin, ymin, zmin = bounding_box_of_3d_points(comp_pc.points)
-        shrink_categories[category_name][i] = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
-        inc_pc_data[i] = inc_pc.points / (shrink_categories[category_name][i])
-        comp_pc_data[i] = comp_pc.points / (shrink_categories[category_name][i])
+        inc_pc.rotate_z_axis_by_degrees(rotation_degrees[category_name])
+        comp_pc.rotate_z_axis_by_degrees(rotation_degrees[category_name])
+        xmin, ymin, zmin = Cuboid.bounding_box_of_3d_points(comp_pc.points)[:3]
+        shrink = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
+        inc_pc_data[i] = inc_pc.points / shrink
+        comp_pc_data[i] = comp_pc.points / shrink
         # end Lin
 
         bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
