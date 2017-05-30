@@ -100,14 +100,14 @@ def incomplete_point_clouds(category_name, n_samples):
     return inc_pc_data, gt_names
 
 
-def normalize_point_clouds(gt_pclouds, other_pclouds, category_name):
+def normalize_point_clouds(gt_pclouds, other_pclouds, rot_degrees):
     '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale we apply some transformations to
     Sung's data before doing comparisons.
     '''
 
     gt_pclouds = gt_pclouds.copy()
     other_pclouds = other_pclouds.copy()
-    rot_degrees = rotation_degrees[category_name]
+#     rot_degrees = rotation_degrees[category_name]
     n_examples = len(gt_pclouds)
 
     for i in xrange(n_examples):
