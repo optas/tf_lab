@@ -30,11 +30,7 @@ test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
                    }
 
 # Applying the following rotations aligns the models with their corresponding ones in Shape-Net.
-rotation_degrees = {'assembly_chairs': 0,
-                    'assembly_airplanes': 0,
-                    'coseg_chairs': -90,
-                    'shapenet_tables': 0
-                    }
+rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chairs': -90, 'shapenet_tables': 0}
 
 
 def load_file_names_of_category(category_name):
