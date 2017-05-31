@@ -72,7 +72,7 @@ class PointNetAutoEncoder(AutoEncoder):
     def trainable_parameters(self):
         # TODO: what happens if more nets in single graph?
         return count_trainable_parameters(self.graph)
-
+    
     def _create_loss_optimizer(self):
         c = self.configuration
         if c.loss == 'l2':
@@ -118,6 +118,9 @@ class PointNetAutoEncoder(AutoEncoder):
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
+
+    def bp_gradient_on_input(self, in_points, gt_points):
+        return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
 
     @staticmethod
     def _consistency_loss(self):   # TODO Make instance method.
