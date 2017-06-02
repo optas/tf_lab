@@ -1,3 +1,12 @@
+def relevant_class(loss):
+    if loss == 'chamfer':
+        return Chamfer_Stats
+    elif loss == 'emd':
+        return EMD_Stats
+    else:
+        return None
+
+
 class Chamfer_Stats():
     experiments_ids = [4, 5, 6, 7, 8]
 
