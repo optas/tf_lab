@@ -119,6 +119,9 @@ class PointNetAutoEncoder(AutoEncoder):
         duration = time.time() - start_time
         return epoch_loss, duration
 
+    def bp_gradient_on_input(self, in_points, gt_points):
+        return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
+
     @staticmethod
     def _consistency_loss(self):   # TODO Make instance method.
         c = self.configuration
