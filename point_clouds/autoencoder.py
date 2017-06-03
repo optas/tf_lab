@@ -8,7 +8,6 @@ import warnings
 import os.path as osp
 import tensorflow as tf
 import numpy as np
-import time
 
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 
@@ -78,6 +77,7 @@ class Configuration():
     def load(file_name):
         return unpickle_data(file_name + '.pickle').next()
 
+
 class AutoEncoder(object):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
@@ -144,20 +144,23 @@ class AutoEncoder(object):
             return self.sess.run((self.x_reconstr, loss), feed_dict={self.x: X, self.gt: GT})
 
     def input_gradient(self, X, GT):
-	_, loss = self.sess.run((self.x_reconstr,self.loss),feed_dict={self.x: X, self.gt: GT})
-	self.var_grad = tf.gradients(self.loss, [self.x])
-	return self.sess.run(self.var_grad, feed_dict={self.x:X, self.gt: GT})
-	 
-    def salient_detection(self, in_data, configuration):
-        n_examples = in_data.num_examples
-        original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
-	b = 1 #configuration.batch_size
+        '''TODO: Clean up.
+        '''
+        self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
+        self.var_grad = tf.gradients(self.loss, [self.x])
+        return self.sess.run(self.var_grad, feed_dict={self.x: X, self.gt: GT})
 
+    def salient_detection(self, in_data, configuration):
+        '''TODO: Clean up.
+        '''
+        n_examples = in_data.num_examples
+        original_data, _, feed_data = in_data.full_epoch_data(shuffle=False)
+        b = 1
         input_gradients = np.zeros([n_examples] + self.n_input)
         for i in xrange(0, 500, b):
             print(i)
             input_gradients[i:i + b] = self.input_gradient(feed_data[i:i + b], original_data[i:i + b])[0]
-	return input_gradients
+        return input_gradients
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''

@@ -27,7 +27,7 @@ rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chai
 test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
                    'assembly_chairs': [0, 1, 2],
                    'coseg_chairs': [0, 1, 2],
-                   'shapenet_tables': [0, 1, 2]
+                   'shapenet_tables': [1, 0, 2]
                    }
 
 
@@ -105,7 +105,6 @@ def normalize_point_clouds(gt_pclouds, other_pclouds, rot_degrees):
 
     gt_pclouds = gt_pclouds.copy()
     other_pclouds = other_pclouds.copy()
-#     rot_degrees = rotation_degrees[category_name]
     n_examples = len(gt_pclouds)
 
     for i in xrange(n_examples):
