@@ -13,14 +13,15 @@ import os.path as osp
 from general_tools.in_out.basics import files_in_subdirs
 from geo_tool import Mesh, Point_Cloud
 from geo_tool.solids import mesh_cleaning as cleaning
-from tf_lab.autopredictors.evaluate import accuracy_of_completion
-from tf_lab.point_clouds.in_out import PointCloudDataSet
 
 
 top_gt_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/ground_truth_datasets'   # Complete data top dir.
 top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Partial_PCs/Minhyuk_SigAsia_15/benchmark_results/'   # Incomplete data top-dir.
 
-test_categories = ['assembly_airplanes', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 5 synthetic classes of objects used for testing the method.
+category_names = ['assembly_airplanes', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 4 synthetic classes of objects used for testing the method.
+
+# Applying the following rotations aligns the models with their corresponding ones in Shape-Net.
+rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chairs': -90, 'shapenet_tables': 0}
 
 # Not all data classes come with a standard x-y-z system.
 test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
@@ -28,9 +29,6 @@ test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
                    'coseg_chairs': [0, 1, 2],
                    'shapenet_tables': [0, 1, 2]
                    }
-
-# Applying the following rotations aligns the models with their corresponding ones in Shape-Net.
-rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chairs': -90, 'shapenet_tables': 0}
 
 
 def load_file_names_of_category(category_name):
@@ -101,8 +99,8 @@ def incomplete_point_clouds(category_name, n_samples):
 
 
 def normalize_point_clouds(gt_pclouds, other_pclouds, rot_degrees):
-    '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale we apply some transformations to
-    Sung's data before doing comparisons.
+    '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale we
+    apply some transformations to Sung's data before doing comparisons.
     '''
 
     gt_pclouds = gt_pclouds.copy()
@@ -127,53 +125,6 @@ def normalize_point_clouds(gt_pclouds, other_pclouds, rot_degrees):
         other_pclouds[i] = o_pc.points
 
     return gt_pclouds, other_pclouds
-
-
-def dataset_of_category(category_name, incomplete_n_samples=2048, complete_n_samples=4096, manifold=True):
-    ''' TODO: fix randomness.
-    '''
-    ply_incomplete_files, _, gt_off_files, manifold_files, gt_names = load_file_names_of_category(category_name)
-    swap = test_axis_swaps[category_name]
-    bline_acc = []
-    n_examples = len(ply_incomplete_files)
-    inc_pc_data = np.zeros((n_examples, incomplete_n_samples, 3))
-    comp_pc_data = np.zeros((n_examples, complete_n_samples, 3))
-    labels_data = np.array([category_name + '.' + name for name in gt_names], dtype=object)
-
-    if manifold:
-        gt_files = manifold_files
-    else:
-        gt_files = gt_off_files
-
-    np.random.seed(42)
-
-    for i in xrange(n_examples):
-        inc_pc = Point_Cloud(ply_file=ply_incomplete_files[i])
-        inc_pc.permute_points(swap)
-        inc_pc, _ = inc_pc.sample(incomplete_n_samples)
-        inc_pc.lex_sort()
-
-        in_mesh = Mesh(file_name=gt_files[i])
-        in_mesh = cleaning.clean_mesh(in_mesh)
-        in_mesh.swap_axes_of_vertices_and_triangles(swap)
-        comp_pc, _ = in_mesh.sample_faces(complete_n_samples)
-        comp_pc = Point_Cloud(points=comp_pc)
-        comp_pc.lex_sort()
-
-        # Lin
-        gap = comp_pc.center_axis()[1]
-        inc_pc.points = inc_pc.points - gap
-        inc_pc.rotate_z_axis_by_degrees(rotation_degrees[category_name])
-        comp_pc.rotate_z_axis_by_degrees(rotation_degrees[category_name])
-        xmin, ymin, zmin = Cuboid.bounding_box_of_3d_points(comp_pc.points)[:3]
-        shrink = np.sqrt(xmin ** 2 + ymin ** 2 + zmin ** 2) * 2
-        inc_pc_data[i] = inc_pc.points / shrink
-        comp_pc_data[i] = comp_pc.points / shrink
-        # end Lin
-
-        bline_acc.append(accuracy_of_completion(inc_pc_data[i], comp_pc_data[i], thres=0.02))
-
-    return PointCloudDataSet(comp_pc_data, labels=labels_data, noise=inc_pc_data), bline_acc
 
 
 class KinectData(object):

@@ -1,7 +1,7 @@
 '''
 Created on April 26, 2017
 
-@author: optas, jingweij
+@author: optas
 '''
 
 import socket
@@ -9,7 +9,6 @@ import numpy as np
 import tensorflow as tf
 import warnings
 
-from numpy.linalg import norm
 from scipy.stats import entropy
 from sklearn.neighbors import NearestNeighbors
 
@@ -73,57 +72,14 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
 
 
 def jensen_shannon_divergence(P, Q):
-    '''
-    TODO: move to general tools
-    '''
     M = 0.5 * (P + Q)
     return 0.5 * (entropy(P, M) + entropy(Q, M))
 
 
-def point_cloud_distances(pclouds, block_size, dist='emd', sess=None):
-    ''' pclouds: numpy array (n_pc * n_points * 3)
-        block_size: int: pairwise distances among these many point-clouds will be computes.
-        TODO: (post-deadline) - iterate over all pairs.
-    '''
-
-    if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5 + 10e-4:
-        raise ValueError('Point-clouds have to be in unit sphere.')
-
-    num_clouds, num_points, dim = pclouds.shape
-    batch_size = block_size * (block_size - 1)
-    num_units = num_clouds // block_size
-    pc_1_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
-    pc_2_pl = tf.placeholder(tf.float32, shape=(batch_size, num_points, dim))
-
-    if sess is None:
-        sess = tf.Session()
-
-    dist = dist.lower()
-    if dist == 'emd':
-        match = approx_match(pc_1_pl, pc_2_pl)
-        loss = tf.reduce_mean(match_cost(pc_1_pl, pc_2_pl, match))
-    elif dist == 'chamfer':
-        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
-        loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-    else:
-        raise ValueError()
-
-    loss_list = []
-    for u in range(num_units):
-        pc_idx = np.arange(u * block_size, (u + 1) * block_size)
-        pc_idx1 = np.repeat(pc_idx, block_size - 1)
-        pc_idx2 = np.tile(pc_idx, block_size)
-        mask = np.arange(block_size ** 2)
-        mask = mask[mask % (block_size + 1) != 0]
-        pc_idx2 = pc_idx2[mask]
-        pc1 = pclouds[pc_idx1, :, :]
-        pc2 = pclouds[pc_idx2, :, :]
-        loss_d = sess.run([loss], feed_dict={pc_1_pl: pc1, pc_2_pl: pc2})
-        loss_list.append(loss_d[0])
-    return loss_list
-
-
 def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=None):
+    '''
+        pclouds: numpy array (n_pc * n_points * 3)
+    '''
     if np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > 0.5 + 10e-4:
         raise ValueError('Point-clouds have to be in unit sphere.')
 
