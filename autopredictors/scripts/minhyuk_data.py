@@ -99,7 +99,7 @@ def incomplete_point_clouds(category_name, n_samples):
 
 
 def normalize_point_clouds(gt_pclouds, other_pclouds, rot_degrees):
-    '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale we
+    '''Since our Neural Net was trained with Shape-Net5 data, which have specific orientation/scale/position we
     apply some transformations to Sung's data before doing comparisons.
     '''
 
