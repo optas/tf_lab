@@ -21,7 +21,7 @@ top_bench_dir = '/orions4-zfs/projects/lins2/Panos_Space/DATA/Point_Clouds/Parti
 category_names = ['assembly_airplanes', 'assembly_chairs', 'coseg_chairs', 'shapenet_tables']  # Names of the 4 synthetic classes of objects used for testing the method.
 
 # Applying the following rotations aligns the models with their corresponding ones in Shape-Net.
-rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chairs': -90, 'shapenet_tables': 0}
+rotation_degrees = {'assembly_airplanes': 0, 'assembly_chairs': -90, 'coseg_chairs': -90, 'shapenet_tables': 90}
 
 # Not all data classes come with a standard x-y-z system.
 test_axis_swaps = {'assembly_airplanes': [2, 0, 1],
