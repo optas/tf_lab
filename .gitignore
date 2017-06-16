@@ -3,6 +3,5 @@
 .pydevproject
 .ipynb_checkpoints
 *.swp
-notebooks/jingwei/c_*l_*/
 notebooks/lin/.ipynb_checkpoints/
 notebooks/panos/.ipynb_checkpoints/
