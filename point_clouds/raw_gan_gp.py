@@ -98,7 +98,7 @@ class RawGAN_GP(GAN):
                 feed, _, _ = train_data.next_batch(batch_size)
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.real_pc: feed, self.noise: z}
-                _, _, loss_d = self.sess.run([self.opt_d, self.d_clipper, self.loss_d], feed_dict=feed_dict)
+                _, loss_d = self.sess.run([self.opt_d, self.loss_d], feed_dict=feed_dict)
                 epoch_loss_d += loss_d
 
             # Update generator.
