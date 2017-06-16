@@ -32,7 +32,8 @@ class RawGAN_GP(GAN):
             self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
 
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
+                self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)
+#                 self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
