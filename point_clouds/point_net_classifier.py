@@ -23,16 +23,19 @@ class PointNetClassifier(object):
 
         c = configuration
         self.configuration = c
-
         self.n_input = configuration.n_input
         self.n_output = configuration.n_output
 
         in_shape = [None] + self.n_input
-        out_shape = [None] + self.n_output
+
+        if c.one_hot:
+            out_shape = [None] + self.n_output
+        else:
+            out_shape = [None]
 
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, in_shape)
-            self.gt = tf.placeholder(tf.float32, out_shape)
+            self.gt = tf.placeholder(tf.int32, out_shape)
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
