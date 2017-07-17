@@ -68,8 +68,6 @@ def compute_3D_sphere(resolution):
     grid, spacing = compute_3D_grid(resolution=resolution)
     pts = grid.reshape(-1, 3)
     pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
-#     pc = Point_Cloud(pts).center_in_unit_sphere()
-#     pts = pc.points
     return pts, spacing
 
 
