@@ -68,7 +68,7 @@ class PointNetClassifier(object):
         c = self.configuration
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.prediction, labels=self.gt)
         self.loss = tf.reduce_mean(loss)
-        tf.summary.scalar('Classification loss', self.loss)
+        tf.summary.scalar('Classification_loss', self.loss)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
     def partial_fit(self, X, GT):
