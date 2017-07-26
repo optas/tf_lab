@@ -37,7 +37,8 @@ class EMD_Stats():
                    256: (980, 51.021433926219608),
                    512: (990, 50.992049003639345),
                    1024: (950, 50.998874370522046),
-                   16: (960, 58.259854856723528)
+                   16: (960, 58.259854856723528),
+                   17: (950, 68.705645082)
                    }
 
     # This is epoch where each architecture reached the training loss achieved by the worse performing architecture (i.e., for the one with the 32-bottleneck layer).
@@ -45,4 +46,5 @@ class EMD_Stats():
                       64: (590, 56.1521346463),
                       128: (290, 56.2572510551),
                       256: (290, 56.3530345713),
-                      512: (260, 56.4351911322)}
+                      512: (260, 56.4351911322)
+                      }
