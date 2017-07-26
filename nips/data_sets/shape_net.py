@@ -29,8 +29,10 @@ shape_net_core_synth_id_to_category = {
     '03991062': 'pot',       '04004475': 'printer',    '04074963': 'remote_control',
     '04090263': 'rifle',     '04099429': 'rocket',     '04225987': 'skateboard',
     '04256520': 'sofa',      '04330267': 'stove',      '04530566': 'vessel',
-    '04554684': 'washer',    '02858304' :'boat',       '02992529': 'cellphone'
+    '04554684': 'washer',    '02858304': 'boat',       '02992529': 'cellphone'
 }
+
+# '02858304' (boat) and '02834778': 'bicycle', don't exist in SN-Core V2.
 
 
 def shape_net_category_to_synth_id():
