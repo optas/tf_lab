@@ -40,6 +40,7 @@ class EMD_Stats():
                    16: (960, 58.259854856723528),
                    8: (950, 68.705645082)
                    }
+                #4: ()
 
     # This is epoch where each architecture reached the training loss achieved by the worse performing architecture (i.e., for the one with the 32-bottleneck layer).
     max_min_epochs = {32: (960, 56.1049741057),
