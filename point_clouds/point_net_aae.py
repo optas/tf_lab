@@ -126,7 +126,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
-            epoch_losses += np.array(loss_s, loss_d, loss_g)
+            epoch_losses += np.array([loss_s, loss_d, loss_g])
 
         epoch_losses /= n_batches
         duration = time.time() - start_time
