@@ -58,8 +58,8 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
                 self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
 
             with tf.variable_scope('discriminator') as scope:
-                self.real_prob, self.real_logit = self.discriminator(self.z, scope=scope, **disc_kwargs)
-                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.noise, reuse=True, scope=scope, **disc_kwargs)
+                self.real_prob, self.real_logit = self.discriminator(self.noise, scope=scope, **disc_kwargs)
+                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.z, reuse=True, scope=scope, **disc_kwargs)
 
             self._create_structural_optimizer()
             self._create_adversarial_optimizer()
@@ -101,7 +101,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
-        print g_params
+
         self.opt_d = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_d, var_list=d_params)
         self.opt_g = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_g, var_list=g_params)
 
