@@ -93,7 +93,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             self.structural_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         self.structural_optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.structural_loss)
-        
+
     def _create_adversarial_optimizer(self):
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
@@ -101,6 +101,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
+        print g_params
         self.opt_d = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_d, var_list=d_params)
         self.opt_g = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_g, var_list=g_params)
 
