@@ -43,6 +43,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         c = configuration
         self.configuration = c
         self.noise_dim = noise_dim
+        self.discriminator = discriminator
 
         AutoEncoder.__init__(self, name, configuration)
 
