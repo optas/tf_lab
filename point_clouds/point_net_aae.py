@@ -54,7 +54,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
 
             with tf.variable_scope('encoder') as scope:
                 self.old_z = c.encoder(self.x, scope=scope, **c.encoder_args)
-                self.bottleneck_size = int(self.z.get_shape()[1])
+                self.bottleneck_size = int(self.old_z.get_shape()[1])
                 # To allow for negative values in bneck:
                 self.z = fully_connected(self.old_z, self.bottleneck_size, activation='linear', weights_init='xavier', scope=scope)
                 self.z = batch_normalization(self.z, scope=scope)
