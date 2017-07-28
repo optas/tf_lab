@@ -12,6 +12,7 @@ import os.path as osp
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
+from tflearn.layers.normalization import batch_normalization
 
 from general_tools.in_out.basics import create_dir
 
@@ -52,7 +53,11 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
 
             with tf.variable_scope('encoder') as scope:
-                self.z = c.encoder(self.x, scope=scope, **c.encoder_args)
+                self.old_z = c.encoder(self.x, scope=scope, **c.encoder_args)
+                self.bottleneck_size = int(self.z.get_shape()[1])
+                # To allow for negative values in bneck:
+                self.z = fully_connected(self.old_z, self.bottleneck_size, activation='linear', weights_init='xavier', scope=scope)
+                self.z = batch_normalization(self.z, scope=scope)
 
             with tf.variable_scope('decoder') as scope:
                 layer = c.decoder(self.z, scope=scope, **c.decoder_args)
@@ -64,8 +69,6 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
 
             self._create_structural_optimizer()
             self._create_adversarial_optimizer()
-
-            self.bottleneck_size = int(self.z.get_shape()[1])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
 
             # GPU configuration
@@ -108,7 +111,8 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         self.opt_g = tf.train.AdamOptimizer(c.lr_adv, c.beta_adv).minimize(self.loss_g, var_list=g_params)
 
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
-        return np.abs(np.random.normal(mu, sigma, (n_samples, ndims)))
+#         return np.abs(np.random.normal(mu, sigma, (n_samples, ndims)))
+        return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
@@ -122,7 +126,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             _, loss_s = self.sess.run((self.structural_optimizer, self.structural_loss), feed_dict={self.x: batch_i})
 
             # Update discriminator.
-            noise = self.generator_noise_distribution(batch_size, self.noise_dim, 0, 10)
+            noise = self.generator_noise_distribution(batch_size, self.noise_dim, 0, 1)
             feed_dict = {self.x: batch_i, self.noise: noise}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
