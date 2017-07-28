@@ -102,34 +102,32 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
 
-        self.opt_d = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_d, var_list=d_params)
-        self.opt_g = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_g, var_list=g_params)
+        self.opt_d = tf.train.AdamOptimizer(0.0005, 0.9).minimize(self.loss_d, var_list=d_params)
+        self.opt_g = tf.train.AdamOptimizer(0.0005, 0.9).minimize(self.loss_g, var_list=g_params)
+
+    def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
+        return np.abs(np.random.normal(mu, sigma, (n_samples, ndims)))
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
-        epoch_loss = 0.
+        epoch_losses = np.zeros(3)
         batch_size = configuration.batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         # Loop over all batches
         for _ in xrange(n_batches):
+            batch_i, _, _ = train_data.next_batch(batch_size)
+            _, loss_s = self.sess.run((self.structural_optimizer, self.structural_loss), feed_dict={self.x: batch_i})
 
-            if self.is_denoising:
-                original_data, _, batch_i = train_data.next_batch(batch_size)
-                if batch_i is None:  # In this case the denoising concern only the augmentation.
-                    batch_i = original_data
-            else:
-                batch_i, _, _ = train_data.next_batch(batch_size)
-
-            batch_i = apply_augmentations(batch_i, configuration)   # This is a new copy of the batch.
-
-            if self.is_denoising:
-                loss, _ = self.partial_fit(batch_i, original_data)
-            else:
-                loss, _ = self.partial_fit(batch_i)
+            # Update discriminator.
+            noise = self.generator_noise_distribution(batch_size, self.noise_dim, 0, 1)
+            feed_dict = {self.x: batch_i, self.noise: noise}
+            loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+            loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
             # Compute average loss
-            epoch_loss += loss
-        epoch_loss /= n_batches
+            epoch_losses += np.array(loss_s, loss_d, loss_g)
+
+        epoch_losses /= n_batches
         duration = time.time() - start_time
-        return epoch_loss, duration
+        return epoch_losses, duration
