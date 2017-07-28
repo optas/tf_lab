@@ -87,10 +87,10 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         c = self.configuration
         if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
-            self.strucural_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            self.structural_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
-            self.strucural_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+            self.structural_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         self.structural_optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.structural_loss)
 
@@ -101,9 +101,8 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
-
-        self.opt_d = self.optimizer(0.0001, 0.9, self.loss_d, d_params)
-        self.opt_g = self.optimizer(0.0001, 0.9, self.loss_g, g_params)
+        self.opt_d = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_d, var_list=d_params)
+        self.opt_g = tf.train.AdamOptimizer(0.0001, 0.9).minimize(self.loss_g, var_list=g_params)
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
