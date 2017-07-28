@@ -8,6 +8,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import socket
+import os.path as osp
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
@@ -95,6 +96,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         self.structural_optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.structural_loss)
 
     def _create_adversarial_optimizer(self):
+        c = self.configuration
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
 
@@ -102,8 +104,8 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
 
-        self.opt_d = tf.train.AdamOptimizer(0.0005, 0.9).minimize(self.loss_d, var_list=d_params)
-        self.opt_g = tf.train.AdamOptimizer(0.0005, 0.9).minimize(self.loss_g, var_list=g_params)
+        self.opt_d = tf.train.AdamOptimizer(c.lr_adv, c.beta_adv).minimize(self.loss_d, var_list=d_params)
+        self.opt_g = tf.train.AdamOptimizer(c.lr_adv, c.beta_adv).minimize(self.loss_g, var_list=g_params)
 
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
         return np.abs(np.random.normal(mu, sigma, (n_samples, ndims)))
@@ -120,7 +122,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             _, loss_s = self.sess.run((self.structural_optimizer, self.structural_loss), feed_dict={self.x: batch_i})
 
             # Update discriminator.
-            noise = self.generator_noise_distribution(batch_size, self.noise_dim, 0, 1)
+            noise = self.generator_noise_distribution(batch_size, self.noise_dim, 0, 10)
             feed_dict = {self.x: batch_i, self.noise: noise}
             loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
             loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
@@ -131,3 +133,25 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         epoch_losses /= n_batches
         duration = time.time() - start_time
         return epoch_losses, duration
+
+    def train(self, train_data, configuration, log_file=None):
+        c = configuration
+        stats = []
+
+        if c.saver_step is not None:
+            create_dir(c.train_dir)
+
+        for _ in xrange(c.training_epochs):
+            loss, duration = self._single_epoch_train(train_data, c)
+            epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
+            stats.append((epoch, loss, duration))
+
+            if epoch % c.loss_display_step == 0:
+                print("Epoch:", '%04d' % (epoch), 'training time (minutes)=', "{:.4f}".format(duration / 60.0), "loss", loss)
+                if log_file is not None:
+                    log_file.write('%04d\t%.9f\t%.4f\n' % (epoch, loss, duration / 60.0))
+
+            # Save the models checkpoint periodically.
+            if c.saver_step is not None and (epoch % c.saver_step == 0 or epoch - 1 == 0):
+                checkpoint_path = osp.join(c.train_dir, 'models.ckpt')
+                self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
