@@ -36,22 +36,35 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
     An Auto-Encoder replicating the architecture of Charles and Hao paper.
     '''
 
-    def __init__(self, name, configuration, graph=None):
+    def __init__(self, name, configuration, noise_dim, discriminator, disc_kwargs={}, graph=None):
         if graph is None:
             self.graph = tf.get_default_graph()     # TODO change to make a new graph.
 
         c = configuration
         self.configuration = c
+        self.noise_dim = noise_dim
 
         AutoEncoder.__init__(self, name, configuration)
 
         with tf.variable_scope(name):
-            self.z = c.encoder(self.x, **c.encoder_args)
+            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
+
+            with tf.variable_scope('encoder') as scope:
+                self.z = c.encoder(self.x, scope=scope, **c.encoder_args)
+
+            with tf.variable_scope('decoder') as scope:
+                layer = c.decoder(self.z, scope=scope, **c.decoder_args)
+                self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
+
+            with tf.variable_scope('discriminator') as scope:
+                self.real_prob, self.real_logit = self.discriminator(self.z, scope=scope, **disc_kwargs)
+                self.synthetic_prob, self.synthetic_logit = self.discriminator(self.noise, reuse=True, scope=scope, **disc_kwargs)
+
+            self._create_structural_optimizer()
+            self._create_aversarial_optimizer()
+
             self.bottleneck_size = int(self.z.get_shape()[1])
-            layer = c.decoder(self.z, **c.decoder_args)
-            self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
-            self._create_loss_optimizer()
 
             # GPU configuration
             if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
@@ -69,18 +82,27 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
 
-    def _create_loss_optimizer(self):
+    def _create_structural_optimizer(self):
         c = self.configuration
-        if c.loss == 'l2':
-            self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
-        elif c.loss == 'chamfer':
+        if c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
-            self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+            self.strucural_loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
-            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
+            self.strucural_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
+        self.structural_optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.structural_loss)
+
+    def _create_adversarial_optimizer(self):
+        self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+        self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
+
+        train_vars = tf.trainable_variables()
+        d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
+        g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
+
+        self.opt_d = self.optimizer(0.0001, 0.9, self.loss_d, d_params)
+        self.opt_g = self.optimizer(0.0001, 0.9, self.loss_g, g_params)
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
@@ -110,33 +132,3 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
-
-    def bp_gradient_on_input(self, in_points, gt_points):
-        return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
-
-    @staticmethod
-    def _consistency_loss(self):   # TODO Make instance method.
-        c = self.configuration
-        batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
-        batch_indicator = batch_indicator.repeat(self.n_input[0])
-        batch_indicator = tf.constant(batch_indicator, dtype=tf.int32)
-        batch_indicator = tf.expand_dims(batch_indicator, 1)
-
-        output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
-        _, indices = tf.nn.top_k(output_mask, self.n_input[0], sorted=False)
-
-        indices = tf.reshape(indices, [-1])
-        indices = tf.expand_dims(indices, 1)
-        indices = tf.concat(1, [batch_indicator, indices])
-
-        self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
-        self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
-
-        if c.consistent_io.lower() == 'chamfer':
-            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
-            return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-        elif c.consistent_io.lower() == 'emd':
-            match = approx_match(self.output_cons_subset, self.x)
-            return tf.reduce_mean(match_cost(self.output_cons_subset, self.x, match))
-        else:
-            assert(False)
