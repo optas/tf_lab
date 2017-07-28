@@ -62,7 +62,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.noise, reuse=True, scope=scope, **disc_kwargs)
 
             self._create_structural_optimizer()
-            self._create_aversarial_optimizer()
+            self._create_adversarial_optimizer()
 
             self.bottleneck_size = int(self.z.get_shape()[1])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
@@ -93,7 +93,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             self.structural_loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         self.structural_optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.structural_loss)
-
+        
     def _create_adversarial_optimizer(self):
         self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
         self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
