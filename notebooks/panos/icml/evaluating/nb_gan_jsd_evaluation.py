@@ -1,20 +1,25 @@
 
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
-# Stop warnings
 import warnings
-warnings.filterwarnings("ignore")
 import os
+# Ignore TF related warnings.
+warnings.filterwarnings("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
-# In[3]:
+# In[2]:
+
+from bench_pc_gan.evaluate_gan import entropy_of_occupancy_grid, jensen_shannon_divergence
+# tf_lab.nips.evaluate_gan import entropy_of_occupancy_grid, jensen_shannon_divergence
+
+
+# In[4]:
 
 import os.path as osp
 import numpy as np
-from tf_lab.nips.evaluate_gan import entropy_of_occupancy_grid, jensen_shannon_divergence
 from tf_lab.nips.helper import pclouds_centered_and_half_sphere
 import argparse
 
@@ -25,7 +30,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--sample_dir', type=str, default = '', help='Directory of point-cloud samples.', required=True)
 parser.add_argument('--ref', type=str, default = '', help='Path to reference point-cloud.', required=True)
 parser.add_argument('--out_file', type=str, help='Save results in this file.', required=True)
-parser.add_argument('--epochs', type=list, default = [1, 3, 10, 30, 100, 300, 400, 500], help='Epochs to evaluate.')
+parser.add_argument('--epochs', type=list, default = [1, 3, 10, 30, 100, 300, 400, 500, 1000, 1500], help='Epochs to evaluate.')
 opt = parser.parse_args()
 
 
@@ -48,7 +53,7 @@ _, gt_grid_var = entropy_of_occupancy_grid(gt_data, voxel_resolution, in_sphere=
 
 buf_size = 1 # flush each line
 fout = open(opt.out_file, 'a', buf_size)
-fout.write('Metric Epoch Measurement\n')
+fout.write('#Metric Epoch Measurement\n')
 print 'Saving measurements at: ' + opt.out_file
 for epoch in opt.epochs: 
     sample_file = osp.join(opt.sample_dir, 'epoch_%d.npz' % (epoch,) )
