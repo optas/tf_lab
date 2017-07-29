@@ -72,7 +72,7 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
 
             # GPU configuration
-            if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
+            if hasattr(c, 'allow_gpu_growth'):
                 growth = c.allow_gpu_growth
             else:
                 growth = True
@@ -100,18 +100,23 @@ class PointNetAdversarialAutoEncoder(AutoEncoder):
 
     def _create_adversarial_optimizer(self):
         c = self.configuration
-        self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-        self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
 
         train_vars = tf.trainable_variables()
         d_params = [v for v in train_vars if v.name.startswith(self.name + '/discriminator/')]
         g_params = [v for v in train_vars if v.name.startswith(self.name + '/encoder/')]
 
+        if hasattr(c, 'wasserstein') and c.wasserstein is True:
+            self.loss_d = tf.reduce_mean(self.synthetic_logit) - tf.reduce_mean(self.real_logit)
+            self.loss_g = -tf.reduce_mean(self.synthetic_logit)
+            self.d_clipper = [p.assign(tf.clip_by_value(p, -c.clamp, c.clamp)) for p in d_params]
+        else:
+            self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+            self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))  # encoder will be optimized based on this (+ structural loss).
+
         self.opt_d = tf.train.AdamOptimizer(c.lr_adv, c.beta_adv).minimize(self.loss_d, var_list=d_params)
         self.opt_g = tf.train.AdamOptimizer(c.lr_adv, c.beta_adv).minimize(self.loss_g, var_list=g_params)
 
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
-#         return np.abs(np.random.normal(mu, sigma, (n_samples, ndims)))
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
     def _single_epoch_train(self, train_data, configuration):
