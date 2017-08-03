@@ -27,7 +27,7 @@ class Chamfer_Stats():
 
 
 class EMD_Stats():
-    experiments_ids = [10, 11, 12, 13, 14, 15]  # Used in ICML
+    experiments_ids = [10, 11, 12, 13, 14]  # Experiments used in ICML submission
 
     experiment_id_to_bneck = {10: 32, 11: 64, 12: 128, 13: 256, 14: 512, 15: 1024, 16: 16, 17: 8, 18: 4}
 

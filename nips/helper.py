@@ -5,9 +5,12 @@ Created on May 3, 2017
 '''
 
 import numpy as np
-from geo_tool import Point_Cloud
 from numpy.linalg import norm
 import os.path as osp
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+from geo_tool import Point_Cloud
 
 from .. point_clouds.in_out import load_filenames_of_input_data, load_crude_point_clouds
 from . data_sets.shape_net import shape_net_category_to_synth_id
@@ -122,3 +125,24 @@ def center_pclouds_in_unit_sphere(pclouds):
     dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
     assert(np.all(abs(dist - 0.5) < 0.0001))
     return pclouds
+
+
+def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variable):
+    ''' Used to visualize JSD measurements.
+        prb_thres: [0,1] float, only plot cells that have higher than prb_thres mass.
+    '''
+    grid_centers, _ = compute_3D_grid(voxel_resolution)
+    grid_centers = grid_centers.reshape(-1, 3)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    three_d_variable /= np.max(three_d_variable)
+    grid_centers = grid_centers[three_d_variable > prb_thres]
+    c = three_d_variable[three_d_variable > prb_thres].tolist()
+
+    ax.scatter(grid_centers[:, 0], grid_centers[:, 1], grid_centers[:, 2],
+               marker='s', s=10, c=c, cmap='jet')
+    ax.set_xlim3d(-0.5, 0.5)
+    ax.set_ylim3d(-0.5, 0.5)
+    ax.set_zlim3d(-0.5, 0.5)
+    return fig
