@@ -127,11 +127,11 @@ def center_pclouds_in_unit_sphere(pclouds):
     return pclouds
 
 
-def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variable, u_sphere=True):
+def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variable, in_sphere=True):
     ''' Used to visualize JSD measurements.
         prb_thres: [0,1] float, only plot cells that have higher than prb_thres mass.
     '''
-    if u_sphere:
+    if in_sphere:
         grid_centers, _ = compute_3D_sphere(voxel_resolution)
     else:
         grid_centers, _ = compute_3D_grid(voxel_resolution)
