@@ -136,7 +136,7 @@ def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variab
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    three_d_variable /= np.max(three_d_variable)
+    three_d_variable /= np.sum(three_d_variable)
     grid_centers = grid_centers[three_d_variable > prb_thres]
     c = three_d_variable[three_d_variable > prb_thres].tolist()
 
