@@ -119,7 +119,7 @@ class AutoEncoder(object):
     def partial_fit(self, X, GT=None):
         '''Trains the model with mini-batches of input data.
         If GT is not None, then the reconstruction loss compares the output of the net that is fed X, with the GT.
-        This can be useful when training for instance a de-noising auto-encoder.
+        This can be useful when training for instance a denoising auto-encoder.
         Returns:
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
