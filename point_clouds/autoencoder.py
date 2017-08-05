@@ -125,7 +125,7 @@ class AutoEncoder(object):
             The reconstructed (output) point-clouds.
         '''
         
-        lala = tf.refuce_sum(self.loss)
+        lala = tf.reduce_sum(self.loss)
         if GT is not None:            
 #             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
             _, loss, recon = self.sess.run((self.optimizer, lala, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
