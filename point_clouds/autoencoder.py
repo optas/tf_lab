@@ -127,7 +127,7 @@ class AutoEncoder(object):
         if GT is not None:
             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
         else:
-            _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X})
+            _, loss, recon = self.sess.run((self.optimizer, tf.reduce_sum(self.loss), self.x_reconstr), feed_dict={self.x: X})        
         return loss, recon
 
     def reconstruct(self, X, GT=None, compute_loss=True):
