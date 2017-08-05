@@ -83,16 +83,14 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = match_cost(self.x_reconstr, self.gt, match)            
-#             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
-            self.loss = match_cost(self.x_reconstr, self.gt, match)
+            self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io is not None:  # TODO - mitigate hasaatr
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
         
-        lele = tf.reduce_mean(self.loss)
-#         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(lele)   # rename to train_step
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
+        
         
         
     def _single_epoch_train(self, train_data, configuration):
@@ -120,7 +118,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
             # Compute average loss
             epoch_loss += loss
-#         epoch_loss *= n_batches
+        epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
 
