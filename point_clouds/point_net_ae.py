@@ -81,8 +81,7 @@ class PointNetAutoEncoder(AutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
-            match = approx_match(self.x_reconstr, self.gt)
-            self.loss = match_cost(self.x_reconstr, self.gt, match)            
+            match = approx_match(self.x_reconstr, self.gt)                    
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io is not None:  # TODO - mitigate hasaatr
