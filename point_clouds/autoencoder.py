@@ -124,10 +124,13 @@ class AutoEncoder(object):
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
         '''
-        if GT is not None:
-            _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
+        
+        lala = tf.refuce_sum(self.loss)
+        if GT is not None:            
+#             _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
+            _, loss, recon = self.sess.run((self.optimizer, lala, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
         else:
-            _, loss, recon = self.sess.run((self.optimizer, tf.reduce_sum(self.loss), self.x_reconstr), feed_dict={self.x: X})        
+            _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X})        
         return loss, recon
 
     def reconstruct(self, X, GT=None, compute_loss=True):
