@@ -6,7 +6,6 @@ Created on July 10, 2017
 
 import time
 import tensorflow as tf
-import socket
 from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.inspect import count_trainable_parameters

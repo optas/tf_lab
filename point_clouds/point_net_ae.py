@@ -81,17 +81,15 @@ class PointNetAutoEncoder(AutoEncoder):
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
-            match = approx_match(self.x_reconstr, self.gt)                    
+            match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
         if hasattr(c, 'consistent_io') and c.consistent_io is not None:  # TODO - mitigate hasaatr
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
-        
+
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
-        
-        
-        
+
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
         epoch_loss = 0.
@@ -121,7 +119,7 @@ class PointNetAutoEncoder(AutoEncoder):
         duration = time.time() - start_time
         return epoch_loss, duration
 
-    def bp_gradient_on_input(self, in_points, gt_points):
+    def gradient_wrt_input(self, in_points, gt_points):
         return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
 
     @staticmethod
