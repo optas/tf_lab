@@ -51,7 +51,9 @@ class PointNetAutoEncoder(AutoEncoder):
             layer = c.decoder(self.z, **c.decoder_args)
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
-            self._create_loss_optimizer()
+
+            self._create_loss()
+            self._setup_optimizer()
 
             # GPU configuration
             if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
@@ -73,7 +75,7 @@ class PointNetAutoEncoder(AutoEncoder):
         # TODO: what happens if more nets in single graph?
         return count_trainable_parameters(self.graph)
 
-    def _create_loss_optimizer(self):
+    def _create_loss(self):
         c = self.configuration
         if c.loss == 'l2':
             self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
@@ -88,7 +90,14 @@ class PointNetAutoEncoder(AutoEncoder):
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)   # rename to train_step
+    def _setup_optimizer(self):
+        c = self.configuration
+        lr = c.learning_rate
+        if hasattr(c, 'exponential_decay'):
+            lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, decay_steps=5, decay_rate=0.5, staircase=True, name="learning_rate_decay")
+
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+        self.train_step = self.optimizer.minimize(self.loss)
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples

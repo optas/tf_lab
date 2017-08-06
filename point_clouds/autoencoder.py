@@ -125,9 +125,10 @@ class AutoEncoder(object):
             The reconstructed (output) point-clouds.
         '''
         if GT is not None:
-            _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
+            _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
         else:
-            _, loss, recon = self.sess.run((self.optimizer, self.loss, self.x_reconstr), feed_dict={self.x: X})
+            _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
+
         return loss, recon
 
     def reconstruct(self, X, GT=None, compute_loss=True):
@@ -149,18 +150,6 @@ class AutoEncoder(object):
         self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
         self.var_grad = tf.gradients(self.loss, [self.x])
         return self.sess.run(self.var_grad, feed_dict={self.x: X, self.gt: GT})
-
-    def salient_detection(self, in_data, configuration):
-        '''TODO: Clean up.
-        '''
-        n_examples = in_data.num_examples
-        original_data, _, feed_data = in_data.full_epoch_data(shuffle=False)
-        b = 1
-        input_gradients = np.zeros([n_examples] + self.n_input)
-        for i in xrange(0, 500, b):
-            print(i)
-            input_gradients[i:i + b] = self.input_gradient(feed_data[i:i + b], original_data[i:i + b])[0]
-        return input_gradients
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
