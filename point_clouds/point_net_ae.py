@@ -65,12 +65,12 @@ class PointNetAutoEncoder(AutoEncoder):
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = growth
 
-            # Initializing the tensor flow variables
-            self.init = tf.global_variables_initializer()
-
             # Summaries
             self.merged_summaries = tf.summary.merge_all()
             self.train_writer = tf.summary.FileWriter(osp.join(configuration.train_dir, 'summaries'), self.graph)
+
+            # Initializing the tensor flow variables
+            self.init = tf.global_variables_initializer()
 
             # Launch the session
             self.sess = tf.Session(config=config)
@@ -99,8 +99,8 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         self.lr = c.learning_rate
         if hasattr(c, 'exponential_decay'):
-            self.lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, decay_steps=2, decay_rate=0.5, staircase=True, name="learning_rate_decay")
-            tf.summary.scalar('learning_rate', self.lr)
+            self.lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, c.decay_steps, decay_rate=0.5, staircase=True, name="learning_rate_decay")
+            tf.summary.scalar('learning_ratE', self.lr)
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_step = self.optimizer.minimize(self.loss)
