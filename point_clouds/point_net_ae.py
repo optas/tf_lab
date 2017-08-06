@@ -99,8 +99,8 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         self.lr = c.learning_rate
         if hasattr(c, 'exponential_decay'):
-            self.lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, decay_steps=10, decay_rate=0.5, staircase=True, name="learning_rate_decay")
-            tf.scalar_summary('learning_rate', self.lr)
+            self.lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, decay_steps=2, decay_rate=0.5, staircase=True, name="learning_rate_decay")
+            tf.summary.scalar(self.lr, 'learning_rate')
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_step = self.optimizer.minimize(self.loss)
