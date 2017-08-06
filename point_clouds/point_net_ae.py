@@ -8,6 +8,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import socket
+import os.path as osp
 
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
@@ -67,6 +68,10 @@ class PointNetAutoEncoder(AutoEncoder):
             # Initializing the tensor flow variables
             self.init = tf.global_variables_initializer()
 
+            # Summaries
+            self.merged_summaries = tf.summary.merge_all()
+            self.train_writer = tf.summary.FileWriter(osp.join(configuration.train_dir, 'summaries'), self.graph)
+
             # Launch the session
             self.sess = tf.Session(config=config)
             self.sess.run(self.init)
@@ -94,7 +99,8 @@ class PointNetAutoEncoder(AutoEncoder):
         c = self.configuration
         self.lr = c.learning_rate
         if hasattr(c, 'exponential_decay'):
-            self.lr = tf.train.exponential_decay(10.0, global_step=self.epoch, decay_steps=5, decay_rate=0.5, staircase=False, name="learning_rate_decay")
+            self.lr = tf.train.exponential_decay(c.learning_rate, global_step=self.epoch, decay_steps=10, decay_rate=0.5, staircase=True, name="learning_rate_decay")
+            self.summaries.append(tf.scalar_summary('learning_rate', self.lr))
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_step = self.optimizer.minimize(self.loss)
@@ -126,7 +132,6 @@ class PointNetAutoEncoder(AutoEncoder):
             epoch_loss += loss
         epoch_loss /= n_batches
         duration = time.time() - start_time
-        print self.lr
         return epoch_loss, duration
 
     def gradient_wrt_input(self, in_points, gt_points):
