@@ -101,7 +101,6 @@ class AutoEncoder(object):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
-
     def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved auto-encoder model.
         '''
@@ -192,7 +191,9 @@ class AutoEncoder(object):
                 checkpoint_path = osp.join(c.train_dir, model_saver_id)
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
 
-#             if c.summary_step is not None and (epoch % c.summary_step == 0 or epoch - 1 == 0):
+            if c.summary_step is not None and (epoch % c.summary_step == 0 or epoch - 1 == 0):
+                summary = self.sess.run(self.merged_summaries)
+                self.train_writer.add_summary(summary, epoch)                
 #                 loss_pl = tf.placeholder(tf.float64, [])
 #                 tf.summary.scalar("Total Loss", loss_pl.assign(loss))
 #                 summary = self.sess.run(self.merged_summaries)
