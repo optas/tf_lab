@@ -193,7 +193,7 @@ class AutoEncoder(object):
 
             if c.summary_step is not None and (epoch % c.summary_step == 0 or epoch - 1 == 0):
                 summary = self.sess.run(self.merged_summaries)
-                self.train_writer.add_summary(summary, epoch)                
+                self.train_writer.add_summary(summary, epoch)
 #                 loss_pl = tf.placeholder(tf.float64, [])
 #                 tf.summary.scalar("Total Loss", loss_pl.assign(loss))
 #                 summary = self.sess.run(self.merged_summaries)
