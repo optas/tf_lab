@@ -57,7 +57,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self._setup_optimizer()
 
             # GPU configuration
-            if hasattr(c, 'allow_gpu_growth'):  # TODO - mitigate hasaatr
+            if hasattr(c, 'allow_gpu_growth'):
                 growth = c.allow_gpu_growth
             else:
                 growth = True
@@ -91,7 +91,7 @@ class PointNetAutoEncoder(AutoEncoder):
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
-        if hasattr(c, 'consistent_io') and c.consistent_io is not None:  # TODO - mitigate hasaatr
+        if hasattr(c, 'consistent_io') and c.consistent_io is not None:
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
 
@@ -100,7 +100,8 @@ class PointNetAutoEncoder(AutoEncoder):
         self.lr = c.learning_rate
         if hasattr(c, 'exponential_decay'):
             self.lr = tf.train.exponential_decay(c.learning_rate, self.epoch, c.decay_steps, decay_rate=0.5, staircase=True, name="learning_rate_decay")
-            tf.summary.scalar('learning_ratE', self.lr)
+            self.lr = tf.maximum(self.lr, 1e-5)
+            tf.summary.scalar('learning_rate', self.lr)
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_step = self.optimizer.minimize(self.loss)

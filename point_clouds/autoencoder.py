@@ -196,9 +196,6 @@ class AutoEncoder(object):
                 self.train_writer.add_summary(summary, epoch)
 #                 loss_pl = tf.placeholder(tf.float64, [])
 #                 tf.summary.scalar("Total Loss", loss_pl.assign(loss))
-#                 summary = self.sess.run(self.merged_summaries)
-#                 self.train_writer.add_summary(summary, epoch)
-
         return stats
 
     def evaluate(self, in_data, configuration, ret_pre_augmentation=False):
