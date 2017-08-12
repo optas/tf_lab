@@ -14,7 +14,6 @@ from general_tools.in_out.basics import create_dir
 from . point_net_ae import PointNetAutoEncoder
 from . in_out import apply_augmentations
 from .. fundamentals.loss import Loss
-from boto import config
 
 try:
     from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
@@ -88,6 +87,11 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
             self.extra_pred_loss = c.relative_loss_weight * tf.reduce_mean(match_cost(self.extra_preds, self.extra_preds_gt, match))
 #             self.extra_pred_loss = c.relative_loss_weight * tf.reduce_mean(Loss.cosine_distance_loss(self.extra_preds, self.extra_preds_gt))
             self.loss += self.extra_pred_loss
+
+#         if self.graph. tf.GraphKeys.REGULARIZATION_LOSSES
+        #
+            # losses = tf.get_collection('losses')
+            #   loss_averages_op = loss_averages.apply(losses + [total_loss])
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
 
@@ -182,4 +186,3 @@ class PointNetAbstractorPredictor(PointNetAutoEncoder):
 
         data_loss /= float(n_examples)
         return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data), np.squeeze(extra_preds_recon)
-    

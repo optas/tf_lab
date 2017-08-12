@@ -1,4 +1,3 @@
-import os
 import warnings
 import numpy as np
 import os.path as osp
@@ -78,7 +77,7 @@ def load_filenames_of_input_data(top_directory, file_extension=points_extension,
 
 
 def train_validate_test_split(arrays, train_perc=0, validate_perc=0, test_perc=0, shuffle=True, seed=None):
-    ''' This is a memory expensive operation since by using slicing it copies the arrays.
+    ''' This is a memory expensive operation since by using slicing it copies the input arrays.
     '''
 
     if not np.allclose((train_perc + test_perc + validate_perc), 1.0):
@@ -184,7 +183,7 @@ class PointCloudDataSet(object):
         self.n_points = point_clouds.shape[1]
 
         if labels is not None:
-            assert point_clouds.shape[0] == labels.shape[0], ('images.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
+            assert point_clouds.shape[0] == labels.shape[0], ('points.shape: %s labels.shape: %s' % (point_clouds.shape, labels.shape))
             if copy:
                 self.labels = labels.copy()
             else:
