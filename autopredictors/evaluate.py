@@ -8,7 +8,7 @@ from collections import defaultdict
 from geo_tool import Point_Cloud
 from general_tools.in_out.basics import create_dir
 
-from 
+
 from . scripts.helper import shape_net_core_synth_id_to_category
 
 
@@ -16,8 +16,6 @@ try:
     from sklearn.neighbors import NearestNeighbors
 except:
     warnings.warn('Sklearn library is not installed.')
-
-
 
 
 def save_reconstructions(out_dir, reconstructions, gt_data, feed_data, ids):
@@ -110,48 +108,6 @@ def generalization_error(model, train_data, val_data, test_data, configuration, 
     gen_error = abs(stats[best_iter, 2] - stats[best_iter, 1])
     best_epoch = int(stats[best_iter, 0])
     return gen_error, best_epoch, stats
-
-
-def accuracy_of_completion(pred_pcloud, gt_pcloud, thres=0.02, ret_dists=False):
-    '''Returns the fraction of points in the predicted point-cloud that are within
-    `thres` euclidean distance from any point in the ground-truth point-cloud.
-    '''
-    nn = NearestNeighbors().fit(gt_pcloud)
-    indices = nn.radius_neighbors(pred_pcloud, radius=thres, return_distance=False)
-    success_indicator = [i.size >= 1 for i in indices]
-    score = np.sum(success_indicator) / float(len(pred_pcloud))
-
-    if ret_dists:
-        dists, _ = nn.kneighbors(pred_pcloud, n_neighbors=1)
-        return score, dists
-    else:
-        return score
-
-
-def coverage_of_completion(gt_pcloud, pred_pcloud, thres=0.02, ret_dists=False):
-    '''Returns the fraction of points in the ground-truth point-cloud that are within
-    `thres` euclidean distance from any point in the predicted point-cloud.
-    '''
-    nn = NearestNeighbors().fit(pred_pcloud)
-    indices = nn.radius_neighbors(gt_pcloud, radius=thres, return_distance=False)
-    success_indicator = [i.size >= 1 for i in indices]
-    score = np.sum(success_indicator) / float(len(gt_pcloud))
-    dists = None
-    if ret_dists:
-        dists, _ = nn.kneighbors(gt_pcloud, n_neighbors=1)
-        return score, dists
-    else:
-        return score
-
-
-def l1_loss_comparison_like_Angela(gt_df, pred_df, unknown_space_mask, ignore_range=None):
-    if ignore_range is not None:
-        close_enough_mask = gt_df < ignore_range
-    else:
-        close_enough_mask = np.ones(pred_df.shape, dtype=np.bool)
-
-    total_mask = close_enough_mask * unknown_space_mask
-    return np.sum(np.abs(gt_df - pred_df) * total_mask) / np.sum(total_mask)
 
 
 def paper_pc_completion_experiment_id_best_epoch(category, loss):
