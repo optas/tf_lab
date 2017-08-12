@@ -3,25 +3,21 @@ import os.path as osp
 import numpy as np
 import warnings
 from scipy.stats import hmean
+from collections import defaultdict
+
+from geo_tool import Point_Cloud
+from general_tools.in_out.basics import create_dir
+
+from 
 from . scripts.helper import shape_net_core_synth_id_to_category
+
 
 try:
     from sklearn.neighbors import NearestNeighbors
 except:
     warnings.warn('Sklearn library is not installed.')
 
-from geo_tool import Point_Cloud
-from general_tools.in_out.basics import create_dir
-from collections import defaultdict
 
-
-def read_saved_epochs(saved_dir):
-    epochs_saved = []
-    files = glob.glob(osp.join(saved_dir, 'models.ckpt-*.index'))
-    for f in files:
-        epochs_saved.append(int(osp.basename(f)[len('models.ckpt-'):-len('.index')]))
-        epochs_saved.sort()
-    return epochs_saved
 
 
 def save_reconstructions(out_dir, reconstructions, gt_data, feed_data, ids):
