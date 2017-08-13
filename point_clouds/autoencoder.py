@@ -55,6 +55,9 @@ class Configuration():
         # Fancy - TODO factor seperetaly.
         self.consistent_io = consistent_io
 
+    def exists_and_is_not_none(self, attribute):
+        return hasattr(self, attribute) and getattr(self, attribute) is not None
+
     def __str__(self):
         keys = self.__dict__.keys()
         vals = self.__dict__.values()
@@ -191,7 +194,7 @@ class AutoEncoder(object):
                 checkpoint_path = osp.join(c.train_dir, model_saver_id)
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
 
-            if c.summary_step is not None and (epoch % c.summary_step == 0 or epoch - 1 == 0):
+            if c.exists_and_is_not_none('summary_step') and (epoch % c.summary_step == 0 or epoch - 1 == 0):
                 summary = self.sess.run(self.merged_summaries)
                 self.train_writer.add_summary(summary, epoch)
 #                 loss_pl = tf.placeholder(tf.float64, [])

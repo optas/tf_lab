@@ -92,7 +92,7 @@ class PointNetAutoEncoder(AutoEncoder):
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
 
-        if hasattr(c, 'consistent_io') and c.consistent_io is not None:
+        if c.exists_and_is_not_none('consistent_io'):
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
 

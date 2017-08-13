@@ -10,7 +10,7 @@ Associate code and data for manipulating the shapes of Shape-Net.
 import six
 from geo_tool.in_out.soup import load_ply
 
-shape_net_core_synth_id_to_category = {
+snc_synth_id_to_category = {
     '02691156': 'airplane',  '02773838': 'bag',        '02801938': 'basket',
     '02808440': 'bathtub',   '02818832': 'bed',        '02828884': 'bench',
     '02834778': 'bicycle',   '02843684': 'birdhouse',  '02871439': 'bookshelf',
@@ -35,8 +35,8 @@ shape_net_core_synth_id_to_category = {
 # '02858304' (boat) and '02834778': 'bicycle', don't exist in SN-Core V2.
 
 
-def shape_net_category_to_synth_id():
-    d = shape_net_core_synth_id_to_category
+def snc_category_to_synth_id():
+    d = snc_synth_id_to_category
     inv_map = {v: k for k, v in six.iteritems(d)}
     return inv_map
 
