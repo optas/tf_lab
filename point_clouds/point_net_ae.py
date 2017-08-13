@@ -82,6 +82,7 @@ class PointNetAutoEncoder(AutoEncoder):
 
     def _create_loss(self):
         c = self.configuration
+
         if c.loss == 'l2':
             self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
         elif c.loss == 'chamfer':
@@ -94,6 +95,10 @@ class PointNetAutoEncoder(AutoEncoder):
         if hasattr(c, 'consistent_io') and c.consistent_io is not None:
             self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
             self.loss += self.cons_loss
+
+        reg_losses = self.graph.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        for rl in reg_losses:
+            self.loss += rl
 
     def _setup_optimizer(self):
         c = self.configuration
