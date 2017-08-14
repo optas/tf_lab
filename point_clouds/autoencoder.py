@@ -10,6 +10,7 @@ import tensorflow as tf
 import numpy as np
 
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
+from general_tools.simpletons import iterate_in_chunks
 
 from . in_out import apply_augmentations
 model_saver_id = 'models.ckpt'
@@ -262,3 +263,36 @@ class AutoEncoder(object):
                 reconstructions[i], losses[i] = self.reconstruct(feed_data[i])
 
         return reconstructions, losses, np.squeeze(feed_data), ids, np.squeeze(original_data)
+
+    def embedding_at_tensor(self, dataset, conf, feed_original=True, apply_augmentation=False, tensor_name='bottleneck'):
+        '''
+        Observation: the NN-neighborhoods seem more reasonable when we do not apply the augmentation.
+        Observation: the next layer after latent (z) might be something interesting.
+        tensor_name: e.g. model.name + '_1/decoder_fc_0/BiasAdd:0'
+        '''
+        batch_size = conf.batch_size
+        original, ids, noise = dataset.full_epoch_data(shuffle=False)
+
+        if feed_original:
+            feed = original
+        else:
+            feed = noise
+            if feed is None:
+                feed = original
+
+        feed_data = feed
+        if apply_augmentation:
+            feed_data = apply_augmentations(feed, conf)
+
+        embedding = []
+        if tensor_name == 'bottleneck':
+            for b in iterate_in_chunks(feed_data, batch_size):
+                embedding.append(self.transform(b.reshape([len(b)] + conf.n_input)))
+        else:
+            embedding_tensor = self.graph.get_tensor_by_name(tensor_name)
+            for b in iterate_in_chunks(feed_data, batch_size):
+                codes = self.sess.run(embedding_tensor, feed_dict={self.x: b.reshape([len(b)] + conf.n_input)})
+                embedding.append(codes)
+
+        embedding = np.vstack(embedding)
+        return feed, embedding, ids
