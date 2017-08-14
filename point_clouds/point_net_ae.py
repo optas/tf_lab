@@ -97,8 +97,13 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss += self.cons_loss
 
         reg_losses = self.graph.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        if c.exists_and_is_not_none('w_reg_alpha'):
+            w_reg_alpha = c.w_reg_alpha
+        else:
+            w_reg_alpha = 1.0
+
         for rl in reg_losses:
-            self.loss += rl
+            self.loss += (w_reg_alpha * rl)
 
     def _setup_optimizer(self):
         c = self.configuration

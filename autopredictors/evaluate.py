@@ -9,9 +9,6 @@ from geo_tool import Point_Cloud
 from general_tools.in_out.basics import create_dir
 
 
-from . scripts.helper import shape_net_core_synth_id_to_category
-
-
 try:
     from sklearn.neighbors import NearestNeighbors
 except:
@@ -58,56 +55,6 @@ def save_stats_of_multi_class_experiments(file_out, test_ids, pred_scores):
             cov = np.median(pes_class_coverage[class_id])
             hm = np.median(pes_class_hmean[class_id])
             fout.write(shape_net_core_synth_id_to_category[class_id] + ' %f %f %f\n' % (acc, cov, hm))
-
-
-def eval_model(model, configuration, datasets, epochs=None, verbose=False):
-    conf = configuration
-    if type(datasets) != list:
-        datasets = [datasets]
-
-    if epochs is None:
-        epochs = read_saved_epochs(conf.train_dir)
-
-    stats = np.zeros((len(epochs), len(datasets)))
-    for i, epoch in enumerate(epochs):
-        model.restore_model(conf.train_dir, epoch, verbose)
-        for j, d in enumerate(datasets):
-            loss = model.evaluate(d, conf)[1]
-            stats[i, j] = loss
-        if verbose:
-            print(stats[i, :])
-
-    epochs = np.array(epochs).reshape((len(epochs), 1))
-    stats = np.hstack((epochs, stats))
-    return stats
-
-
-def generalization_error(model, train_data, val_data, test_data, configuration, epochs=None):
-    conf = configuration
-
-    if epochs is None:
-        epochs = read_saved_epochs(conf.train_dir)
-
-    stats = np.zeros((len(epochs), 4))
-
-    for i, epoch in enumerate(epochs):
-        model.restore_model(conf.train_dir, epoch)
-        l_tr = model.evaluate(train_data, conf)[1]
-        l_va = model.evaluate(val_data, conf)[1]
-        l_te = model.evaluate(test_data, conf)[1]
-        stats[i, :] = [epoch, l_tr, l_va, l_te]
-        print(stats[i, :])
-
-        if i == 0:
-            gen_error = abs(l_va - l_tr)
-            best_iter = i
-        elif abs(l_va - l_tr) < gen_error:
-            gen_error = abs(l_va - l_tr)
-            best_iter = i
-
-    gen_error = abs(stats[best_iter, 2] - stats[best_iter, 1])
-    best_epoch = int(stats[best_iter, 0])
-    return gen_error, best_epoch, stats
 
 
 def paper_pc_completion_experiment_id_best_epoch(category, loss):
