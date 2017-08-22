@@ -180,7 +180,7 @@ def load_unsigned_distance_field(df_file_name, truncate_thres=None):
                 k += 1
 
     if truncate_thres is not None:
-        output_grid[output_grid > truncate_thres] = truncate_thres
+        output_grid[output_grid > truncate_thres] = truncate_thres   # if you are more than three voxels away from the surface.
 
     return output_grid
 

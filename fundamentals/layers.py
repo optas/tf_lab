@@ -25,6 +25,13 @@ def tanh(in_layer):
     return tf.tanh(in_layer)
 
 
+def leaky_relu(alpha):
+    if not (alpha < 1 and alpha > 0):
+        raise ValueError()
+
+    return lambda x: tf.maximum(alpha * x, x)
+
+
 def dropout(in_layer, keep_prob=0.0):
     if keep_prob == 0.0:
         return in_layer

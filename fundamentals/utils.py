@@ -31,11 +31,3 @@ def get_incoming_shape(incoming):
         return np.shape(incoming)
     else:
         raise Exception("Invalid incoming layer.")
-
-
-def leaky_relu(alpha):
-    if not (alpha < 1 and alpha > 0):
-        raise ValueError()
-
-    return lambda x: tf.maximum(alpha * x, x)
-

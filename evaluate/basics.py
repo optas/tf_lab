@@ -7,7 +7,11 @@ import numpy as np
 from .. in_out.basics import read_saved_epochs
 
 
-def eval_model(model, configuration, datasets, epochs=None, verbose=False):
+def eval_wrapper(model, configuration, datasets, epochs=None, verbose=False):
+    '''
+    Loads a saved (neural net) model in given epochs and evaluate it on the input datasets.
+    It assumes the model has a ``.evaluate`` instance function.
+    '''
     conf = configuration
     if type(datasets) != list:
         datasets = [datasets]
