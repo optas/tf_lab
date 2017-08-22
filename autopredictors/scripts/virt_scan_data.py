@@ -3,10 +3,9 @@ Created on February 27, 2017
 
 @author: optas
 
- Data used by Dai et al. in
+Data used by Dai et al. in
 '''
 
-import struct
 import numpy as np
 import os.path as osp
 from collections import defaultdict
@@ -118,74 +117,4 @@ def mask_of_permissible(model_names, permissible_file, class_syn_id=None):
     return mask
 
 
-def load_signed_distance_field(sdf_file_name):
-    ''' Loads the signed_distance_field and the known-uknown space mask according to Dataset of Angela et al.
-    '''
-    with open(sdf_file_name, 'rb') as fin:
-        _ = struct.unpack('f', fin.read(4))[0]
-        _ = struct.unpack('f', fin.read(4))[0]
-        _ = struct.unpack('f', fin.read(4))[0]
 
-        output_width = struct.unpack('I', fin.read(4))[0]
-        output_height = struct.unpack('I', fin.read(4))[0]
-        output_depth = struct.unpack('I', fin.read(4))[0]
-
-        n_values = output_width * output_height * output_height
-        sdf_list = np.zeros(n_values, dtype=np.float32)
-        weight_list = np.zeros(n_values, dtype=np.int)
-        for i in xrange(n_values):
-            sdf = struct.unpack('f', fin.read(4))[0]
-            _ = struct.unpack('I', fin.read(4))[0]  # free counter (ignored)
-            _ = struct.unpack('B' * 3, fin.read(3))  # color (ignored)
-            weight = struct.unpack('B', fin.read(1))[0]
-            sdf_list[i] = sdf
-            weight_list[i] = weight
-
-    sdf_values = np.zeros((output_width, output_height, output_depth), dtype=np.float32)
-    unknown_space_mask = np.zeros((output_width, output_height, output_depth), dtype=np.bool)
-
-    for d in xrange(output_depth):
-        for w in xrange(output_width):
-            for h in xrange(output_height):
-                idx = h + (d * 32) + (w * 32 * 32)
-                sdf_values[d, h, w] = sdf_list[idx]
-                if sdf_list[idx] >= -1 and weight_list[idx] >= 1:    # Known space
-                    pass
-                else:
-                    unknown_space_mask[d, h, w] = True
-
-    return sdf_values, unknown_space_mask
-
-
-def load_unsigned_distance_field(df_file_name, truncate_thres=None):
-    with open(df_file_name, 'rb') as fin:
-        _ = struct.unpack('f', fin.read(4))[0]
-        _ = struct.unpack('f', fin.read(4))[0]
-        _ = struct.unpack('f', fin.read(4))[0]
-
-        output_width = struct.unpack('Q', fin.read(8))[0]
-        output_height = struct.unpack('Q', fin.read(8))[0]
-        output_depth = struct.unpack('Q', fin.read(8))[0]
-
-        output_grid = np.ndarray((output_width, output_height, output_depth), np.float32)
-
-        n_output = output_width * output_height * output_depth
-        output_grid_values = struct.unpack('f' * n_output, fin.read(4 * n_output))
-
-    k = 0
-    for d in range(output_depth):
-        for w in range(output_width):
-            for h in range(output_height):
-                output_grid[w, h, d] = output_grid_values[k]
-                k += 1
-
-    if truncate_thres is not None:
-        output_grid[output_grid > truncate_thres] = truncate_thres   # if you are more than three voxels away from the surface.
-
-    return output_grid
-
-
-def export_distance_field_to_text(out_file, field_values):
-    with open(out_file, 'w') as fout:
-        for i in np.nditer(field_values):
-            fout.write(str(i) + '\n')
