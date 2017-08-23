@@ -50,7 +50,13 @@ class PointNetAutoEncoder(AutoEncoder):
             self.z = c.encoder(self.x, **c.encoder_args)
             self.bottleneck_size = int(self.z.get_shape()[1])
             layer = c.decoder(self.z, **c.decoder_args)
-            self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
+
+            if c.exists_and_is_not_none('do_completion'):                   # TODO Re-factor for AP
+                self.completion = tf.reshape(layer, [-1, self.n_completion[0], self.n_completion[1]])
+                self.x_reconstr = tf.concat(1, [self.x, self.completion])   # output is input + `completion`
+            else:
+                self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
+
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
 
             self._create_loss()
