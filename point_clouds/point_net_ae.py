@@ -52,7 +52,7 @@ class PointNetAutoEncoder(AutoEncoder):
             layer = c.decoder(self.z, **c.decoder_args)
 
             if c.exists_and_is_not_none('do_completion'):                   # TODO Re-factor for AP
-                self.completion = tf.reshape(layer, [-1, self.n_completion[0], self.n_completion[1]])
+                self.completion = tf.reshape(layer, [-1, c.n_completion[0], c.n_completion[1]])
                 self.x_reconstr = tf.concat(1, [self.x, self.completion])   # output is input + `completion`
             else:
                 self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
