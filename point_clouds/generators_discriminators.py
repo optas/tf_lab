@@ -10,7 +10,7 @@ from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
 
 from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
-from .. fundamentals.utils import expand_scope_by_name, leaky_relu
+from .. fundamentals.layers import expand_scope_by_name, leaky_relu
 from tflearn.layers.core import fully_connected, dropout
 
 
