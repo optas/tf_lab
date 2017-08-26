@@ -6,17 +6,12 @@ Created on May 11, 2017
 
 import numpy as np
 import tensorflow as tf
-from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
+from tflearn.layers.core import fully_connected, dropout
 
 from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
-from .. fundamentals.layers import leaky_relu 
+from .. fundamentals.layers import leaky_relu
 from .. fundamentals.utils import expand_scope_by_name
-
-
-
-
-from tflearn.layers.core import fully_connected, dropout
 
 
 def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=None, b_norm=True, dropout_prob=None):
