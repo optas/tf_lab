@@ -25,6 +25,10 @@ def tanh(in_layer):
     return tf.tanh(in_layer)
 
 
+def safe_log(x, eps=10e-6):
+    return tf.log(tf.maximum(x, eps))
+
+
 def leaky_relu(alpha):
     if not (alpha < 1 and alpha > 0):
         raise ValueError()
