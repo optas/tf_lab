@@ -9,9 +9,10 @@ import numpy as np
 
 
 def expand_scope_by_name(scope, name):
-    '''
+    """ expand_scope_by_name.
+
     tflearn seems to not append the name in the scope automatically.
-    '''
+    """
 
     if isinstance(scope, basestring):
         scope += '/' + name
@@ -21,6 +22,21 @@ def expand_scope_by_name(scope, name):
         return scope.name + '/' + name
     else:
         return scope
+
+
+def format_scope_name(scope_name, prefix, suffix):
+    """ format_scope_name.
+
+    Add a prefix and a suffix to a scope name.
+    """
+
+    if prefix is not "":
+        if not prefix[-1] == "/":
+            prefix += "/"
+    if suffix is not "":
+        if not suffix[0] == "/":
+            suffix = "/" + suffix
+    return prefix + scope_name + suffix
 
 
 def get_incoming_shape(incoming):
