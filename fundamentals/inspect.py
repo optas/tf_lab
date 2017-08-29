@@ -7,9 +7,31 @@ Created on Jan 9, 2017
 import tensorflow as tf
 from . utils import format_scope_name
 
-SUMMARIES_COLLECTION = 'tf_lab_summaries'  # Keeping all summaries in this collection, each summary being stored as part of a dictionary.
-SUMMARY_TAG = 'tag'                        # Used as the key on a dictionary storing the name of the summary operation.
-SUMMARY_TENSOR = 'tensor'                  # Used as the key on a dictionary storing the tensor of the summary operation.
+SUMMARIES_COLLECTION = '_summaries_dict'    # Keeping all summaries in this collection, each summary being stored as part of a dictionary.
+SUMMARY_TAG = 'tag'                         # Used as the key on a dictionary storing the name of the summary operation.
+SUMMARY_TENSOR = 'tensor'                   # Used as the key on a dictionary storing the tensor of the summary operation.
+
+
+# Fix for TF 0.12
+try:
+    tf012 = True
+    merge_summary = tf.summary.merge
+except Exception:
+    tf012 = False
+    merge_summary = tf.merge_summary
+
+
+def summarize_gradients(grads, summary_collection):
+    """ summarize_gradients.
+    Arguments:
+        grads: list of `Tensor`. The gradients to monitor.
+        summary_collection: A collection to add this summary to and
+            also used for returning a merged summary over all its elements.
+    Returns:
+        `Tensor`. Merge of all summary in 'summary_collection'
+    """
+    add_gradients_summary(grads, "", "", summary_collection)
+    return merge_summary(tf.get_collection(summary_collection))
 
 
 def get_summary_if_exists(tag):
@@ -60,6 +82,7 @@ def get_summary(stype, tag, value=None, collection_key=None, break_if_exists=Fal
 
         if collection_key:
             tf.add_to_collection(collection_key, summ)
+
     elif break_if_exists:
         raise ValueError("Error: Summary tag already exists! (to ignore this "
                          "error, set add_summary() parameter 'break_if_exists'"
@@ -86,8 +109,7 @@ def add_gradients_summary(grads, name_prefix="", name_suffix="", collection_key=
     summ = []
     for grad, var in grads:
         if grad is not None:
-            summ_name = format_scope_name(var.op.name, name_prefix,
-                                          "Gradients/" + name_suffix)
+            summ_name = format_scope_name(var.op.name, name_prefix, "Gradients/" + name_suffix)
             summ_exists = get_summary_if_exists(summ_name)
             if summ_exists is not None:
                 tf.add_to_collection(collection_key, summ_exists)
