@@ -7,9 +7,9 @@ Created on Jan 9, 2017
 import tensorflow as tf
 from . utils import format_scope_name
 
-SUMMARIES_COLLECTION = 'summary_tags'
-SUMMARY_TAG = 'tag'                     # Used as the key on a dictionary storing the name of the summary operation.
-SUMMARY_TENSOR = 'tensor'               # Used as the key on a dictionary storing the tensor of the summary operation.
+SUMMARIES_COLLECTION = 'tf_lab_summaries'  # Keeping all summaries in this collection, each summary being stored as part of a dictionary.
+SUMMARY_TAG = 'tag'                        # Used as the key on a dictionary storing the name of the summary operation.
+SUMMARY_TENSOR = 'tensor'                  # Used as the key on a dictionary storing the tensor of the summary operation.
 
 
 def get_summary_if_exists(tag):

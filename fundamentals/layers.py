@@ -25,7 +25,7 @@ def tanh(in_layer):
     return tf.tanh(in_layer)
 
 
-def safe_log(x, eps=10e-6):
+def safe_log(x, eps=1e-12):
     return tf.log(tf.maximum(x, eps))
 
 

@@ -39,7 +39,9 @@ class PointNetAutoEncoder(AutoEncoder):
 
     def __init__(self, name, configuration, graph=None):
         if graph is None:
-            self.graph = tf.get_default_graph()     # TODO change to make a new graph.
+            # g = tf.Graph()
+            # with g.as_default():
+            self.graph = tf.get_default_graph()
 
         c = configuration
         self.configuration = c
