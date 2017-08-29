@@ -5,12 +5,16 @@ Created on Jan 9, 2017
 '''
 
 import tensorflow as tf
-from . utils import format_scope_name
+from . utils import format_scope_name, count_cmp_to_value 
 
-SUMMARIES_COLLECTION = '_summaries_dict'    # Keeping all summaries in this collection, each summary being stored as part of a dictionary.
+SUMMARIES_COLLECTION = 'summary_tags'       # Keeping all summaries in this collection, each summary being stored as value of a dictionary.
 SUMMARY_TAG = 'tag'                         # Used as the key on a dictionary storing the name of the summary operation.
 SUMMARY_TENSOR = 'tensor'                   # Used as the key on a dictionary storing the tensor of the summary operation.
 
+
+SUMMARIES_COLLECTION = 'summary_tags'    # Keeping all summaries in this collection, each summary being stored as part of a dictionary.
+SUMMARY_TAG = 'tag'                         # Used as the key on a dictionary storing the name of the summary operation.
+SUMMARY_TENSOR = 'tensor'                   # Used as the key on a dictionary storing the tensor of the summary operation.
 
 # Fix for TF 0.12
 try:
@@ -21,7 +25,7 @@ except Exception:
     merge_summary = tf.merge_summary
 
 
-def summarize_gradients(grads, summary_collection):
+def summarize_gradients(grads_and_var, summary_collection, prefix='', postfix=''):
     """ summarize_gradients.
     Arguments:
         grads: list of `Tensor`. The gradients to monitor.
@@ -30,8 +34,8 @@ def summarize_gradients(grads, summary_collection):
     Returns:
         `Tensor`. Merge of all summary in 'summary_collection'
     """
-    add_gradients_summary(grads, "", "", summary_collection)
-    return merge_summary(tf.get_collection(summary_collection))
+    grad_sum = add_gradients_summary(grads_and_var, prefix, postfix, summary_collection)
+    return merge_summary(grad_sum)
 
 
 def get_summary_if_exists(tag):
@@ -62,10 +66,9 @@ def get_summary(stype, tag, value=None, collection_key=None, break_if_exists=Fal
     Returns:
         The summary `Tensor`.
     """
-    summ = next((item for item in tf.get_collection(SUMMARIES_COLLECTION) if
-                 item[SUMMARY_TAG] == tag), None)
+    summ = get_summary_if_exists(tag)
 
-    if not summ:
+    if summ is None:
         if value is None:
             raise Exception("Summary doesn't exist, a value must be "
                             "specified to initialize it.")
@@ -80,9 +83,6 @@ def get_summary(stype, tag, value=None, collection_key=None, break_if_exists=Fal
 
         tf.add_to_collection(SUMMARIES_COLLECTION, {SUMMARY_TAG: tag, SUMMARY_TENSOR: summ})
 
-        if collection_key:
-            tf.add_to_collection(collection_key, summ)
-
     elif break_if_exists:
         raise ValueError("Error: Summary tag already exists! (to ignore this "
                          "error, set add_summary() parameter 'break_if_exists'"
@@ -90,10 +90,13 @@ def get_summary(stype, tag, value=None, collection_key=None, break_if_exists=Fal
     else:
         summ = summ[SUMMARY_TENSOR]
 
+    if collection_key is not None:
+            tf.add_to_collection(collection_key, summ)
+
     return summ
 
 
-def add_gradients_summary(grads, name_prefix="", name_suffix="", collection_key=None):
+def add_gradients_summary(grad_and_vars, collection_key, name_prefix="", name_suffix=""):
     """ add_gradients_summary.
     Add histogram summary for given gradients.
     Arguments:
@@ -107,35 +110,22 @@ def add_gradients_summary(grads, name_prefix="", name_suffix="", collection_key=
 
     # Add histograms for gradients.
     summ = []
-    for grad, var in grads:
+    for grad, var in grad_and_vars:
         if grad is not None:
             summ_name = format_scope_name(var.op.name, name_prefix, "Gradients/" + name_suffix)
-            summ_exists = get_summary_if_exists(summ_name)
-            if summ_exists is not None:
-                tf.add_to_collection(collection_key, summ_exists)
-                summ.append(summ_exists)
-            else:
-                summ.append(get_summary("histogram", summ_name, grad,
-                                        collection_key))
+            summ.append(get_summary("histogram", summ_name, grad, collection_key))
     return summ
 
+def fraction_of_grads_less_than(grads_and_vars, bound, tag, collections=None):
+    counter = []
+    sizes = []
+    for grad, _ in grads_and_vars:
+        if grad is not None:
+            counter.append(count_cmp_to_value(grad, bound, tf.less_equal))
+            sizes.append(tf.cast(tf.size(grad), dtype=tf.float32))
 
-def _activation_summary(x):
-    '''Helper to create summaries for activations.
-    Creates a summary that provides a histogram of activations.
-    Creates a summary that measures the sparsity of activations.
-    Args:
-        x: (tf.Tensor)
-    Returns:
-        nothing
-    '''
-
-# Remove 'tower_[0-9]/' from the name in case this is a multi-GPU training
-# session. This helps the clarity of presentation on tensorboard.
-# tensor_name = re.sub('%s_[0-9]*/' % TOWER_NAME, '', x.op.name)
-    tensor_name = x.op.name
-    tf.contrib.deprecated.histogram_summary(tensor_name + '/activations', x)
-    tf.contrib.deprecated.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+    res_val = tf.add_n(counter) / tf.add_n(sizes)
+    return tf.scalar_summary(tag, res_val, collections)
 
 
 def trainable_variables(in_graph=None):
@@ -160,14 +150,6 @@ def count_trainable_parameters(in_graph=None):
         total_parameters += variable_parametes
     return total_parameters
 
-
-def hist_summary_of_trainable(in_graph=None):
-    summaries = []
-    with tf.device('/cpu:0'):
-        for var in trainable_variables(in_graph):
-#             summaries.append(tf.histogram_summary(var.op.name, var))
-            summaries.append(tf.summary.histogram(var.op.name, var))
-    return summaries
 
 
 def sparsity_summary_of_trainable():
