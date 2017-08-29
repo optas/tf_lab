@@ -98,7 +98,7 @@ class ConditionalGAN():
 #             staircase=True
 #         )
         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=0.5).minimize(loss, var_list=var_list)
-#         optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
+#         work_in_prog = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step=batch, var_list=var_list)
         return optimizer
 
     def _single_epoch_train(self, train_data, batch_size, sigma):
