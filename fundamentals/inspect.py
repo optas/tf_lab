@@ -116,6 +116,7 @@ def add_gradients_summary(grad_and_vars, collection_key, name_prefix="", name_su
             summ.append(get_summary("histogram", summ_name, grad, collection_key))
     return summ
 
+
 def fraction_of_grads_less_than(grads_and_vars, bound, tag, collections=None):
     counter = []
     sizes = []
@@ -149,7 +150,6 @@ def count_trainable_parameters(in_graph=None):
             variable_parametes *= dim.value
         total_parameters += variable_parametes
     return total_parameters
-
 
 
 def sparsity_summary_of_trainable():
