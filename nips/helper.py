@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from geo_tool import Point_Cloud
-from general_tools.in_out.basics import files_in_subdirs 
+from general_tools.in_out.basics import files_in_subdirs
 
 from .. point_clouds.in_out import load_crude_point_clouds
-from . data_sets.shape_net import snc_category_to_synth_id
-from . data_sets.shape_net import pc_loader as sn_pc_loader
+from .. data_sets.shape_net import snc_category_to_synth_id
+from .. data_sets.shape_net import pc_loader as sn_pc_loader
 
 
 def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
