@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from geo_tool import Point_Cloud
-from general_tools.in_out.basic import files_in_subdirs 
+from general_tools.in_out.basics import files_in_subdirs 
 
 from .. point_clouds.in_out import load_crude_point_clouds
 from . data_sets.shape_net import snc_category_to_synth_id
