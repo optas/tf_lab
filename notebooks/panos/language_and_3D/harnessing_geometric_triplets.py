@@ -18,7 +18,7 @@ def sorted_indices_given_exclusions(source, all_pdists, excluded):
     s_dists[excluded] = np.inf
     return np.argsort(s_dists)
 
-def far_from_two_observations(all_dists, obs_1, obs_2, excluded):
+def far_from_two_observations(all_pdists, obs_1, obs_2, excluded):
     n = all_pdists.shape[0]
     candidates = np.arange(n)
     candidates = np.setdiff1d(candidates, excluded)
