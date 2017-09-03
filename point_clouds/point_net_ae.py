@@ -124,12 +124,18 @@ class PointNetAutoEncoder(AutoEncoder):
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_step = self.optimizer.minimize(self.loss)
 
-    def _single_epoch_train(self, train_data, configuration):
+    def _single_epoch_train(self, train_data, configuration, only_fw=False):
         n_examples = train_data.num_examples
         epoch_loss = 0.
         batch_size = configuration.batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
+
+        if only_fw:
+            fit = self.reconstruct
+        else:
+            fit = self.partial_fit
+
         # Loop over all batches
         for _ in xrange(n_batches):
 
@@ -143,9 +149,9 @@ class PointNetAutoEncoder(AutoEncoder):
             batch_i = apply_augmentations(batch_i, configuration)   # This is a new copy of the batch.
 
             if self.is_denoising:
-                loss, _ = self.partial_fit(batch_i, original_data)
+                _, loss = fit(batch_i, original_data)
             else:
-                loss, _ = self.partial_fit(batch_i)
+                _, loss = fit(batch_i)
 
             # Compute average loss
             epoch_loss += loss

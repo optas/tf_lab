@@ -129,7 +129,7 @@ class AutoEncoder(object):
         else:
             _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
 
-        return loss, recon
+        return recon, loss
 
     def reconstruct(self, X, GT=None, compute_loss=True):
         '''Use AE to reconstruct given data.

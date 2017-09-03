@@ -73,7 +73,7 @@ class PointNetClassifier(object):
     def partial_fit(self, X, GT):
         '''Trains the model with mini-batches of input data.'''
         _, loss, prediction = self.sess.run((self.optimizer, self.loss, self.prediction), feed_dict={self.x: X, self.gt: GT})
-        return loss, prediction
+        return prediction, loss
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
@@ -85,7 +85,7 @@ class PointNetClassifier(object):
         for _ in xrange(n_batches):
             batch_i, labels, _ = train_data.next_batch(batch_size)
             batch_i = apply_augmentations(batch_i, configuration)   # This is a new copy of the batch.
-            loss, _ = self.partial_fit(batch_i, labels)
+            _, loss = self.partial_fit(batch_i, labels)
 
             # Compute average loss
             epoch_loss += loss
