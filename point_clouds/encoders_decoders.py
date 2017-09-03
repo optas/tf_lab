@@ -61,7 +61,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
 
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
-                         regularizer=None, weight_decay=0.001, reuse=False, scope=None):
+                         regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
 
@@ -85,6 +85,9 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
 
         layer = non_linearity(layer)
+
+        if dropout_prob is not None:
+            layer = dropout(layer, dropout_prob)
 
     # Last decoding layer doesn't have a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)

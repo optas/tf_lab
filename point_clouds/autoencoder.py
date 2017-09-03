@@ -173,7 +173,7 @@ class AutoEncoder(object):
             z = np.expand_dims(z, 0)
         return self.sess.run((self.x_reconstr), {self.z: z})
 
-    def train(self, train_data, configuration, log_file=None):
+    def train(self, train_data, configuration, log_file=None, held_out_data=None):
         c = configuration
         stats = []
 
@@ -200,6 +200,9 @@ class AutoEncoder(object):
                 self.train_writer.add_summary(summary, epoch)
 #                 loss_pl = tf.placeholder(tf.float64, [])
 #                 tf.summary.scalar("Total Loss", loss_pl.assign(loss))
+            if held_out_data is not None and c.exists_and_is_not_none('held_out_step') and (epoch % c.held_out_step == 0):
+                loss, duration = self._single_epoch_train(held_out_data, c, only_fw=True)
+                print("Held Out Data :", 'forward time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
         return stats
 
     def evaluate(self, in_data, configuration, ret_pre_augmentation=False):
@@ -296,3 +299,4 @@ class AutoEncoder(object):
 
         embedding = np.vstack(embedding)
         return feed, embedding, ids
+    
