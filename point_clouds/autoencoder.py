@@ -9,7 +9,7 @@ import os.path as osp
 import tensorflow as tf
 import numpy as np
 
-from tf_learn import is_training
+from tflearn import is_training
 
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 from general_tools.simpletons import iterate_in_chunks
