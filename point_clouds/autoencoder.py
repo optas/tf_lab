@@ -9,6 +9,8 @@ import os.path as osp
 import tensorflow as tf
 import numpy as np
 
+from tf_learn import is_training
+
 from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 from general_tools.simpletons import iterate_in_chunks
 
@@ -124,10 +126,14 @@ class AutoEncoder(object):
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
         '''
+        is_training(True, session=self.sess)
+
         if GT is not None:
             _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
         else:
             _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
+
+        is_training(False, session=self.sess)
 
         return recon, loss
 
