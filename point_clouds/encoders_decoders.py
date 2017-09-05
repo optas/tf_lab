@@ -42,7 +42,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     layer = non_linearity(layer)
 
     if dropout_prob is not None:
-        layer = dropout(layer, dropout_prob)
+        layer = dropout(layer, dropout_prob[0])
 
     for i in xrange(1, n_layers):
         name = 'encoder_conv_layer_' + str(i)
@@ -57,7 +57,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         layer = non_linearity(layer)
 
         if dropout_prob is not None:
-            layer = dropout(layer, dropout_prob)
+            layer = dropout(layer, dropout_prob[i])
 
     layer = symmetry(layer, axis=1)
     return layer
@@ -90,7 +90,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         layer = non_linearity(layer)
 
         if dropout_prob is not None:
-            layer = dropout(layer, dropout_prob)
+            layer = dropout(layer, dropout_prob[i])
 
     # Last decoding layer doesn't have a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)
