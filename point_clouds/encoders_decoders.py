@@ -12,15 +12,18 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
 from . spatial_transformer import transformer as pcloud_spn
-from .. fundamentals.utils import expand_scope_by_name
+from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
 
-def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1, 1, 1, 1], strides=[1, 1, 1, 1],
+def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                     symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     n_layers = len(n_filters)
+    filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
+    strides = replicate_parameter_for_all_layers(strides, n_layers)
+    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
 
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
@@ -41,7 +44,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
     layer = non_linearity(layer)
 
-    if dropout_prob is not None:
+    if dropout_prob is not None and dropout_prob[0] > 0:
         layer = dropout(layer, dropout_prob[0])
 
     for i in xrange(1, n_layers):
@@ -56,7 +59,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
         layer = non_linearity(layer)
 
-        if dropout_prob is not None:
+        if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, dropout_prob[i])
 
     layer = symmetry(layer, axis=1)
@@ -69,6 +72,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     '''
 
     n_layers = len(layer_sizes)
+    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
 
     if n_layers < 2:
         raise ValueError('For an FC decoder with single a layer use simpler code.')
@@ -89,7 +93,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
 
         layer = non_linearity(layer)
 
-        if dropout_prob is not None:
+        if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, dropout_prob[i])
 
     # Last decoding layer doesn't have a non-linearity.

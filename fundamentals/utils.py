@@ -6,6 +6,7 @@ Created on February 2, 2017
 
 import tensorflow as tf
 import numpy as np
+from sympy.integrals.risch import NonElementaryIntegral
 
 
 def expand_scope_by_name(scope, name):
@@ -37,6 +38,13 @@ def format_scope_name(scope_name, prefix, suffix):
         if not suffix[0] == "/":
             suffix = "/" + suffix
     return prefix + scope_name + suffix
+
+
+def replicate_parameter_for_all_layers(parameter, n_layers):
+    if parameter is not None and len(parameter) is not n_layers:
+        parameter = np.array(parameter)
+        parameter = parameter.repeat(n_layers).tolist()
+    return parameter
 
 
 def get_incoming_shape(incoming):

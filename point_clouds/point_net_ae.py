@@ -85,8 +85,7 @@ class PointNetAutoEncoder(AutoEncoder):
             self.sess.run(self.init)
 
     def trainable_parameters(self):
-        # TODO: what happens if more nets in single graph?
-        return count_trainable_parameters(self.graph)
+        return count_trainable_parameters(self.graph, name_space=self.name)
 
     def _create_loss(self):
         c = self.configuration
@@ -99,10 +98,6 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
-
-        if c.exists_and_is_not_none('consistent_io'):
-            self.cons_loss = PointNetAutoEncoder._consistency_loss(self)
-            self.loss += self.cons_loss
 
         reg_losses = self.graph.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         if c.exists_and_is_not_none('w_reg_alpha'):
@@ -161,30 +156,3 @@ class PointNetAutoEncoder(AutoEncoder):
 
     def gradient_wrt_input(self, in_points, gt_points):
         return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
-
-    @staticmethod
-    def _consistency_loss(self):   # TODO Make instance method.
-        c = self.configuration
-        batch_indicator = np.arange(c.batch_size, dtype=np.int32)   # needed to match mask with output.
-        batch_indicator = batch_indicator.repeat(self.n_input[0])
-        batch_indicator = tf.constant(batch_indicator, dtype=tf.int32)
-        batch_indicator = tf.expand_dims(batch_indicator, 1)
-
-        output_mask = fully_connected(self.x_reconstr, self.n_output[0], activation='softmax', weights_init='xavier', name='consistent-softmax')
-        _, indices = tf.nn.top_k(output_mask, self.n_input[0], sorted=False)
-
-        indices = tf.reshape(indices, [-1])
-        indices = tf.expand_dims(indices, 1)
-        indices = tf.concat(1, [batch_indicator, indices])
-
-        self.output_cons_subset = tf.gather_nd(self.x_reconstr, indices)
-        self.output_cons_subset = tf.reshape(self.output_cons_subset, [c.batch_size, -1, self.n_output[1]])
-
-        if c.consistent_io.lower() == 'chamfer':
-            cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.output_cons_subset, self.x)
-            return tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-        elif c.consistent_io.lower() == 'emd':
-            match = approx_match(self.output_cons_subset, self.x)
-            return tf.reduce_mean(match_cost(self.output_cons_subset, self.x, match))
-        else:
-            assert(False)

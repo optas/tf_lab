@@ -136,13 +136,15 @@ def trainable_variables(in_graph=None):
         return in_graph.get_collection('trainable_variables')
 
 
-def count_trainable_parameters(in_graph=None):
+def count_trainable_parameters(in_graph=None, name_space=None):
     if in_graph is None:
         in_graph = tf.get_default_graph()
 
     total_parameters = 0
     # for variable in tf.trainable_variables():
     for variable in in_graph.get_collection('trainable_variables'):
+        if name_space is not None and variable.name not in name_space:
+            continue
         # shape is an array of tf.Dimension
         shape = variable.get_shape()
         variable_parametes = 1
