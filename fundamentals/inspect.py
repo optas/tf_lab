@@ -5,7 +5,7 @@ Created on Jan 9, 2017
 '''
 
 import tensorflow as tf
-from . utils import format_scope_name, count_cmp_to_value 
+from . utils import format_scope_name, count_cmp_to_value
 
 SUMMARIES_COLLECTION = 'summary_tags'       # Keeping all summaries in this collection, each summary being stored as value of a dictionary.
 SUMMARY_TAG = 'tag'                         # Used as the key on a dictionary storing the name of the summary operation.

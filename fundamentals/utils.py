@@ -6,7 +6,6 @@ Created on February 2, 2017
 
 import tensorflow as tf
 import numpy as np
-from sympy.integrals.risch import NonElementaryIntegral
 
 
 def expand_scope_by_name(scope, name):
