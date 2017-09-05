@@ -41,6 +41,9 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
     layer = non_linearity(layer)
 
+    if dropout_prob is not None:
+        layer = dropout(layer, dropout_prob)
+
     for i in xrange(1, n_layers):
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
@@ -53,8 +56,8 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
         layer = non_linearity(layer)
 
-    if dropout_prob is not None:
-        layer = dropout(layer, dropout_prob)
+        if dropout_prob is not None:
+            layer = dropout(layer, dropout_prob)
 
     layer = symmetry(layer, axis=1)
     return layer
