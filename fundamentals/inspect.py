@@ -143,7 +143,7 @@ def count_trainable_parameters(in_graph=None, name_space=None):
     total_parameters = 0
     # for variable in tf.trainable_variables():
     for variable in in_graph.get_collection('trainable_variables'):
-        if name_space is not None and variable.name not in name_space:
+        if name_space is not None and name_space not in variable.name:
             continue
         # shape is an array of tf.Dimension
         shape = variable.get_shape()
