@@ -7,14 +7,25 @@ import numpy as np
 from general_tools.simpletons import iterate_in_chunks
 
 
-def reconstruct_pclouds(autoencoder, pclouds, batch_size, compute_loss=True):
+def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, compute_loss=True):
     recon_data = []
     loss = 0.
-    n_input = list(pclouds[0].shape)
+
+    n_pclouds = len(pclouds_feed)
+    if pclouds_gt is not None:
+        if len(pclouds_gt) != n_pclouds:
+            raise ValueError()
+
     n_batches = 0.0
-    for b in iterate_in_chunks(pclouds, batch_size):
-        feed = b.reshape([len(b)] + n_input)
-        rec, loss_batch = autoencoder.reconstruct(feed, compute_loss=compute_loss)
+    idx = np.arange(n_pclouds)
+
+    for b in iterate_in_chunks(idx, batch_size):
+        feed = pclouds_feed[b]
+        if pclouds_gt is not None:
+            gt = pclouds_gt[b]
+        else:
+            gt = None
+        rec, loss_batch = autoencoder.reconstruct(feed, GT=gt, compute_loss=compute_loss)
         recon_data.append(rec)
         if compute_loss:
             loss += loss_batch
