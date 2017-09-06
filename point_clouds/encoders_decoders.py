@@ -37,12 +37,12 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     scope_i = expand_scope_by_name(scope, name)
     layer = conv_1d(in_signal, nb_filter=n_filters[0], filter_size=filter_sizes[0], strides=strides[0], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
-    layer = non_linearity(layer)
-
     if b_norm:
         name += '_bnorm'
         scope_i = expand_scope_by_name(scope, name)
         layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
+    layer = non_linearity(layer)
 
     if dropout_prob is not None and dropout_prob[0] > 0:
         layer = dropout(layer, 1.0 - dropout_prob[0])
@@ -86,12 +86,12 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
 
         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
 
-        layer = non_linearity(layer)
-
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
+        layer = non_linearity(layer)
 
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
