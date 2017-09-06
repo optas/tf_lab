@@ -15,6 +15,8 @@ from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 from general_tools.simpletons import iterate_in_chunks
 
 from . in_out import apply_augmentations
+from .. neural_net import NeuralNet
+
 model_saver_id = 'models.ckpt'
 
 
@@ -84,7 +86,7 @@ class Configuration():
         return unpickle_data(file_name + '.pickle').next()
 
 
-class AutoEncoder(object):
+class AutoEncoder(object, NeuralNet):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
