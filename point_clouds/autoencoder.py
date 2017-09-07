@@ -86,7 +86,7 @@ class Configuration():
         return unpickle_data(file_name + '.pickle').next()
 
 
-class AutoEncoder(object, NeuralNet):
+class AutoEncoder(NeuralNet):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
