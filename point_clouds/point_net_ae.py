@@ -154,5 +154,28 @@ class PointNetAutoEncoder(AutoEncoder):
         duration = time.time() - start_time
         return epoch_loss, duration
 
-    def gradient_wrt_input(self, in_points, gt_points):
+    def gradient_of_input_wrt_loss(self, in_points, gt_points=None):
+        if gt_points is None:
+            gt_points = in_points
         return self.sess.run(tf.gradients(self.loss, self.x), feed_dict={self.x: in_points, self.gt: gt_points})
+
+    def gradient_of_input_wrt_latent_code(self, in_points, code_dims=None):
+        ''' batching this is ok. but if you add a list of code_dims the problem is on the way the tf.gradient will
+        gather the gradients from each dimension, i.e., by default it just adds them. This is problematic since for my
+        research I would need at least the abs sum of them.
+        '''
+        b_size = len(in_points)
+        n_dims = len(code_dims)
+    #     print b_size, n_dims
+        row_idx = tf.range(b_size, dtype=tf.int32)
+        row_idx = tf.reshape(tf.tile(row_idx, [n_dims]), [n_dims, -1])
+        row_idx = tf.transpose(row_idx)
+    #     print row_idx.eval()
+        col_idx = tf.constant(code_dims, dtype=tf.int32)
+        col_idx = tf.reshape(tf.tile(col_idx, [b_size]), [b_size, -1])
+    #     print col_idx.eval()
+        coords = tf.transpose(tf.pack([row_idx, col_idx]))
+        if b_size == 1:
+            coords = coords[0]
+        ys = tf.gather_nd(self.z, coords)
+        return self.sess.run(tf.gradients(ys, self.x), feed_dict={self.x: in_points})[0]

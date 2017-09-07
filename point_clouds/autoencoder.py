@@ -152,13 +152,6 @@ class AutoEncoder(object, NeuralNet):
         else:
             return self.sess.run((self.x_reconstr, loss), feed_dict={self.x: X, self.gt: GT})
 
-    def input_gradient(self, X, GT):
-        '''TODO: Clean up.
-        '''
-        self.sess.run((self.x_reconstr, self.loss), feed_dict={self.x: X, self.gt: GT})
-        self.var_grad = tf.gradients(self.loss, [self.x])
-        return self.sess.run(self.var_grad, feed_dict={self.x: X, self.gt: GT})
-
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
         return self.sess.run(self.z, feed_dict={self.x: X})

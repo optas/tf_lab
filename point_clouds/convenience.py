@@ -32,3 +32,11 @@ def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, 
         n_batches += 1
 
     return np.vstack(recon_data), loss / n_batches
+
+
+def get_latent_codes(autoencoder, pclouds, batch_size=100):
+    latent_codes = []
+    idx = np.arange(len(pclouds))
+    for b in iterate_in_chunks(idx, batch_size):
+        latent_codes.append(autoencoder.transform(pclouds[b]))
+    return np.vstack(latent_codes)
