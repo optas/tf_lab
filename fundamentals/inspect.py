@@ -5,6 +5,7 @@ Created on Jan 9, 2017
 '''
 
 import tensorflow as tf
+import numpy as np
 from . utils import format_scope_name, count_cmp_to_value
 
 SUMMARIES_COLLECTION = 'summary_tags'       # Keeping all summaries in this collection, each summary being stored as value of a dictionary.
@@ -146,10 +147,8 @@ def count_trainable_parameters(in_graph=None, name_space=None):
         if name_space is not None and name_space not in variable.name:
             continue
         # shape is an array of tf.Dimension
-        shape = variable.get_shape()
-        variable_parametes = 1
-        for dim in shape:
-            variable_parametes *= dim.value
+        shape = variable.get_shape().as_list()
+        variable_parametes = np.prod(shape)
         total_parameters += variable_parametes
     return total_parameters
 

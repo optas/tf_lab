@@ -89,7 +89,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
-            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            layer = batch_normalization(layer, epsilon=0.001, decay=0.95, name=name, reuse=reuse, scope=scope_i)
 
         layer = non_linearity(layer)
 
