@@ -9,16 +9,11 @@ import tensorflow as tf
 
 from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d
-# from tflearn.layers.normalization import batch_normalization
-
-
-
-from tensorflow.contrib.slim import batch_norm
+from tflearn.layers.normalization import batch_normalization
 
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
-batch_normalization = batch_norm
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
@@ -61,8 +56,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
         if b_norm:
             name += '_bnorm'
-            scope_i = expand_scope_by_name(scope, name)
-#             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
             layer = batch_normalization(layer, reuse=reuse, scope=scope_i)
 
         if dropout_prob is not None and dropout_prob[i] > 0:
@@ -95,8 +89,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
-#             layer = batch_normalization(layer, epsilon=0.001, decay=0.95, name=name, reuse=reuse, scope=scope_i)
-            layer = batch_normalization(layer, reuse=reuse, scope=scope_i)
+            layer = batch_normalization(layer, epsilon=0.001, decay=0.99, name=name, reuse=reuse, scope=scope_i)
 
         layer = non_linearity(layer)
 
