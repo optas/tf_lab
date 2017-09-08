@@ -105,7 +105,7 @@ def pclouds_centered_and_half_sphere(pclouds):
 
 
 def wu_nips_16_categories():
-    category_names = ['airplane', 'car', 'chair', 'sofa', 'rifle', 'boat', 'table']
+    category_names = ['airplane', 'car', 'chair', 'sofa', 'rifle', 'vessel', 'table']
     syn_id_dict = snc_category_to_synth_id()
     return category_names, [syn_id_dict[i] for i in category_names]
 
