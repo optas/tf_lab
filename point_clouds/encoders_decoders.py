@@ -65,6 +65,12 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
+def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, kw_args):
+    layer = encoder_with_convs_and_symmetry(in_signal, **kw_args)
+    layer = fully_connected(layer, fc_nout, activation='relu', weights_init='xavier')
+    return layer
+
+
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None):
     '''A decoding network which maps points from the latent space back onto the data space.

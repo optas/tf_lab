@@ -23,8 +23,10 @@ model_saver_id = 'models.ckpt'
 class Configuration():
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
                  training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
-                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None, saver_max_to_keep=None, loss_display_step=1,
-                 spatial_trans=False, debug=False, n_z=None, n_output=None, latent_vs_recon=1.0, consistent_io=None, experiment_name='experiment'):
+                 saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None,
+                 saver_max_to_keep=None, loss_display_step=1, spatial_trans=False, debug=False,
+                 n_z=None, n_output=None, latent_vs_recon=1.0, consistent_io=None, held_out_step=1,
+                 experiment_name='experiment'):
 
         # Parameters for any AE
         self.n_input = n_input
@@ -205,6 +207,8 @@ class AutoEncoder(NeuralNet):
             if held_out_data is not None and c.exists_and_is_not_none('held_out_step') and (epoch % c.held_out_step == 0):
                 loss, duration = self._single_epoch_train(held_out_data, c, only_fw=True)
                 print("Held Out Data :", 'forward time (minutes)=', "{:.4f}".format(duration / 60.0), "loss=", "{:.9f}".format(loss))
+                if log_file is not None:
+                    log_file.write('On Held_Out: %04d\t%.9f\t%.4f\n' % (epoch, loss, duration / 60.0))
         return stats
 
     def evaluate(self, in_data, configuration, ret_pre_augmentation=False):
