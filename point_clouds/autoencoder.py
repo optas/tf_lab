@@ -129,14 +129,15 @@ class AutoEncoder(NeuralNet):
             The reconstructed (output) point-clouds.
         '''
         is_training(True, session=self.sess)
+        try:
+            if GT is not None:
+                _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
+            else:
+                _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
 
-        if GT is not None:
-            _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
-        else:
-            _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
-
-        is_training(False, session=self.sess)
-
+            is_training(False, session=self.sess)
+        except:
+            is_training(False, session=self.sess)
         return recon, loss
 
     def reconstruct(self, X, GT=None, compute_loss=True):
