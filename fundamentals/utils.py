@@ -58,11 +58,11 @@ def get_incoming_shape(incoming):
         raise Exception("Invalid incoming layer.")
 
 
-def count_cmp_to_value(in_tensor, bound_val, comparator=tf.equal):
+def count_cmp_to_value(in_tensor, bound_val, comparator=tf.equal, axis=None):
     ''' count number of elements of tensors that are bigger/smaller etc. than a `bound_val`.
     '''
     elements_equal_to_value = comparator(in_tensor, bound_val)
     as_ints = tf.cast(elements_equal_to_value, tf.int32)
-    count = tf.reduce_sum(as_ints)
+    count = tf.reduce_sum(as_ints, axis=axis)
     count = tf.cast(count, tf.float32)
     return count
