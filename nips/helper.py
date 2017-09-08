@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from geo_tool import Point_Cloud
 from general_tools.in_out.basics import files_in_subdirs
 
-from .. point_clouds.in_out import load_crude_point_clouds
+from .. point_clouds.in_out import load_point_clouds_from_filenames
 from .. data_sets.shape_net import snc_category_to_synth_id
 from .. data_sets.shape_net import pc_loader as sn_pc_loader
 
@@ -28,7 +28,7 @@ def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
     for cat_name, syn_id in zip(wu_cat_names, wu_syn_ids):
         print cat_name, syn_id
         file_names = [f for f in files_in_subdirs(osp.join(pclouds_path, syn_id), '.ply')]
-        pclouds_temp, model_ids_temp, syn_ids_temp = load_crude_point_clouds(file_names=file_names, n_threads=50, loader=sn_pc_loader)
+        pclouds_temp, model_ids_temp, syn_ids_temp = load_point_clouds_from_filenames(file_names=file_names, n_threads=50, loader=sn_pc_loader)
         print '%d files containing complete point clouds were found.' % (len(pclouds_temp), )
         pclouds.append(pclouds_temp)
         model_ids.append(model_ids_temp)
