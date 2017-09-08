@@ -9,11 +9,16 @@ import tensorflow as tf
 
 from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d
-from tflearn.layers.normalization import batch_normalization
+# from tflearn.layers.normalization import batch_normalization
+
+
+
+from tensorflow.contrib.slim import batch_norm
 
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
+batch_normalization = batch_norm
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
