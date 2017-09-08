@@ -62,7 +62,8 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
-            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+#             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            layer = batch_normalization(layer, reuse=reuse, scope=scope_i)
 
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
