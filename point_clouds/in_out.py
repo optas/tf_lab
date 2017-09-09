@@ -59,16 +59,11 @@ def _load_crude_pcloud_with_normal_and_model_info(f_name):
     return load_crude_point_cloud_with_normals(f_name), model_id, class_id
 
 
-
-
-
 def add_gaussian_noise_to_pcloud(pcloud, mu=0, sigma=1):
     gnoise = np.random.normal(mu, sigma, pcloud.shape[0])
     gnoise = np.tile(gnoise, (3, 1)).T
     pcloud += gnoise
     return pcloud
-
-
 
 
 def write_model_ids_of_datasets(out_dir, model_ids, r_indices):

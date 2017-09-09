@@ -167,15 +167,14 @@ class PointNetAutoEncoder(AutoEncoder):
         '''
         b_size = len(in_points)
         n_dims = len(code_dims)
-    #     print b_size, n_dims
+
         row_idx = tf.range(b_size, dtype=tf.int32)
         row_idx = tf.reshape(tf.tile(row_idx, [n_dims]), [n_dims, -1])
         row_idx = tf.transpose(row_idx)
-    #     print row_idx.eval()
         col_idx = tf.constant(code_dims, dtype=tf.int32)
         col_idx = tf.reshape(tf.tile(col_idx, [b_size]), [b_size, -1])
-    #     print col_idx.eval()
         coords = tf.transpose(tf.pack([row_idx, col_idx]))
+
         if b_size == 1:
             coords = coords[0]
         ys = tf.gather_nd(self.z, coords)
