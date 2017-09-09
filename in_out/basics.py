@@ -13,6 +13,7 @@ from collections import Counter
 from general_tools.in_out.basics import files_in_subdirs
 from general_tools.simpletons import are_disjoint_sets
 
+
 def read_saved_epochs(saved_dir):
     epochs_saved = []
     files = glob.glob(osp.join(saved_dir, 'models.ckpt-*.index'))

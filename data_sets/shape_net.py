@@ -8,7 +8,10 @@ Associate code and data for manipulating the shapes of Shape-Net.
 '''
 
 import six
+from general_tools.in_out.basics import files_in_subdirs
 from geo_tool.in_out.soup import load_ply
+
+from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
 
 snc_synth_id_to_category = {
     '02691156': 'airplane',  '02773838': 'bag',        '02801938': 'basket',
@@ -48,3 +51,9 @@ def pc_loader(f_name):
     model_id = tokens[-1].split('.')[0]
     synet_id = tokens[-2]
     return load_ply(f_name), model_id, synet_id
+
+
+def load_all_point_clouds_under_folder(top_dir, n_threads=20, file_ending='.ply', verbose=False):
+    file_names = [f for f in files_in_subdirs(top_dir, file_ending)]
+    pclouds, model_ids, syn_ids = load_point_clouds_from_filenames(file_names, n_threads, loader=pc_loader, verbose=verbose)
+    return PointCloudDataSet(pclouds, labels=syn_ids + '_' + model_ids)
