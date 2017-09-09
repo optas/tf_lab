@@ -61,7 +61,8 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
-    layer = symmetry(layer, axis=1)
+    if symmetry is not None:
+        layer = symmetry(layer, axis=1)
     return layer
 
 
