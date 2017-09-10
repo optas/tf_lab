@@ -6,7 +6,7 @@ Created on Feb 8, 2017
 
 
 
-
+# Put pretrained PCA layer
 from sklearn.decomposition import PCA
 pca = PCA(n_components=11)
 lcodes_in_pc = pca.fit_transform(train_lcodes)
@@ -16,6 +16,10 @@ train_lcodes_backfrom_pca = pca.inverse_transform(lcodes_in_pc)
 post_pca = tf.matmul(ae.z - tf.constant(pca.mean_, tf.float32), tf.constant(pca.components_.T))
 
 
+
+# Some cool stuff
+with tf.control_dependencies([ae.optimizer]):
+    loss_after_optimizer = tf.identity(ae.loss)
 
 
 # TRYING TO LOAD VERTEX QUALITY FROM MESHLAB
