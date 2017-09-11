@@ -200,6 +200,7 @@ class PointCloudDataSet(object):
 
         return self
 
+
 def shuffle_two_pcloud_datasets(a, b, seed=None):
     n_a = a.num_examples
     n_b = b.num_examples
