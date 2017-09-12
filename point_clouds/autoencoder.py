@@ -137,7 +137,9 @@ class AutoEncoder(NeuralNet):
                 _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
 
             is_training(False, session=self.sess)
-        except:
+        except Exception:
+            raise
+        finally:
             is_training(False, session=self.sess)
         return recon, loss
 
