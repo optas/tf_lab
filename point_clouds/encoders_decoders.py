@@ -16,7 +16,7 @@ from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_
 
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
-                                    b_norm=False, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+                                    b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                     symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
