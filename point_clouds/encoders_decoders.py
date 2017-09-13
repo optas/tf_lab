@@ -72,7 +72,7 @@ def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, args_of_patrial={
     return layer
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=False, non_linearity=tf.nn.relu,
+def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
