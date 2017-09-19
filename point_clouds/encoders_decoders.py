@@ -63,7 +63,11 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
     if symmetry is not None:
         layer = symmetry(layer, axis=1)
+
     return layer
+
+
+
 
 
 def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, args_of_patrial={}):

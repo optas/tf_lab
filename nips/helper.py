@@ -59,12 +59,13 @@ def compute_3D_grid(resolution):
     '''
     grid = np.ndarray((resolution, resolution, resolution, 3), np.float32)
     spacing = 1.0 / float(resolution - 1)
+    const = spacing - 0.5
     for i in xrange(resolution):
         for j in xrange(resolution):
             for k in xrange(resolution):
-                grid[i, j, k, 0] = i * spacing - 0.5
-                grid[i, j, k, 1] = j * spacing - 0.5
-                grid[i, j, k, 2] = k * spacing - 0.5
+                grid[i, j, k, 0] = i * const
+                grid[i, j, k, 1] = j * const
+                grid[i, j, k, 2] = k * const
     return grid, spacing
 
 
