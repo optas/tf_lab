@@ -6,13 +6,62 @@ Created on February 4, 2017
 '''
 
 import tensorflow as tf
-
+import numpy as np
 from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d
 from tflearn.layers.normalization import batch_normalization
 
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
+
+
+def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
+                                        b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+                                        symmetry=tf.reduce_max, dropout_prob=None, pool=None, pool_sizes=None, scope=None, reuse=False):
+    '''An Encoder (recognition network), which maps inputs onto a latent space.
+    '''
+    n_layers = len(n_filters)
+    filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
+    strides = replicate_parameter_for_all_layers(strides, n_layers)
+    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
+
+    if n_layers < 2:
+        raise ValueError('More than 1 layers are expected.')
+
+    if spn:
+        transformer = pcloud_spn(in_signal)
+        in_signal = tf.batch_matmul(in_signal, transformer)
+        print 'Spatial transformer was activated.'
+
+    for i in xrange(n_layers):
+        if i == 0:
+            layer = in_signal
+
+        name = 'encoder_conv_layer_' + str(i)
+        scope_i = expand_scope_by_name(scope, name)
+        layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
+
+        if b_norm:
+            name += '_bnorm'
+            scope_i = expand_scope_by_name(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
+        layer = non_linearity(layer)
+
+        if pool is not None:
+            if pool_sizes[i] is not None:
+                layer = pool(layer, kernel_size=pool_sizes[i])
+
+        if dropout_prob is not None and dropout_prob[i] > 0:
+            layer = dropout(layer, 1.0 - dropout_prob[i])
+
+        print layer, np.prod(layer.get_shape().as_list()[1:])
+
+    if symmetry is not None:
+        layer = symmetry(layer, axis=1)
+        print layer, np.prod(layer.get_shape().as_list()[1:])
+
+    return layer
 
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],

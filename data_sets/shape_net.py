@@ -6,10 +6,15 @@ Created on Mar 32, 2017
 Associate code and data for manipulating the shapes of Shape-Net.
 
 '''
-
 import six
-from general_tools.in_out.basics import files_in_subdirs
+import numpy as np
+import os.path as osp
+
 from geo_tool.in_out.soup import load_ply
+from geo_tool import Mesh, Point_Cloud
+import geo_tool.solids.mesh_cleaning as cleaning
+from geo_tool.in_out.soup import load_crude_point_cloud
+from general_tools.in_out.basics import files_in_subdirs
 
 from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
 
@@ -44,6 +49,23 @@ def snc_category_to_synth_id():
     return inv_map
 
 
+def pc_uniform_sampler(mesh_file, n_samples, swap_y_z=True, save_file=None, dtype=np.float32, out_folder=None):
+    ''' Given a mesh, it computes a point-cloud that is uniformly sampled
+    from its area elements.
+    '''
+    in_mesh = Mesh(file_name=mesh_file)
+    if swap_y_z:
+        in_mesh.swap_axes_of_vertices([0, 2, 1])
+    in_mesh = cleaning.clean_mesh(in_mesh)
+    ss_points, _ = in_mesh.sample_faces(n_samples)
+    pc = Point_Cloud(points=ss_points.astype(dtype))
+    pc.center_in_unit_sphere()
+    pc, _ = pc.lex_sort()
+    if save_file is not None:
+        pc.save_as_ply(save_file)
+    return pc
+
+
 def pc_loader(f_name):
     '''Assumes that the point-clouds were created with:
     '''
@@ -51,6 +73,16 @@ def pc_loader(f_name):
     model_id = tokens[-1].split('.')[0]
     synet_id = tokens[-2]
     return load_ply(f_name), model_id, synet_id
+
+
+def fps_sampled_loader(in_f):
+    ''' Loads pc's created with Matlab code and FPS sampling.
+    '''
+    pc = load_crude_point_cloud(in_f)
+    pc = Point_Cloud(pc).permute_points([0, 2, 1]).points
+    syn_id = in_f.split('/')[-3]
+    model_name = in_f.split('/')[-2]
+    return pc, model_name, syn_id
 
 
 def load_all_point_clouds_under_folder(top_dir, n_threads=20, file_ending='.ply', verbose=False):
