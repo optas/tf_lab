@@ -76,7 +76,7 @@ def pc_loader(f_name):
 
 
 def fps_sampled_loader(in_f):
-    ''' Loads pc's created with Matlab code and FPS sampling.
+    ''' Loads pc's created with Matlab\'s code and FPS sampling.
     '''
     pc = load_crude_point_cloud(in_f)
     pc = Point_Cloud(pc).permute_points([0, 2, 1]).points

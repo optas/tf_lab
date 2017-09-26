@@ -8,8 +8,9 @@ Created on February 4, 2017
 import tensorflow as tf
 import numpy as np
 from tflearn.layers.core import fully_connected, dropout
-from tflearn.layers.conv import conv_1d
+from tflearn.layers.conv import conv_1d, avg_pool_1d
 from tflearn.layers.normalization import batch_normalization
+
 
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
@@ -17,7 +18,7 @@ from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_
 
 def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
-                                        symmetry=tf.reduce_max, dropout_prob=None, pool=None, pool_sizes=None, scope=None, reuse=False):
+                                        symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None, reuse=False):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
     n_layers = len(n_filters)
@@ -46,7 +47,8 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
 
-        layer = non_linearity(layer)
+        if non_linearity is not None:
+            layer = non_linearity(layer)
 
         if pool is not None:
             if pool_sizes[i] is not None:
@@ -103,6 +105,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
         if b_norm:
             name += '_bnorm'
+            #scope_i = expand_scope_by_name(scope, name) # FORGOT TO PUT IT BEFORE ICLR
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
 
         layer = non_linearity(layer)
@@ -124,6 +127,24 @@ def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, args_of_patrial={
     layer = fully_connected(layer, fc_nout, activation='relu', weights_init='xavier')
     return layer
 
+
+def decoder_with_conv_only(in_signal, layer_sizes, b_norm=True, ):
+    def convolutional_decoder(in_signal):
+    layer = in_signal
+    print layer
+    layer = deconvolution_op(layer, nb_filter=6, filter_size=2, strides=1)
+    layer = batch_normalization(layer)    
+    print layer
+    layer = deconvolution_op(layer, nb_filter=6, filter_size=2, strides=1)
+    layer = batch_normalization(layer)
+    print layer
+    layer = deconvolution_op(layer, nb_filter=12, filter_size=4, strides=1)
+    layer = batch_normalization(layer)
+    print layer
+    layer = deconvolution_op(layer, nb_filter=12, filter_size=8, strides=1)
+    layer = batch_normalization(layer)
+    print layer
+    return layer
 
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None):
