@@ -50,7 +50,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
         if non_linearity is not None:
             layer = non_linearity(layer)
 
-        if pool is not None:
+        if pool is not None and pool_sizes is not None:
             if pool_sizes[i] is not None:
                 layer = pool(layer, kernel_size=pool_sizes[i])
 
