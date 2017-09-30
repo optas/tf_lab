@@ -49,8 +49,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
-
-        print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
+            print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
         if non_linearity is not None:
             layer = non_linearity(layer)
@@ -155,7 +154,8 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
 
-        layer = non_linearity(layer)
+        if non_linearity is not None:
+            layer = non_linearity(layer)
 
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
