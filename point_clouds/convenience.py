@@ -40,6 +40,3 @@ def get_latent_codes(autoencoder, pclouds, batch_size=100):
     for b in iterate_in_chunks(idx, batch_size):
         latent_codes.append(autoencoder.transform(pclouds[b]))
     return np.vstack(latent_codes)
-
-
-

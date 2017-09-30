@@ -80,6 +80,7 @@ def fps_sampled_loader(in_f):
     '''
     pc = load_crude_point_cloud(in_f)
     pc = Point_Cloud(pc).permute_points([0, 2, 1]).points
+#     pc.center_in_u
     syn_id = in_f.split('/')[-3]
     model_name = in_f.split('/')[-2]
     return pc, model_name, syn_id
