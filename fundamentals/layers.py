@@ -117,7 +117,7 @@ def conv_2d_transpose(in_layer, n_filters, filter_size, stride, padding, stddev,
         return out_signal
 
 
-def conv_1d_tranpose(layer, nb_filter, filter_width, stride, batch_size, padding='same',
+def conv_1d_tranpose(layer, nb_filter, filter_size, stride, batch_size, padding='same',
                      bias=True, scope=None, reuse=False, bias_init='zeros',
                      trainable=True, restore=True, regularizer=None, weight_decay=0.001,
                      weights_init='uniform_scaling', name="deconv_1d"):
@@ -130,7 +130,7 @@ def conv_1d_tranpose(layer, nb_filter, filter_width, stride, batch_size, padding
     input_shape = utils.get_incoming_shape(layer)
     _, in_width, in_channels = input_shape
 
-    filter_size = [filter_width, nb_filter, in_channels]
+    filter_size = [filter_size, nb_filter, in_channels]
     output_shape = [batch_size, stride * in_width, nb_filter]
     output_shape_ = ops.convert_to_tensor(output_shape, name="output_shape")
 
