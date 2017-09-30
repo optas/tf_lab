@@ -117,7 +117,7 @@ def conv_2d_transpose(in_layer, n_filters, filter_size, stride, padding, stddev,
         return out_signal
 
 
-def conv_1d_tranpose(layer, nb_filter, filter_size, stride, batch_size, padding='same',
+def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding='same',
                      bias=True, scope=None, reuse=False, bias_init='zeros',
                      trainable=True, restore=True, regularizer=None, weight_decay=0.001,
                      weights_init='uniform_scaling', name="deconv_1d"):
