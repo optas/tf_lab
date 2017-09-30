@@ -6,6 +6,14 @@ A module containing some commonly used layers of (deep) neural networks.
 # TODO: Default initializations are OK, but for convolutions some other initializations will not work.
 
 import tensorflow as tf
+import numpy as np
+from tensorflow.python.framework import ops
+from tensorflow.python.ops import array_ops, gen_nn_ops
+
+from tflearn import initializations
+from tflearn import utils
+from tflearn import variables as vs
+
 
 from . nn import _flat_batch_signal, _variable_with_weight_decay, _bias_variable
 from . initializations import initializer
@@ -107,3 +115,57 @@ def conv_2d_transpose(in_layer, n_filters, filter_size, stride, padding, stddev,
         biases = _bias_variable([n_filters], init_bias)
         out_signal = tf.nn.bias_add(decon, biases, name=name + '_out')
         return out_signal
+
+
+def conv_1d_tranpose(layer, nb_filter, filter_width, stride, batch_size, padding='same',
+                     bias=True, scope=None, reuse=False, bias_init='zeros',
+                     trainable=True, restore=True, regularizer=None, weight_decay=0.001,
+                     weights_init='uniform_scaling', name="deconv_1d"):
+    '''
+    layer: A 3-D `Tensor` of type `float` and shape `[batch, in_width, in_channels]` .
+    SEE: https://www.tensorflow.org/api_docs/python/tf/nn/conv2d_backprop_input
+    TODO: ADD weight-decay/regularizer
+    '''
+
+    input_shape = utils.get_incoming_shape(layer)
+    _, in_width, in_channels = input_shape
+
+    filter_size = [filter_width, nb_filter, in_channels]
+    output_shape = [batch_size, stride * in_width, nb_filter]
+    output_shape_ = ops.convert_to_tensor(output_shape, name="output_shape")
+
+    strides = [1, 1, stride, 1]
+    spatial_start_dim = 1
+    padding = utils.autoformat_padding(padding)
+
+    with tf.variable_scope(scope, default_name=name, values=[layer], reuse=reuse) as scope:
+        name = scope.name
+        W_init = initializations.get(weights_init)()
+        W_regul = None
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+
+        print np.prod(filter_size) + (2 * nb_filter)
+
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        # expand dims to make it compatible with conv2d
+        W = tf.expand_dims(W, 0)
+        layer = tf.expand_dims(layer, spatial_start_dim)
+        output_shape_ = array_ops.concat_v2([output_shape_[:1], [1], output_shape_[1:]], axis=0)
+
+        result = gen_nn_ops.conv2d_backprop_input(input_sizes=output_shape_, filter=W, out_backprop=layer, strides=strides,
+                                                  padding=padding, name=name)
+
+        result = array_ops.squeeze(result, [spatial_start_dim])
+        result = tf.reshape(result, shape=output_shape)
+
+        if bias:
+            b_shape = [nb_filter]
+            bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=b_shape, initializer=bias_init, trainable=trainable, restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
+            result = tf.nn.bias_add(result, b)
+
+    return result
