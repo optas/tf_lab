@@ -43,10 +43,14 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
         scope_i = expand_scope_by_name(scope, name)
         layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer, weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i)
 
+        print 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list())
+
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+
+        print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
         if non_linearity is not None:
             layer = non_linearity(layer)
@@ -58,7 +62,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
-        print layer, np.prod(layer.get_shape().as_list()[1:]), np.prod(layer.get_shape().as_list()[1:])* filter_sizes[i]
+        print layer, np.prod(layer.get_shape().as_list()[1:])
 
     if symmetry is not None:
         layer = symmetry(layer, axis=1)

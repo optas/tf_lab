@@ -168,4 +168,8 @@ def conv_1d_tranpose(layer, nb_filter, filter_width, stride, batch_size, padding
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
             result = tf.nn.bias_add(result, b)
 
+        result.scope = scope
+        result.W = W
+        result.b = b
+
     return result
