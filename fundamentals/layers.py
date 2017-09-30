@@ -131,10 +131,10 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding
     _, in_width, in_channels = input_shape
 
     filter_size = [filter_size, nb_filter, in_channels]
-    output_shape = [batch_size, stride * in_width, nb_filter]
+    output_shape = [batch_size, strides * in_width, nb_filter]
     output_shape_ = ops.convert_to_tensor(output_shape, name="output_shape")
 
-    strides = [1, 1, stride, 1]
+    strides = [1, 1, strides, 1]
     spatial_start_dim = 1
     padding = utils.autoformat_padding(padding)
 
