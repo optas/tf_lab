@@ -70,11 +70,13 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
         if verbose:
+            print layer
             print 'output size:', np.prod(layer.get_shape().as_list()[1:])
 
     if symmetry is not None:
         layer = symmetry(layer, axis=1)
-        print layer, np.prod(layer.get_shape().as_list()[1:])
+        if verbose:
+            print layer
 
     return layer
 
@@ -220,6 +222,7 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
             layer = tf.tile(layer, multiples=[1, upsample_sizes[i], 1])
 
         if verbose:
+            print layer
             print 'output size:', np.prod(layer.get_shape().as_list()[1:])
 
     return layer
