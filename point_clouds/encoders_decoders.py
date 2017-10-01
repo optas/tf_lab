@@ -141,9 +141,11 @@ def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, args_of_patrial={
 
 
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
-                         regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None):
+                         regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None, verbose=False):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
+    if verbose:
+        print 'Building Decoder'
 
     n_layers = len(layer_sizes)
     dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
@@ -160,10 +162,15 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
 
         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
 
+        if verbose:
+            print name, 'FC params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
+
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            if verbose:
+                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
         if non_linearity is not None:
             layer = non_linearity(layer)
@@ -171,10 +178,19 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
         if dropout_prob is not None and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
+        if verbose:
+            print layer
+            print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
+
     # Last decoding layer doesn't have a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)
     scope_i = expand_scope_by_name(scope, name)
     layer = fully_connected(layer, layer_sizes[n_layers - 1], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
+
+    if verbose:
+            print name, 'FC params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
+            print layer
+            print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
 
     return layer
 
