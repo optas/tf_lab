@@ -124,6 +124,7 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding
     '''
     layer: A 3-D `Tensor` of type `float` and shape `[batch, in_width, in_channels]` .
     SEE: https://www.tensorflow.org/api_docs/python/tf/nn/conv2d_backprop_input
+    SEE2: https://github.com/tensorflow/tensorflow/pull/13105/commits/2ca9b908d1978a94855349309fd16a67cfd98659
     TODO: ADD weight-decay/regularizer
     '''
 
