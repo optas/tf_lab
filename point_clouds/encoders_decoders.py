@@ -203,14 +203,14 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
                         name=name, reuse=reuse, scope=scope_i)
 
         if verbose:
-            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list())
+            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
         if (b_norm and i < n_layers - 1) or (i == n_layers - 1 and b_norm_finish):
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
             if verbose:
-                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
+                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list()), '\n'
 
         if non_linearity is not None and i < n_layers - 1:
             layer = non_linearity(layer)
