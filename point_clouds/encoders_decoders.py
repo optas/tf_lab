@@ -177,7 +177,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
     return layer
 
 
-def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, b_norm=True, non_linearity=tf.nn.relu,
+def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding='same', b_norm=True, non_linearity=tf.nn.relu,
                             conv_op=conv_1d, regularizer=None, weight_decay=0.001, dropout_prob=None, upsample_sizes=None,
                             b_norm_finish=False, scope=None, reuse=False, verbose=False):
 
@@ -197,7 +197,7 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, b_norm=
         scope_i = expand_scope_by_name(scope, name)
 
         layer = conv_op(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i],
-                        strides=strides[i], regularizer=regularizer, weight_decay=weight_decay,
+                        strides=strides[i], padding=padding, regularizer=regularizer, weight_decay=weight_decay,
                         name=name, reuse=reuse, scope=scope_i)
 
         if verbose:

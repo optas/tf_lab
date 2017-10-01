@@ -146,7 +146,7 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding
                         trainable=trainable, restore=restore)
 
         print 'yo=', np.prod(filter_size)
-        
+
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         # expand dims to make it compatible with conv2d
