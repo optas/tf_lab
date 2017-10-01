@@ -130,14 +130,8 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding
     input_shape = utils.get_incoming_shape(layer)
     _, in_width, in_channels = input_shape
 
-#     if in_width != 1:
-#         print 'input data is not 1d... converting it to it manually'
-#         layer = tf.reshape(layer, [batch_size, 1, in_width * in_channels])
-#         input_shape = utils.get_incoming_shape(layer)
-#         _, in_width, in_channels = input_shape
-
     filter_size = [filter_size, nb_filter, in_channels]
-    output_shape = [batch_size, strides * in_width, nb_filter]
+    output_shape = [batch_size, strides * in_width, nb_filter]  # doesn't work all this time.
     output_shape_ = ops.convert_to_tensor(output_shape, name="output_shape")
 
     strides = [1, 1, strides, 1]
