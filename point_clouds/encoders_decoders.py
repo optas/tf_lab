@@ -50,7 +50,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
                         weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i, padding=padding)
 
         if verbose:
-            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list())
+            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
         if b_norm:
             name += '_bnorm'
@@ -71,7 +71,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
 
         if verbose:
             print layer
-            print 'output size:', np.prod(layer.get_shape().as_list()[1:])
+            print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
 
     if symmetry is not None:
         layer = symmetry(layer, axis=1)
