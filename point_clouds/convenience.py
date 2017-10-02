@@ -10,6 +10,8 @@ from general_tools.simpletons import iterate_in_chunks
 def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, compute_loss=True):
     recon_data = []
     loss = 0.
+    last_examples_loss = 0.     # keep track of loss on last batch which potentially is smaller than batch_size
+    n_last = 0.
 
     n_pclouds = len(pclouds_feed)
     if pclouds_gt is not None:
@@ -28,10 +30,20 @@ def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, 
         rec, loss_batch = autoencoder.reconstruct(feed, GT=gt, compute_loss=compute_loss)
         recon_data.append(rec)
         if compute_loss:
-            loss += loss_batch
+            if len(b) == batch_size:
+                loss += loss_batch
+            else:  # last index was smaller than batch_size
+                last_examples_loss = loss_batch
+                n_last = len(b)
         n_batches += 1
 
-    return np.vstack(recon_data), loss / n_batches
+    if n_last == 0:
+        loss /= n_batches
+    else:
+        loss = (loss * batch_size) + (last_examples_loss * n_last)
+        loss /= ((n_batches - 1) * batch_size + n_last)
+
+    return np.vstack(recon_data), loss
 
 
 def get_latent_codes(autoencoder, pclouds, batch_size=100):
