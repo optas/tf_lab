@@ -6,6 +6,7 @@ A module containing some commonly used layers of (deep) neural networks.
 # TODO: Default initializations are OK, but for convolutions some other initializations will not work.
 
 import tensorflow as tf
+import tflearn
 import numpy as np
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import array_ops, gen_nn_ops
@@ -141,8 +142,16 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, padding='same',
 
     with tf.variable_scope(scope, default_name=name, values=[layer], reuse=reuse) as scope:
         name = scope.name
-        W_init = initializations.get(weights_init)()
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
+
         W_regul = None
+        if regularizer is not None:
+            W_regul = lambda x: tflearn.losses.get(regularizer)(x, weight_decay)
+
         W = vs.variable('W', shape=filter_size, regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
 
