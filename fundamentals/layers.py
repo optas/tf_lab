@@ -117,7 +117,7 @@ def conv_2d_transpose(in_layer, n_filters, filter_size, stride, padding, stddev,
         return out_signal
 
 
-def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding='same',
+def conv_1d_tranpose(layer, nb_filter, filter_size, strides, padding='same',
                      bias=True, scope=None, reuse=False, bias_init='zeros',
                      trainable=True, restore=True, regularizer=None, weight_decay=0.001,
                      weights_init='uniform_scaling', name="deconv_1d"):
@@ -127,12 +127,12 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, batch_size, padding
     SEE2: https://github.com/tensorflow/tensorflow/pull/13105/commits/2ca9b908d1978a94855349309fd16a67cfd98659
     TODO: ADD weight-decay/regularizer
     '''
-
     input_shape = utils.get_incoming_shape(layer)
     _, in_width, in_channels = input_shape
+    batch_size = tf.shape(layer)[0]
 
     filter_size = [filter_size, nb_filter, in_channels]
-    output_shape = [batch_size, strides * in_width, nb_filter]  # doesn't work all this time.
+    output_shape = [batch_size, strides * in_width, nb_filter]  # this trick I think work only for strict up-sampling
     output_shape_ = ops.convert_to_tensor(output_shape, name="output_shape")
 
     strides = [1, 1, strides, 1]
