@@ -175,9 +175,9 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, padding='same',
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
             result = tf.nn.bias_add(result, b)
+            result.b = b
 
         result.scope = scope
         result.W = W
-        result.b = b
 
     return result
