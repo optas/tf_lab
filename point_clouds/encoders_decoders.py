@@ -77,8 +77,11 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
         layer = symmetry(layer, axis=1)
         if verbose:
             print layer
+
     if closing is not None:
         layer = closing(layer)
+        print layer
+
     return layer
 
 
@@ -132,12 +135,6 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     if symmetry is not None:
         layer = symmetry(layer, axis=1)
 
-    return layer
-
-
-def encoder_with_convs_and_symmetry_and_fc(in_signal, fc_nout, args_of_patrial={}):
-    layer = encoder_with_convs_and_symmetry(in_signal, **args_of_patrial)
-    layer = fully_connected(layer, fc_nout, activation='relu', weights_init='xavier')
     return layer
 
 
@@ -238,7 +235,7 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
             if verbose:
                 print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
-        if non_linearity is not None and i < n_layers - 1:
+        if non_linearity is not None and i < n_layers - 1: # last layer doesn't have a non-linearity
             layer = non_linearity(layer)
 
         if dropout_prob is not None and dropout_prob[i] > 0:
