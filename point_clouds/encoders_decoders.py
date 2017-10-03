@@ -17,10 +17,10 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
 
-def encoder_with_convs_and_symmetry_new(in_signal, conv_op, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
+def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                         symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None,
-                                        reuse=False, padding='same', verbose=False, closing=None):
+                                        reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
 

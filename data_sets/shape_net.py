@@ -14,7 +14,7 @@ from geo_tool.in_out.soup import load_ply
 from geo_tool import Mesh, Point_Cloud
 import geo_tool.solids.mesh_cleaning as cleaning
 from geo_tool.in_out.soup import load_crude_point_cloud
-from general_tools.in_out.basics import files_in_subdirs
+from general_tools.in_out.basics import files_in_subdirs, create_dir
 
 from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
 
@@ -75,14 +75,24 @@ def pc_loader(f_name):
     return load_ply(f_name), model_id, synet_id
 
 
-def fps_sampled_loader(in_f):
+def fps_sampled_loader(in_f, save_dir=None):
     ''' Loads pc's created with Matlab\'s code and FPS sampling.
     '''
     pc = load_crude_point_cloud(in_f)
     pc = Point_Cloud(pc).permute_points([0, 2, 1]).points
-#     pc.center_in_u
     syn_id = in_f.split('/')[-3]
     model_name = in_f.split('/')[-2]
+
+    pc = Point_Cloud(pc)
+    pc.center_axis()
+    pc.center_in_unit_sphere()
+    pc, _ = pc.lex_sort()
+    if save_dir is not None:
+        out_dir = osp.join(save_dir, syn_id)
+        create_dir(out_dir)
+        out_file = osp.join(out_dir, model_name)
+        pc.save_as_ply(out_file)
+
     return pc, model_name, syn_id
 
 
