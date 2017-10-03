@@ -9,7 +9,7 @@ import tensorflow as tf
 import numpy as np
 
 from tflearn.layers.core import fully_connected, dropout
-from tflearn.layers.conv import conv_1d, avg_pool_1d
+from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected, dropout
 
@@ -20,7 +20,7 @@ from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_
 def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                         symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None,
-                                        reuse=False, padding='same', verbose=False, closing=None):
+                                        reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
 
