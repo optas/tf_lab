@@ -17,10 +17,10 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
 
-def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
+def encoder_with_convs_and_symmetry_new(in_signal, conv_op, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                         symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None,
-                                        reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d):
+                                        reuse=False, padding='same', verbose=False, closing=None):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
 
@@ -46,7 +46,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
 
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
-        layer = conv_1d(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
+        layer = conv_op(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
                         weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i, padding=padding)
 
         if verbose:
