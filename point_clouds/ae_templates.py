@@ -33,6 +33,9 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
     return encoder, decoder, encoder_args, decoder_args
 
 
+
+
+
 def conv_architecture_ala_nips_17(n_pc_points):
 
     if n_pc_points == 2048:
@@ -77,16 +80,18 @@ def conv_architecture_0(n_pc_points, bneck):
     return res
 
 
-def default_train_params_ala_nips_17(single_class=True):
-    if single_class:
-        params = {'batch_size': 50,
-                  'training_epochs': 1000,
-                  'denoising': False,
-                  'learning_rate': 0.0005,
-                  'z_rotate': False,
-                  'saver_step': 10,
-                  'loss_display_step': 1
-                  }
-    else:
-        assert(False)
+def default_train_params(single_class=True):
+    params = {'batch_size': 50,
+              'training_epochs': 1000,
+              'denoising': False,
+              'learning_rate': 0.0005,
+              'z_rotate': False,
+              'saver_step': 10,
+              'loss_display_step': 1
+              }
+
+    if not single_class:
+        params['z_rotate'] = True
+        params['training_epochs'] = 2000
+
     return params
