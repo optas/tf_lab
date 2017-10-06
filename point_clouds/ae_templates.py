@@ -29,6 +29,7 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
                     'b_norm': b_norm,
                     'b_norm_finish': True
                     }
+
     return encoder, decoder, encoder_args, decoder_args
 
 
