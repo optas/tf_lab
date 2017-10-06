@@ -22,48 +22,24 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
     encoder_args = {'n_filters': [64, 128, 128, 256, bneck_size],
                     'filter_sizes': [1, 1, 1, 1, 1],
                     'strides': [1, 1, 1, 1, 1],
-                    'b_norm': b_norm
+                    'b_norm': b_norm,
+                    'verbose': True
                     }
 
-    decoder_args = {'layer_sizes': [bneck_size, 256, np.prod(n_input)],
+    decoder_args = {'layer_sizes': [256, 256, np.prod(n_input)],
                     'b_norm': b_norm,
-                    'b_norm_finish': True
+                    'b_norm_finish': True,
+                    'verbose': True
                     }
 
     return encoder, decoder, encoder_args, decoder_args
 
 
-
-
-
 def conv_architecture_ala_nips_17(n_pc_points):
-
     if n_pc_points == 2048:
         encoder_args = {'n_filters': [128, 128, 256, 512],
                         'filter_sizes': [40, 20, 10, 10],
                         'strides': [1, 2, 2, 1]
-                        }
-    else:
-        assert(False)
-
-    n_input = [n_pc_points, 3]
-
-    decoder_args = {'layer_sizes': [1024, 2048, np.prod(n_input)]}
-
-    res = {'encoder': encoder_with_convs_and_symmetry,
-           'decoder': decoder_with_fc_only,
-           'encoder_args': encoder_args,
-           'decoder_args': decoder_args
-           }
-    return res
-
-
-def conv_architecture_0(n_pc_points, bneck):
-
-    if n_pc_points == 2048:
-        encoder_args = {'n_filters': [64, 128, 256, bneck],
-                        'filter_sizes': [20, 10, 10, 5],
-                        'strides': [1, 1, 2, 2]
                         }
     else:
         assert(False)
