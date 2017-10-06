@@ -58,7 +58,7 @@ def conv_architecture_ala_nips_17(n_pc_points):
 
 def default_train_params(single_class=True):
     params = {'batch_size': 50,
-              'training_epochs': 1000,
+              'training_epochs': 500,
               'denoising': False,
               'learning_rate': 0.0005,
               'z_rotate': False,
