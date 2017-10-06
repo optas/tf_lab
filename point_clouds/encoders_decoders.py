@@ -7,6 +7,7 @@ Created on February 4, 2017
 
 import tensorflow as tf
 import numpy as np
+import warnings
 
 from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
@@ -88,8 +89,10 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                     b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                     symmetry=tf.reduce_max, dropout_prob=None, scope=None, reuse=False):
+
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
+    warnings.warn('Using old architecture.')
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
@@ -235,7 +238,7 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
             if verbose:
                 print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
-        if non_linearity is not None and i < n_layers - 1: # last layer doesn't have a non-linearity
+        if non_linearity is not None and i < n_layers - 1:  # Last layer doesn't have a non-linearity.
             layer = non_linearity(layer)
 
         if dropout_prob is not None and dropout_prob[i] > 0:

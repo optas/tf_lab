@@ -8,7 +8,7 @@ import numpy as np
 from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only, encoder_with_convs_and_symmetry_new
 
 
-def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
+def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
 
     if n_pc_points != 2048:
         raise ValueError()
@@ -20,8 +20,8 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
     n_input = [n_pc_points, 3]
 
     encoder_args = {'n_filters': [64, 128, 128, 256, bneck_size],
-                    'filter_sizes': [1, 1, 1, 1, 1],
-                    'strides': [1, 1, 1, 1, 1],
+                    'filter_sizes': 1,
+                    'strides': 1,
                     'b_norm': b_norm,
                     'verbose': True
                     }
@@ -31,6 +31,10 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
                     'b_norm_finish': True,
                     'verbose': True
                     }
+
+    if bneck_post_mlp:
+        encoder_args['n_filters'].pop()
+        decoder_args['layer_sizes'][0] = bneck_size
 
     return encoder, decoder, encoder_args, decoder_args
 
