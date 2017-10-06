@@ -5,7 +5,31 @@ Created on September 2, 2017
 '''
 import numpy as np
 
-from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
+from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only, encoder_with_convs_and_symmetry_new
+
+
+def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size):
+
+    if n_pc_points != 2048:
+        raise ValueError()
+
+    encoder = encoder_with_convs_and_symmetry_new
+    decoder = decoder_with_fc_only
+
+    b_norm = True
+    n_input = [n_pc_points, 3]
+
+    encoder_args = {'n_filters': [64, 128, 128, 256, bneck_size],
+                    'filter_sizes': [1, 1, 1, 1, 1],
+                    'strides': [1, 1, 1, 1, 1],
+                    'b_norm': b_norm
+                    }
+
+    decoder_args = {'layer_sizes': [bneck_size, 256, np.prod(n_input)],
+                    'b_norm': b_norm,
+                    'b_norm_finish': True
+                    }
+    return encoder, decoder, encoder_args, decoder_args
 
 
 def conv_architecture_ala_nips_17(n_pc_points):
