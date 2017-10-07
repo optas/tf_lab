@@ -67,9 +67,9 @@ class LatentGAN(GAN):
         batch_size = batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-        
+
         is_training(True, session=self.sess)
-        
+
         # Loop over all batches
         for _ in xrange(n_batches):
             feed, _, _ = train_data.next_batch(batch_size)
@@ -87,7 +87,7 @@ class LatentGAN(GAN):
         epoch_loss_d /= n_batches
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
-        
+
         is_training(False, session=self.sess)
-        
+
         return (epoch_loss_d, epoch_loss_g), duration
