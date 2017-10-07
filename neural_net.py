@@ -5,7 +5,7 @@ Created on August 28, 2017
 '''
 
 import os.path as osp
-import tensorflow as tf 
+import tensorflow as tf
 
 MODEL_SAVER_ID = 'models.ckpt'
 
