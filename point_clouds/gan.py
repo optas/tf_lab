@@ -15,16 +15,16 @@ MODEL_SAVER_ID = 'models.ckpt'
 
 
 class GAN(object):
-
+    
     def __init__(self, name):
         '''
         Constructor
         '''
         self.name = name
-
-        with tf.device('/cpu:0'), tf.name_scope(name):
-            self.global_step = tf.get_variable('global_step', initializer=tf.constant_initializer(0), trainable=False)
-            self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+        with tf.variable_scope(name):
+            with tf.device('/cpu:0'), tf.name_scope(name):
+#                 self.global_step = tf.get_variable('global_step', initializer=tf.constant_initializer(0), trainable=False)
+                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
     def save_model(self, tick):
         self.saver.save(self.sess, MODEL_SAVER_ID, global_step=tick)
