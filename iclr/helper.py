@@ -11,9 +11,10 @@ should be cleared upon publication.
 import os.path as osp
 import numpy as np
 
-from . in_out.basics import Data_Splitter
-from . point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
-from . data_sets.shape_net import pc_loader as snc_loader
+from .. in_out.basics import Data_Splitter
+from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
+from .. data_sets.shape_net import pc_loader as snc_loader
+
 
 def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, random_seed=42):
     top_data_dir = '/orions4-zfs/projects/optas/DATA/'
@@ -67,4 +68,3 @@ def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, r
         held_out_epoch = np.array(held_out_epoch)
         best_idx = np.argmin(held_out_loss)
         return held_out_loss[best_idx], held_out_epoch[best_idx]
-    
