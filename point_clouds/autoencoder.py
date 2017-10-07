@@ -91,8 +91,8 @@ class AutoEncoder(NeuralNet):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
-    def __init__(self, name, configuration):
-        self.name = name
+    def __init__(self, name, graph, configuration):
+        NeuralNet.__init__(self, name, graph)
         self.is_denoising = configuration.is_denoising
         self.n_input = configuration.n_input
         self.n_output = configuration.n_output   # TODO Re-factor for AP
@@ -106,9 +106,6 @@ class AutoEncoder(NeuralNet):
                 self.gt = tf.placeholder(tf.float32, out_shape)
             else:
                 self.gt = self.x
-
-            with tf.device('/cpu:0'):
-                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 
     def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved auto-encoder model.

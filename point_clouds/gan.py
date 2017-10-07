@@ -10,18 +10,14 @@ import tensorflow as tf
 
 
 from general_tools.in_out.basics import create_dir
-from general_tools.python_oop import lazy_property
 
 from .. neural_net import NeuralNet
 
 
 class GAN(NeuralNet):
 
-    def __init__(self, name):
-        self.name = name
-        with tf.variable_scope(name):
-            with tf.device('/cpu:0'):
-                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+    def __init__(self, name, graph):
+        NeuralNet.__init__(self, name, graph)
 
     def save_model(self, tick):
         self.saver.save(self.sess, self.MODEL_SAVER_ID, global_step=tick)

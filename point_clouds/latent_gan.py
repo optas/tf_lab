@@ -11,14 +11,14 @@ from . gan import GAN
 
 
 class LatentGAN(GAN):
-    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, beta=0.9, gen_kwargs={}, disc_kwargs={}):
+    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, beta=0.9, gen_kwargs={}, disc_kwargs={}, graph=None):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
         self.discriminator = discriminator
         self.generator = generator
 
-        GAN.__init__(self, name)
+        GAN.__init__(self, name, graph)
 
         with tf.variable_scope(name):
 
