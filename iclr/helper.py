@@ -53,18 +53,19 @@ def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, r
                 splits[s].merge(PointCloudDataSet(pclouds, labels=syn_ids + '_' + model_ids))
     return splits
 
-    def find_best_validation_epoch_from_train_stats(train_stats_file):
-        held_out_mark = 'On Held_Out:'
-        held_out_loss = []
-        held_out_epoch = []
-        with open(train_stats_file, 'r') as f_in:
-            for line in f_in:
-                if line.startswith(held_out_mark):
-                    line_datum = line.replace(held_out_mark, '')
-                    tokens = line_datum.split()
-                    held_out_loss.append(float(tokens[1]))
-                    held_out_epoch.append(int(tokens[0]))
-        held_out_loss = np.array(held_out_loss)
-        held_out_epoch = np.array(held_out_epoch)
-        best_idx = np.argmin(held_out_loss)
-        return held_out_loss[best_idx], held_out_epoch[best_idx]
+
+def find_best_validation_epoch_from_train_stats(train_stats_file):
+    held_out_mark = 'On Held_Out:'
+    held_out_loss = []
+    held_out_epoch = []
+    with open(train_stats_file, 'r') as f_in:
+        for line in f_in:
+            if line.startswith(held_out_mark):
+                line_datum = line.replace(held_out_mark, '')
+                tokens = line_datum.split()
+                held_out_loss.append(float(tokens[1]))
+                held_out_epoch.append(int(tokens[0]))
+    held_out_loss = np.array(held_out_loss)
+    held_out_epoch = np.array(held_out_epoch)
+    best_idx = np.argmin(held_out_loss)
+    return held_out_loss[best_idx], held_out_epoch[best_idx]
