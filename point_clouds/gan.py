@@ -22,7 +22,7 @@ class GAN(object):
         '''
         self.name = name
         with tf.variable_scope(name):
-            with tf.device('/cpu:0'), tf.name_scope(name):
+            with tf.device('/cpu:0'):
 #                 self.global_step = tf.get_variable('global_step', initializer=tf.constant_initializer(0), trainable=False)
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
 

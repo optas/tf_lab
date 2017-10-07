@@ -22,9 +22,8 @@ class LatentGAN(GAN):
 
         with tf.variable_scope(name):
 
-            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-            out_shape = [None] + self.n_output
-            self.gt_data = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
+            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])                  # Noise vector.
+            self.gt_data = tf.placeholder(tf.float32, shape=[None] + self.n_output)           # Ground-truth.
 
             with tf.variable_scope('generator'):
                 self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)
