@@ -1,5 +1,5 @@
 '''
-Created on Octomber 6, 2017
+Created on October 6, 2017
 
 @author: optas
 

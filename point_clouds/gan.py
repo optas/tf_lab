@@ -42,12 +42,3 @@ class GAN(NeuralNet):
         noise = self.generator_noise_distribution(n_samples, self.noise_dim, **noise_params)
         feed_dict = {self.noise: noise}
         return self.sess.run([self.generator_out], feed_dict=feed_dict)[0]
-
-#     @lazy_property
-#     def saver(self, max_to_keep):
-#         return tf.train.Saver(self.all_variables(), max_to_keep=max_to_keep)
-# 
-#     @property
-#     def all_variables(self):
-#         tr_vars = tf.get_collection(tf.GraphKeys.VARIABLES, scope=self.name)
-#         return sorted(tr_vars, key=lambda v: v.name)

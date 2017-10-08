@@ -69,11 +69,20 @@ def compute_3D_grid(resolution):
     return grid, spacing
 
 
-def compute_3D_sphere(resolution):
+def compute_3D_sphere(resolution):   #! PATH
     grid, spacing = compute_3D_grid(resolution=resolution)
     pts = grid.reshape(-1, 3)
-    pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
+    pc = Point_Cloud(pts)
+    pc = pc.center_in_unit_sphere()
+    pts = pc.points
+    pts = pts[norm(pts, axis=1) <= 0.5]
     return pts, spacing
+
+# def compute_3D_sphere(resolution):
+#     grid, spacing = compute_3D_grid(resolution=resolution)
+#     pts = grid.reshape(-1, 3)
+#     pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
+#     return pts, spacing
 
 
 def zero_mean_half_sphere(in_pclouds):
