@@ -59,30 +59,20 @@ def compute_3D_grid(resolution):
     '''
     grid = np.ndarray((resolution, resolution, resolution, 3), np.float32)
     spacing = 1.0 / float(resolution - 1)
-    const = spacing - 0.5
     for i in xrange(resolution):
         for j in xrange(resolution):
             for k in xrange(resolution):
-                grid[i, j, k, 0] = i * const
-                grid[i, j, k, 1] = j * const
-                grid[i, j, k, 2] = k * const
+                grid[i, j, k, 0] = i * spacing - 0.5
+                grid[i, j, k, 1] = j * spacing - 0.5
+                grid[i, j, k, 2] = k * spacing - 0.5
     return grid, spacing
 
 
-def compute_3D_sphere(resolution):   #! PATH
+def compute_3D_sphere(resolution):
     grid, spacing = compute_3D_grid(resolution=resolution)
     pts = grid.reshape(-1, 3)
-    pc = Point_Cloud(pts)
-    pc = pc.center_in_unit_sphere()
-    pts = pc.points
-    pts = pts[norm(pts, axis=1) <= 0.5]
+    pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
     return pts, spacing
-
-# def compute_3D_sphere(resolution):
-#     grid, spacing = compute_3D_grid(resolution=resolution)
-#     pts = grid.reshape(-1, 3)
-#     pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
-#     return pts, spacing
 
 
 def zero_mean_half_sphere(in_pclouds):
