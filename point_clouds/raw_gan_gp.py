@@ -8,6 +8,7 @@ import numpy as np
 import time
 import tensorflow as tf
 
+from tflearn import is_training
 from . gan import GAN
 
 
@@ -91,21 +92,29 @@ class RawGAN_GP(GAN):
 
         iterations_for_epoch = n_batches / discriminator_boost
 
-        # Loop over all batches
-        for _ in xrange(iterations_for_epoch):
-            for _ in range(discriminator_boost):
-                feed, _, _ = train_data.next_batch(batch_size)
+        is_training(True, session=self.sess)
+        try:
+            # Loop over all batches
+            for _ in xrange(iterations_for_epoch):
+                for _ in range(discriminator_boost):
+                    feed, _, _ = train_data.next_batch(batch_size)
+                    z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
+                    feed_dict = {self.real_pc: feed, self.noise: z}
+                    _, loss_d = self.sess.run([self.opt_d, self.loss_d], feed_dict=feed_dict)
+                    epoch_loss_d += loss_d
+
+
+                # Update generator.
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-                feed_dict = {self.real_pc: feed, self.noise: z}
-                _, loss_d = self.sess.run([self.opt_d, self.loss_d], feed_dict=feed_dict)
-                epoch_loss_d += loss_d
+                feed_dict = {self.noise: z}
+                _, loss_g = self.sess.run([self.opt_g, self.loss_g], feed_dict=feed_dict)
+                epoch_loss_g += loss_g
 
-            # Update generator.
-            z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            feed_dict = {self.noise: z}
-            _, loss_g = self.sess.run([self.opt_g, self.loss_g], feed_dict=feed_dict)
-            epoch_loss_g += loss_g
-
+            is_training(False, session=self.sess)
+        except Exception:
+            raise
+        finally:
+            is_training(False, session=self.sess)
         epoch_loss_d /= (iterations_for_epoch * discriminator_boost)
         epoch_loss_g /= iterations_for_epoch
         duration = time.time() - start_time
