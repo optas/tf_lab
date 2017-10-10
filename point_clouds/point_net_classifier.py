@@ -6,24 +6,26 @@ Created on July 10, 2017
 
 import time
 import tensorflow as tf
+from tflearn import is_training
+
 from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.inspect import count_trainable_parameters
+from .. neural_net import NeuralNet
 
 
-class PointNetClassifier(object):
+class PointNetClassifier(NeuralNet):
     '''
     An Classifier replicating the architecture of Charles and Hao paper.
     '''
 
     def __init__(self, name, configuration, graph=None):
-        if graph is None:
-            self.graph = tf.get_default_graph()
 
+        NeuralNet.__init__(self, name, graph)
         c = configuration
         self.configuration = c
-        self.n_input = configuration.n_input
-        self.n_output = configuration.n_output
+        self.n_input = c.n_input
+        self.n_output = c.n_output
 
         in_shape = [None] + self.n_input
 
@@ -72,7 +74,14 @@ class PointNetClassifier(object):
 
     def partial_fit(self, X, GT):
         '''Trains the model with mini-batches of input data.'''
-        _, loss, prediction = self.sess.run((self.optimizer, self.loss, self.prediction), feed_dict={self.x: X, self.gt: GT})
+        try:
+            is_training(True, session=self.sess)
+            _, loss, prediction = self.sess.run((self.optimizer, self.loss, self.prediction), feed_dict={self.x: X, self.gt: GT})
+            is_training(False, session=self.sess)
+        except Exception:
+            raise
+        finally:
+            is_training(False, session=self.sess)
         return prediction, loss
 
     def _single_epoch_train(self, train_data, configuration):
