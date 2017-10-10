@@ -37,9 +37,6 @@ class PointNetClassifier(NeuralNet):
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, in_shape)
             self.gt = tf.placeholder(tf.int32, out_shape)
-            with tf.device('/cpu:0'):
-                self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
-
             self.z = c.encoder(self.x, **c.encoder_args)
             self.prediction = c.decoder(self.z, **c.decoder_args)
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
