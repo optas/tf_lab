@@ -38,7 +38,11 @@ class PointNetClassifier(NeuralNet):
             self.x = tf.placeholder(tf.float32, in_shape)
             self.gt = tf.placeholder(tf.int32, out_shape)
             self.z = c.encoder(self.x, **c.encoder_args)
-            self.prediction = c.decoder(self.z, **c.decoder_args)
+            self.logits = c.decoder(self.z, **c.decoder_args)
+            self.prediction = tf.argmax(self.logits, axis=1)
+            self.correct_pred = tf.equal(self.prediction, tf.cast(self.gt, tf.int64))
+            self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
+
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=c.saver_max_to_keep)
             self._create_loss_optimizer()
 
@@ -64,7 +68,7 @@ class PointNetClassifier(NeuralNet):
 
     def _create_loss_optimizer(self):
         c = self.configuration
-        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.prediction, labels=self.gt)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.gt)
         self.loss = tf.reduce_mean(loss)
         tf.summary.scalar('Classification_loss', self.loss)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=c.learning_rate).minimize(self.loss)
@@ -73,13 +77,22 @@ class PointNetClassifier(NeuralNet):
         '''Trains the model with mini-batches of input data.'''
         try:
             is_training(True, session=self.sess)
-            _, loss, prediction = self.sess.run((self.optimizer, self.loss, self.prediction), feed_dict={self.x: X, self.gt: GT})
+            _, loss, logits = self.sess.run((self.optimizer, self.loss, self.logits), feed_dict={self.x: X, self.gt: GT})
             is_training(False, session=self.sess)
         except Exception:
             raise
         finally:
             is_training(False, session=self.sess)
-        return prediction, loss
+        return logits, loss
+
+    def predict(self, X, gt_labels=None):
+        feed_dict = {self.x: X}
+        if gt_labels is None:
+            avg_acc = tf.no_op()
+        else:
+            avg_acc = self.avg_accuracy
+            feed_dict[self.gt] = gt_labels
+        return self.sess.run((self.prediction, avg_acc), feed_dict)
 
     def _single_epoch_train(self, train_data, configuration):
         n_examples = train_data.num_examples
