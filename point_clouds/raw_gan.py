@@ -9,11 +9,12 @@ import time
 import tensorflow as tf
 
 from . gan import GAN
+from .. fundamentals.layers import safe_log
 
 
 class RawGAN(GAN):
 
-    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, beta=0.9, gen_kwargs={}, disc_kwargs={}):
+    def __init__(self, name, learning_rate, n_output, noise_dim, discriminator, generator, beta=0.9, gen_kwargs={}, disc_kwargs={}, graph=None):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
@@ -21,7 +22,7 @@ class RawGAN(GAN):
         self.discriminator = discriminator
         self.generator = generator
 
-        GAN.__init__(self, name)
+        GAN.__init__(self, name, graph)
 
         with tf.variable_scope(name):
 
@@ -35,8 +36,10 @@ class RawGAN(GAN):
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
-            self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-            self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+#             self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
+#             self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+            self.loss_d = tf.reduce_mean(-safe_log(self.real_prob) - safe_log(1 - self.synthetic_prob))
+            self.loss_g = tf.reduce_mean(-safe_log(self.synthetic_prob))
 
             train_vars = tf.trainable_variables()
 
