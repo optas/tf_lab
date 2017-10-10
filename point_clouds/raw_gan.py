@@ -7,6 +7,7 @@ Created on Apr 27, 2017
 import numpy as np
 import time
 import tensorflow as tf
+from tflearn import is_training
 
 from . gan import GAN
 from .. fundamentals.layers import safe_log
@@ -75,34 +76,37 @@ class RawGAN(GAN):
         # Loop over all batches
         _real_s = []
         _fake_s = []
-        for _ in xrange(n_batches):
-            feed, _, _ = train_data.next_batch(batch_size)
-            # Update discriminator.
-            z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            feed_dict = {self.real_pc: feed, self.noise: z}
-
-            if adaptive is not None:
-                s1 = tf.reduce_mean(self.real_prob)
-                s2 = tf.reduce_mean(1 - self.synthetic_prob)
-                sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
-                _real_s.append(sr)
-                _fake_s.append(sf)
-                if np.mean([sr, sf]) < adaptive:
+        is_training(True, session=self.sess)
+        try:
+            for _ in xrange(n_batches):
+                feed, _, _ = train_data.next_batch(batch_size)
+                # Update discriminator.
+                z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
+                feed_dict = {self.real_pc: feed, self.noise: z}
+                if adaptive is not None:
+                    s1 = tf.reduce_mean(self.real_prob)
+                    s2 = tf.reduce_mean(1 - self.synthetic_prob)
+                    sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
+                    _real_s.append(sr)
+                    _fake_s.append(sf)
+                    if np.mean([sr, sf]) < adaptive:
+                        loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+                        updated_d += 1
+                        epoch_loss_d += loss_d
+                else:
                     loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
                     updated_d += 1
                     epoch_loss_d += loss_d
-
-            else:
-                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-                updated_d += 1
-                epoch_loss_d += loss_d
-
-            # Update generator.
-            loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
-
-            # Compute average loss
-#             epoch_loss_d += loss_d
-            epoch_loss_g += loss_g
+                # Update generator.
+                loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
+                # Compute average loss
+    #             epoch_loss_d += loss_d
+                epoch_loss_g += loss_g
+            is_training(False, session=self.sess)
+        except Exception:
+            raise
+        finally:
+            is_training(False, session=self.sess)
 
 #         epoch_loss_d /= n_batches
         if updated_d > 1:
