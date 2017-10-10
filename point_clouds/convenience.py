@@ -76,8 +76,8 @@ def classify_pclouds(clf, pclouds_feed, batch_size, pclouds_labels):
     if n_last == 0:
         avg_acc /= n_batches
     else:
-        loss = (avg_acc * batch_size) + (last_examples_acc * n_last)
-        loss /= ((n_batches - 1) * batch_size + n_last)
+        avg_acc = (avg_acc * batch_size) + (last_examples_acc * n_last)
+        avg_acc /= ((n_batches - 1) * batch_size + n_last)
 
     return predictions, avg_acc
 
