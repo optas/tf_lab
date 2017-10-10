@@ -9,7 +9,7 @@ import tensorflow as tf
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected, dropout
 
-from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
+from . encoders_decoders import encoder_with_convs_and_symmetry_new, decoder_with_fc_only
 from .. fundamentals.layers import leaky_relu
 from .. fundamentals.utils import expand_scope_by_name
 
@@ -23,7 +23,7 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     encoder_args['non_linearity'] = non_linearity
     encoder_args['dropout_prob'] = dropout_prob
     encoder_args['b_norm'] = b_norm
-    layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
+    layer = encoder_with_convs_and_symmetry_new(in_signal, **encoder_args)
 
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
