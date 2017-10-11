@@ -8,11 +8,11 @@ import argparse
 import os.path as osp
 import numpy as np
 
-from bench_pc_gan.evaluate_gan import minimum_mathing_distance
+from pcloud_benchmark.evaluate_gan import minimum_mathing_distance
 from tf_lab.nips.helper import pclouds_centered_and_half_sphere
 
 
-# In[7]:
+# In[4]:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--sample_dir', type=str, default = '', help='Directory of point-cloud samples.', required=True)
@@ -34,12 +34,12 @@ opt = parser.parse_args()
 # opt.epochs = [1, 3, 10, 30, 100, 300, 400, 500]
 
 
-# In[3]:
+# In[5]:
 
 n_pc_samples = 2048
 batch_size = 1000
-reduce_gt = 1000 #(Or None)
-reduce_samples = 1000 #(Or None)
+reduce_gt = 1000      # (Or None)
+reduce_samples = 1000 # (Or None)
 
 
 # In[7]:
@@ -62,11 +62,10 @@ print 'Saving measurements at: ' + opt.out_file
 for epoch in opt.epochs:
     sample_file = osp.join(opt.sample_dir, 'epoch_%d.npz' % (epoch,) )
     sample_data = np.load(sample_file)
-    sample_data = sample_data[sample_data.keys()[0]]    
+    sample_data = sample_data[sample_data.keys()[0]]
     sample_data = pclouds_centered_and_half_sphere(sample_data)    
     if reduce_samples is not None:
         sample_data = sample_data[:reduce_samples, :]
-    
     mmd_epoch = minimum_mathing_distance(sample_data, gt_data, batch_size)[0]
     log_data = 'MMD %d %f' % (epoch, mmd_epoch)    
     print log_data

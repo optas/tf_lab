@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=2 python /orions4-zfs/projects/optas/Git_Repos/tf_lab/notebooks/ICLR/Evaluations/batching_generative_measures/nb_gan_mmd_evaluation.py --sample_dir /orions4-zfs/projects/optas/DATA/OUT/iclr/synthetic_samples/r_gan/chair_mlp_disc_4_fc_gen_raw_gan_2048_pts --ref /orions4-zfs/projects/optas/DATA/OUT/iclr/evaluations/gt_data/03001627_train.npz --out_file /orions4-zfs/projects/optas/DATA/OUT/iclr/synthetic_samples/r_gan/chair_mlp_disc_4_fc_gen_raw_gan_2048_pts/mmd_stats.txt
+
