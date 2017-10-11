@@ -1,7 +1,5 @@
-import torch
-from torch.autograd import Variable
-print "yo"
-
-from pcloud_benchmark.nndistance.modules.nnd import NNDModule
-
-
+try:
+    import torch
+    from torch.autograd import Variable
+except:
+    print('PyTorch not working. MMD measurement won\'t be available')
