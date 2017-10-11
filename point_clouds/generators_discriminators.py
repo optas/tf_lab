@@ -56,7 +56,7 @@ def convolutional_discriminator(in_signal, non_linearity=tf.nn.relu,
     encoder_args['reuse'] = reuse
     encoder_args['scope'] = scope
     encoder_args['non_linearity'] = non_linearity
-    layer = encoder_with_convs_and_symmetry(in_signal, **encoder_args)
+    layer = encoder_with_convs_and_symmetry_new(in_signal, **encoder_args)
 
     name = 'decoding_logits'
     scope_e = expand_scope_by_name(scope, name)
