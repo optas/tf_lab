@@ -110,10 +110,25 @@ def visualize_voxel_content_as_pcloud(voxel_data):
     return Point_Cloud(points=points).plot()
 
 
+def pclouds_centered_and_half_sphere(pclouds):
+    for i, pc in enumerate(pclouds):
+        pc, _ = Point_Cloud(pc).center_axis()
+        pclouds[i] = pc.points
+
+    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
+    dist = np.expand_dims(np.expand_dims(dist, 1), 2)
+    pclouds = pclouds / (dist * 2.0)
+
+    return pclouds
+
+
 def wu_nips_16_categories():
     category_names = ['airplane', 'car', 'chair', 'sofa', 'rifle', 'vessel', 'table']
     syn_id_dict = snc_category_to_synth_id()
     return category_names, [syn_id_dict[i] for i in category_names]
+
+
+
 
 
 def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variable, in_sphere=True):
