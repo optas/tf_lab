@@ -128,9 +128,6 @@ def wu_nips_16_categories():
     return category_names, [syn_id_dict[i] for i in category_names]
 
 
-
-
-
 def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variable, in_sphere=True):
     ''' Used to visualize JSD measurements.
         prb_thres: [0,1] float, only plot cells that have higher than prb_thres mass.

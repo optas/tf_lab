@@ -172,8 +172,8 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     ref_pl = tf.placeholder(tf.float32, shape=(1, n_pc_points, pc_dim))
     sample_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points, pc_dim))
 
-    # repeat_times = tf.shape(sample_pl)[0]   # slower- could be used to use entire set of samples.
-    repeat_times = batch_size
+    repeat_times = tf.shape(sample_pl)[0]   # slower- could be used to use entire set of samples.
+#     repeat_times = batch_size
     ref_repeat = tf.tile(ref_pl, [repeat_times, 1, 1])
     ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, pc_dim])
 
