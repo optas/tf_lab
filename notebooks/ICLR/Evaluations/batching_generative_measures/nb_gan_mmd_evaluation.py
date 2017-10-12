@@ -18,9 +18,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--sample_dir', type=str, default = '', help='Directory of point-cloud samples.', required=True)
 parser.add_argument('--ref', type=str, default = '', help='Path to reference point-cloud.', required=True)
 parser.add_argument('--out_file', type=str, help='Save results in this file.', required=True)
-parser.add_argument('--epochs', type=list, default = [1, 3, 10, 30, 100, 300, 400, 500], help='Epochs to evaluate.')
+#parser.add_argument('--epochs', type=list, default = [1, 3, 10, 30, 100, 300, 400, 500], help='Epochs to evaluate.')
+parser.add_argument('--epochs', type=list, default = [500], help='Epochs to evaluate.')
+
 opt = parser.parse_args()
 
+print opt
 
 # In[4]:
 
@@ -66,7 +69,7 @@ for epoch in opt.epochs:
     sample_data = pclouds_centered_and_half_sphere(sample_data)    
     if reduce_samples is not None:
         sample_data = sample_data[:reduce_samples, :]
-    mmd_epoch = minimum_mathing_distance(sample_data, gt_data, batch_size)[0]
+    mmd_epoch = minimum_mathing_distance(sample_data, gt_data, batch_size, True)[0]
     log_data = 'MMD %d %f' % (epoch, mmd_epoch)    
     print log_data
     fout.write(log_data + '\n')
