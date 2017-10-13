@@ -14,7 +14,7 @@ import numpy as np
 from .. in_out.basics import Data_Splitter
 from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
 from .. data_sets.shape_net import pc_loader as snc_loader
-
+from .. data_sets.shape_net import snc_category_to_synth_id
 
 def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, random_seed=42):
     top_data_dir = '/orions4-zfs/projects/optas/DATA/'
@@ -69,3 +69,9 @@ def find_best_validation_epoch_from_train_stats(train_stats_file):
     held_out_epoch = np.array(held_out_epoch)
     best_idx = np.argmin(held_out_loss)
     return held_out_loss[best_idx], held_out_epoch[best_idx]
+
+
+def achlioptas_five_snc_shape_categories():
+    category_names = ['airplane', 'car', 'chair', 'sofa', 'table']
+    syn_id_dict = snc_category_to_synth_id()
+    return category_names, [syn_id_dict[i] for i in category_names]
