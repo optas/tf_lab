@@ -178,11 +178,12 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, pc_dim])
 
     ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
-    chamfer_dist_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
 
     if use_sqrt:
         ref_to_s = tf.sqrt(ref_to_s)
         s_to_ref = tf.sqrt(s_to_ref)
+
+    chamfer_dist_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
 
     best_in_batch = tf.reduce_min(chamfer_dist_batch)   # Best distance, of those that were matched to single ref pc.
     matched_dists = []
