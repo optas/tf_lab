@@ -69,25 +69,28 @@ class LatentGAN(GAN):
         start_time = time.time()
 
         is_training(True, session=self.sess)
+        try:
+            # Loop over all batches
+            for _ in xrange(n_batches):
+                feed, _, _ = train_data.next_batch(batch_size)
 
-        # Loop over all batches
-        for _ in xrange(n_batches):
-            feed, _, _ = train_data.next_batch(batch_size)
+                # Update discriminator.
+                z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
+                feed_dict = {self.gt_data: feed, self.noise: z}
+                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
+                loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
 
-            # Update discriminator.
-            z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-            feed_dict = {self.gt_data: feed, self.noise: z}
-            loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-            loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
+                # Compute average loss
+                epoch_loss_d += loss_d
+                epoch_loss_g += loss_g
 
-            # Compute average loss
-            epoch_loss_d += loss_d
-            epoch_loss_g += loss_g
+            is_training(False, session=self.sess)
+        except Exception:
+            raise
+        finally:
+            is_training(False, session=self.sess)
 
         epoch_loss_d /= n_batches
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
-
-        is_training(False, session=self.sess)
-
         return (epoch_loss_d, epoch_loss_g), duration
