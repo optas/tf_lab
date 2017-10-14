@@ -148,7 +148,7 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
     return loss_list
 
 
-def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False):
+def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
                              point-distances. Alternatively, is their sum.
     '''
@@ -177,13 +177,17 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     ref_repeat = tf.tile(ref_pl, [repeat_times, 1, 1])
     ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, pc_dim])
 
-    ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
+    if not use_EMD:
+        ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
 
-    if use_sqrt:
-        ref_to_s = tf.sqrt(ref_to_s)
-        s_to_ref = tf.sqrt(s_to_ref)
+        if use_sqrt:
+            ref_to_s = tf.sqrt(ref_to_s)
+            s_to_ref = tf.sqrt(s_to_ref)
 
-    chamfer_dist_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
+        chamfer_dist_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
+    else:
+        match = approx_match(ref_repeat, sample_pl)
+        chamfer_dist_batch = reducer(match_cost(ref_repeat, sample_pl, match))
 
     best_in_batch = tf.reduce_min(chamfer_dist_batch)   # Best distance, of those that were matched to single ref pc.
     matched_dists = []
