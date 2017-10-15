@@ -37,8 +37,8 @@ class RawGAN(GAN):
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
-            self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
-            self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+            self.loss_d = tf.reduce_mean(-safe_log(self.real_prob) - safe_log(1 - self.synthetic_prob))
+            self.loss_g = tf.reduce_mean(-safe_log(self.synthetic_prob))
 
             train_vars = tf.trainable_variables()
 
