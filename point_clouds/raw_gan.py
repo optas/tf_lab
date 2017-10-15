@@ -39,8 +39,6 @@ class RawGAN(GAN):
 
             self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
             self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
-#             self.loss_d = tf.reduce_mean(-safe_log(self.real_prob) - safe_log(1 - self.synthetic_prob))
-#             self.loss_g = tf.reduce_mean(-safe_log(self.synthetic_prob))
 
             train_vars = tf.trainable_variables()
 

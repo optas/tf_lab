@@ -9,6 +9,7 @@ import tensorflow as tf
 
 from . gan import GAN
 
+from .. fundamentals.layers import safe_log
 from tflearn import is_training
 
 
@@ -36,6 +37,8 @@ class LatentGAN(GAN):
 
             self.loss_d = tf.reduce_mean(-tf.log(self.real_prob) - tf.log(1 - self.synthetic_prob))
             self.loss_g = tf.reduce_mean(-tf.log(self.synthetic_prob))
+
+            #Post ICLR try: safe_log
 
             train_vars = tf.trainable_variables()
 
