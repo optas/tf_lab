@@ -27,8 +27,7 @@ def load_multiple_version_of_pcs(version,  syn_id, n_classes, n_pc_points=2048, 
         versions = ['centered', 'centered_2nd_version', 'centered_3rd_version']
 
     elif version == 'uniform_one':
-#         versions = ['centered']
-        versions = ['centered_2nd_version']
+        versions = ['centered']
 
     elif version == 'fps':
         versions = ['fps_sampled_in_u_sphere']
