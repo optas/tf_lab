@@ -16,7 +16,8 @@ from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudD
 from .. data_sets.shape_net import pc_loader as snc_loader
 from .. data_sets.shape_net import snc_category_to_synth_id
 
-def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, random_seed=42):
+
+def load_multiple_version_of_pcs(version,  syn_id, n_classes, n_pc_points=2048, random_seed=42, verbose=False):
     top_data_dir = '/orions4-zfs/projects/optas/DATA/'
 
     if n_classes != 1:
@@ -26,7 +27,8 @@ def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, r
         versions = ['centered', 'centered_2nd_version', 'centered_3rd_version']
 
     elif version == 'uniform_one':
-        versions = ['centered']
+#         versions = ['centered']
+        versions = ['centered_2nd_version']
 
     elif version == 'fps':
         versions = ['fps_sampled_in_u_sphere']
@@ -39,9 +41,11 @@ def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, r
     splits = {'train': None, 'val': None, 'test': None}
 
     for s in splits.keys():
-        print 'Loading %s data.' % (s,)
+        if verbose:
+            print 'Loading %s data.' % (s,)
         s_file = osp.join(top_data_dir, 'Point_Clouds/Shape_Net/Splits/single_class_splits/' + syn_id + '/85_5_10/', s + '.txt')
-        print s_file
+        if verbose:
+            print s_file
         for _, v in enumerate(versions):
             top_pclouds_path = osp.join(top_data_dir, 'Point_Clouds/Shape_Net/Core/from_manifold_meshes/', v, str(n_pc_points))
             splitter = Data_Splitter(top_pclouds_path, data_file_ending='.ply', random_seed=random_seed)
