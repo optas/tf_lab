@@ -10,14 +10,21 @@ from tf_lab.evaluate.generative_pc_nets import entropy_of_occupancy_grid, jensen
 def identity(x):
     return x
 
-def sampling_mmd(sample_data, ref_data, n_samples=10, pop_size=100, emd=True, verbose=False):
-    ids = np.arange(len(ref_data))
-    scores = []
+def sampling_mmd(sample_data, ref_data, n_samples=10, ref_pop_size=50, sample_pop_size=None, emd=True, verbose=False):
+    
+    ref_ids = np.arange(len(ref_data))
+    sample_ids = np.arange(len(sample_data))
+   
+    if sample_pop_size is None:
+        sample_pop_size = ref_pop_size
+    
+    scores = []    
     for i in range(n_samples):
         if verbose:
-            print(i)
-        sb = np.random.choice(ids, pop_size, replace=False)
-        mi = minimum_mathing_distance(sample_data[sb], ref_data[sb], pop_size, normalize=True, use_EMD=emd)
+            print(i)        
+        sb_ref = np.random.choice(ref_ids, min(ref_pop_size, len(ref_ids)), replace=False)
+        sb_sam = np.random.choice(sample_ids, min(sample_pop_size, len(sample_ids)), replace=False)        
+        mi = minimum_mathing_distance(sample_data[sb_sam], ref_data[sb_ref], sample_pop_size, normalize=True, use_EMD=emd)
         scores.append(mi[0])
     scores = np.array(scores)
     return scores
@@ -48,7 +55,7 @@ class Evaluator():
             gt_grid_vars[s] = entropy_of_occupancy_grid(self.gt_data[s], self.voxel_res, self.jsd_in_sphere)[1]
         self.gt_grid_vars = gt_grid_vars
 
-    def prepare_sample_data(self, sample_file, random_seed=42):
+    def prepare_sample_data(self, sample_file, boost_sample=5, random_seed=None):
         sample_data = {}
         sample_load = np.load(sample_file)      
         sample_data['train'] = self.normalizer(sample_load[sample_load.keys()[0]])
@@ -61,8 +68,8 @@ class Evaluator():
         if random_seed is not None:
             np.random.seed(random_seed)
             
-        test_idx = np.random.choice(np.arange(n_train), n_test, replace=False) 
-        val_idx = np.random.choice(np.arange(n_train), n_val, replace=False) 
+        test_idx = np.random.choice(np.arange(n_train), boost_sample*n_test)
+        val_idx = np.random.choice(np.arange(n_train), boost_sample*n_val)
         sample_data['test'] = sample_data['train'][test_idx]
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
@@ -76,14 +83,27 @@ class Evaluator():
                 print(s, jsd_score)
             
            
-    def compute_mmd(self, loss='emd', sample=True, n_samples=5, pop_size=200, f_out=sys.stdout):
+    def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, 
+                    ref_pop_size=50, sample_pop_size=None,
+                    f_out=sys.stdout, skip=[], batch_size=None):
         if loss == 'emd':
             emd = True
-        else:
+        elif loss == 'chamfer':           
             emd = False
+        else:
+            assert(False)
         
         for s in self.splits:
-            scores = sampling_mmd(self.sample_data[s], self.gt_data[s], n_samples, pop_size, emd=emd)      
+            if s in skip:
+                continue
+                
+            if sample_estimator:
+                scores = sampling_mmd(self.sample_data['train'], self.gt_data[s], n_samples, ref_pop_size, sample_pop_size, emd=emd)
+            else:
+                if batch_size is None and not emd:
+                    batch_size = len(self.sample_data[s]) # use all in Chamfer                
+                scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=True, use_EMD=emd)[1]
+    
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
