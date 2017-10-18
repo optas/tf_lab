@@ -14,6 +14,12 @@ def stored_synthetic_samples(class_name):
     
     return sample_dir
 
+def stored_synthetic_samples_extended(class_name):
+    sample_dir = {'l_gan_emd_ds': osp.join(top_sample_dir, 'l_gan/l_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_emd_bneck_128_denser_sampling'),
+                  'l_gan_chamfer_ds': osp.join(top_sample_dir, 'l_gan/l_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_chamfer_bneck_128_denser_sampling')                  
+                 }
+    return  sample_dir
+    
 
 def find_best_model_in_metric_file(in_file, metric, sort_by='test'):    
     all_lines = []
