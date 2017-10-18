@@ -17,7 +17,7 @@ from .. data_sets.shape_net import pc_loader as snc_loader
 from .. data_sets.shape_net import snc_category_to_synth_id
 
 
-def load_multiple_version_of_pcs(version,  syn_id, n_classes, n_pc_points=2048, random_seed=42, verbose=False):
+def load_multiple_version_of_pcs(version, syn_id, n_classes, n_pc_points=2048, random_seed=42, verbose=False):
     top_data_dir = '/orions4-zfs/projects/optas/DATA/'
 
     if n_classes != 1:
