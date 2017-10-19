@@ -6,6 +6,7 @@ import os.path as osp
 
 from tf_lab.nips.helper import center_pclouds_in_unit_sphere
 from tf_lab.evaluate.generative_pc_nets import entropy_of_occupancy_grid, jensen_shannon_divergence, minimum_mathing_distance
+from nltk.metrics import scores
 
 
 def identity(x):
@@ -93,18 +94,14 @@ class Evaluator():
 
     def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None,
                     f_out=sys.stdout, skip=[], batch_size=None):
-        
+
         if loss == 'emd':
             emd = True
         elif loss == 'chamfer':
             emd = False
         else:
             assert(False)
-<<<<<<< HEAD
 
-=======
-        all_dists = dict()
->>>>>>> origin/master
         for s in self.splits:
             if s in skip:
                 continue
@@ -113,21 +110,11 @@ class Evaluator():
                 scores = sampling_mmd(self.sample_data['train'], self.gt_data[s], n_samples, ref_pop_size, sample_pop_size, emd=emd)
             else:
                 if batch_size is None and not emd:
-<<<<<<< HEAD
-                    batch_size = len(self.sample_data[s])   # use all in Chamfer.
+                    batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
                 scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=True, use_EMD=emd)[1]
 
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
-=======
-                    batch_size = len(self.sample_data[s]) # use all in Chamfer                
-                _, scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s],
-                                                            batch_size, normalize=True, use_EMD=emd)
-                all_dists[s] = scores
-    
-            print(s, np.mean(scores), np.std(scores), file=f_out)
-            if f_out != sys.stdout:
-                print(s, np.mean(scores), np.std(scores))
-        return all_dists
->>>>>>> origin/master
+
+        return scores
