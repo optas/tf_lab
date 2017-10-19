@@ -86,13 +86,14 @@ class Evaluator():
     def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, 
                     ref_pop_size=50, sample_pop_size=None,
                     f_out=sys.stdout, skip=[], batch_size=None):
+        
         if loss == 'emd':
             emd = True
         elif loss == 'chamfer':           
             emd = False
         else:
             assert(False)
-        
+        all_dists = dict()
         for s in self.splits:
             if s in skip:
                 continue
@@ -102,8 +103,11 @@ class Evaluator():
             else:
                 if batch_size is None and not emd:
                     batch_size = len(self.sample_data[s]) # use all in Chamfer                
-                scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=True, use_EMD=emd)[1]
+                _, scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s],
+                                                            batch_size, normalize=True, use_EMD=emd)
+                all_dists[s] = scores
     
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
+        return all_dists
