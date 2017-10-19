@@ -6,7 +6,6 @@ import os.path as osp
 
 from tf_lab.nips.helper import center_pclouds_in_unit_sphere
 from tf_lab.evaluate.generative_pc_nets import entropy_of_occupancy_grid, jensen_shannon_divergence, minimum_mathing_distance
-from nltk.metrics import scores
 
 
 def identity(x):
