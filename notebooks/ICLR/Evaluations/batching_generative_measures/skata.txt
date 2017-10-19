@@ -1,0 +1,2 @@
+#Metric Epoch Measurement
+MMD 500 0.002214
