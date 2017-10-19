@@ -8,12 +8,6 @@ from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
 
-try:
-    from tflearn.layers.conv import conv_3d_transpose
-except:
-    print('Loading manual conv_3d_transpose.')
-    from tf_lab.fundamentals.conv import conv_3d_transpose
-
 
 def transformer(point_cloud):
     '''Input is Batch_size x Num_Points x 3 point-clouds
