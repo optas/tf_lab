@@ -188,10 +188,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     else:
         match = approx_match(ref_repeat, sample_pl)
         chamfer_dist_batch = match_cost(ref_repeat, sample_pl, match)
-    
-    print 'yo'
-    print chamfer_dist_batch
-    
+
     best_in_batch = tf.reduce_min(chamfer_dist_batch)   # Best distance, of those that were matched to single ref pc.
     matched_dists = []
     for i in xrange(n_ref):
