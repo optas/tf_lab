@@ -148,7 +148,7 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
     return loss_list
 
 
-def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+def minimum_mathing_distance_old(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
                              point-distances. Alternatively, is their sum.
     '''
@@ -206,3 +206,102 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
 
     mmd = np.mean(matched_dists)
     return mmd, matched_dists
+
+
+def minimum_mathing_distance_tf_graph(n_pc_points, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+    ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
+                             point-distances. Alternatively, is their sum.
+    '''
+    if normalize:
+        reducer = tf.reduce_mean
+    else:
+        reducer = tf.reduce_sum
+
+    if sess is None:
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+
+    # TF Graph Operations
+    ref_pl = tf.placeholder(tf.float32, shape=(1, n_pc_points, 3))
+    sample_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points, 3))
+
+    repeat_times = tf.shape(sample_pl)[0]   # slower- could be used to use entire set of samples.
+#     repeat_times = batch_size
+    ref_repeat = tf.tile(ref_pl, [repeat_times, 1, 1])
+    ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, 3])
+
+    if not use_EMD:
+        ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
+
+        if use_sqrt:
+            ref_to_s = tf.sqrt(ref_to_s)
+            s_to_ref = tf.sqrt(s_to_ref)
+
+        all_dist_in_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
+    else:
+        match = approx_match(ref_repeat, sample_pl)
+        all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
+
+    best_in_batch = tf.reduce_min(all_dist_in_batch)   # Best distance, of those that were matched to single ref pc.
+    location_of_best = tf.argmin(all_dist_in_batch, axis=0)
+    return ref_pl, sample_pl, best_in_batch, location_of_best, sess
+
+
+def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+    ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
+                             point-distances. Alternatively, is their sum.
+    '''
+
+    n_ref, n_pc_points, pc_dim = ref_pcs.shape
+    _, n_pc_points_s, pc_dim_s = sample_pcs.shape
+
+    if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
+        raise ValueError('Incompatible Point-Clouds.')
+
+    ref_pl, sample_pl, best_in_batch, _, sess = minimum_mathing_distance_tf_graph(n_pc_points, batch_size,
+                                                                                  normalize=normalize, sess=sess,
+                                                                                  use_sqrt=use_sqrt, use_EMD=use_EMD)
+    matched_dists = []
+    for i in xrange(n_ref):
+        best_in_all_batches = []
+        if verbose and i % 50 == 0:
+            print i
+        for sample_chunk in iterate_in_chunks(sample_pcs, batch_size):
+            feed_dict = {ref_pl: np.expand_dims(ref_pcs[i], 0), sample_pl: sample_chunk}
+            b = sess.run(best_in_batch, feed_dict=feed_dict)
+            best_in_all_batches.append(b)
+        matched_dists.append(np.min(best_in_all_batches))
+    mmd = np.mean(matched_dists)
+    return mmd, matched_dists
+
+
+def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+    _, n_pc_points, pc_dim = ref_pcs.shape
+    n_sam, n_pc_points_s, pc_dim_s = sample_pcs.shape
+
+    if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
+        raise ValueError('Incompatible Point-Clouds.')
+
+    ref_pl, sample_pl, best_in_batch, loc_of_best, sess = minimum_mathing_distance_tf_graph(n_pc_points, batch_size,
+                                                                                            normalize=normalize, sess=sess,
+                                                                                            use_sqrt=use_sqrt, use_EMD=use_EMD)
+    matched_gt = []
+    for i in xrange(n_sam):
+
+        best_in_all_batches = []
+        loc_in_all_batches = []
+
+        if verbose and i % 50 == 0:
+            print i
+
+        for ref_chunk in iterate_in_chunks(ref_pcs, batch_size):
+            feed_dict = {ref_pl: np.expand_dims(sample_pcs[i], 0), sample_pl: ref_chunk}
+            b, loc = sess.run([best_in_batch, loc_of_best], feed_dict=feed_dict)
+            best_in_all_batches.append(b)
+            loc_in_all_batches.append(loc)
+
+        b_hit = np.argmin(np.array(best_in_all_batches))    # In which batch it minimum occurred.
+        hit = np.array(loc_in_all_batches)[b_hit]
+        matched_gt.append(batch_size * b_hit + hit)
+    return matched_gt
