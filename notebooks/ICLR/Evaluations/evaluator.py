@@ -25,14 +25,23 @@ def sampling_mmd(sample_data, ref_data, n_samples=10, ref_pop_size=50, sample_po
     normalize = True
     if emd:
         normalize = False
+        batch_size = 450  # maximum that fits Titan-X.
+    else:
+        batch_size = sample_pop_size
 
     scores = []
     for i in range(n_samples):
-        if verbose:
-            print(i)
-        sb_ref = np.random.choice(ref_ids, ref_pop_size, replace=False)
-        sb_sam = np.random.choice(sample_ids, sample_pop_size, replace=False)
-        mi = minimum_mathing_distance(sample_data[sb_sam], ref_data[sb_ref], sample_pop_size, normalize=normalize, use_EMD=emd)
+        if ref_pop_size >= n_ref:
+            sb_ref = ref_ids
+        else:
+            sb_ref = np.random.choice(ref_ids, ref_pop_size, replace=False)
+        
+        if sample_pop_size >= n_sample:
+            sb_sam = sample_ids
+        else:
+            sb_sam = np.random.choice(sample_ids, sample_pop_size, replace=False)
+        
+        mi = minimum_mathing_distance(sample_data[sb_sam], ref_data[sb_ref], batch_size, normalize=normalize, use_EMD=emd)
         scores.append(mi[0])
     scores = np.array(scores)
     return scores
@@ -91,16 +100,16 @@ class Evaluator():
             if f_out != sys.stdout:
                 print(s, jsd_score)
 
-    def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None,
-                    f_out=sys.stdout, skip=[], batch_size=None):
-
+    def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):        
         if loss == 'emd':
             emd = True
+            normalize = False
         elif loss == 'chamfer':
             emd = False
+            normalize = True
         else:
             assert(False)
-
+        all_scores = dict()
         for s in self.splits:
             if s in skip:
                 continue
@@ -110,10 +119,10 @@ class Evaluator():
             else:
                 if batch_size is None and not emd:
                     batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
-                scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=True, use_EMD=emd)[1]
+                scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)[1]
 
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
-
-        return scores
+            all_scores[s] = scores
+        return all_scores
