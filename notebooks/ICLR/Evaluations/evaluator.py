@@ -5,7 +5,7 @@ import sys
 import os.path as osp
 
 from tf_lab.nips.helper import center_pclouds_in_unit_sphere
-from tf_lab.evaluate.generative_pc_nets import entropy_of_occupancy_grid, jensen_shannon_divergence, minimum_mathing_distance
+from tf_lab.evaluate.generative_pc_nets import entropy_of_occupancy_grid, jensen_shannon_divergence, minimum_mathing_distance, coverage
 
 
 def identity(x):
@@ -40,7 +40,7 @@ def sampling_mmd(sample_data, ref_data, n_samples=10, ref_pop_size=50, sample_po
             sb_sam = sample_ids
         else:
             sb_sam = np.random.choice(sample_ids, sample_pop_size, replace=False)
-        
+            
         mi = minimum_mathing_distance(sample_data[sb_sam], ref_data[sb_ref], batch_size, normalize=normalize, use_EMD=emd)
         scores.append(mi[0])
     scores = np.array(scores)
@@ -117,12 +117,48 @@ class Evaluator():
             if sample_estimator:
                 scores = sampling_mmd(self.sample_data['train'], self.gt_data[s], n_samples, ref_pop_size, sample_pop_size, emd=emd)
             else:
-                if batch_size is None and not emd:
-                    batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
+                if batch_size is None:
+                    if emd:
+                        batch_size = 450 # (max in Titan-x)
+                    else:
+                        batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
+                #print(len(self.sample_data[s]), len(self.gt_data[s]))
                 scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)[1]
 
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
             all_scores[s] = scores
+        return all_scores
+    
+    
+    def compute_coverage(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):        
+        if loss == 'emd':
+            emd = True
+            normalize = False
+        elif loss == 'chamfer':
+            emd = False
+            normalize = True
+        else:
+            assert(False)
+
+        all_scores = dict()        
+        for s in self.splits:
+            if s in skip:
+                continue
+
+            if batch_size is None:
+                if emd:
+                    batch_size = 450 # (max in Titan-x)
+                else:
+                    batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
+
+            idx = coverage(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)
+            scores = len(np.unique(idx)) / float(len(self.gt_data[s]))
+
+            print(s, np.mean(scores), np.std(scores), file=f_out)
+            if f_out != sys.stdout:
+                print(s, np.mean(scores), np.std(scores))
+            all_scores[s] = scores
+        
         return all_scores
