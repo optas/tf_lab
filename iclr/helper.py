@@ -78,3 +78,18 @@ def achlioptas_five_snc_shape_categories():
     category_names = ['airplane', 'car', 'chair', 'sofa', 'table']
     syn_id_dict = snc_category_to_synth_id()
     return category_names, [syn_id_dict[i] for i in category_names]
+
+
+top_sample_dir = '/orions4-zfs/projects/optas/DATA/OUT/iclr/synthetic_samples/'
+
+top_evaluation_dir = '/orions4-zfs/projects/optas/DATA/OUT/iclr/evaluations/synthetic_data/'
+
+
+def stored_synthetic_samples(class_name):
+    sample_dir = {'l_gan_emd': osp.join(top_sample_dir, 'l_gan/l_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_emd_bneck_128'),
+                  'l_gan_chamfer': osp.join(top_sample_dir, 'l_gan/l_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_chamfer_bneck_128'),
+                  'l_w_gan_small': osp.join(top_sample_dir, 'l_w_gan/l_w_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_emd_bneck_128_lgan_arch'),
+                  'l_w_gan_large': osp.join(top_sample_dir, 'l_w_gan/l_w_gan_' + class_name + '_mlp_with_split_1pc_usampled_bnorm_on_encoder_only_emd_bneck_128_lgan_arch_double_neurons'),
+                  'r_gan': osp.join(top_sample_dir, 'r_gan/r_gan_' + class_name + '_mlp_disc_4_fc_gen_raw_gan_2048_pts'),
+                  'gmm': osp.join(top_sample_dir, 'gmm/gmm_emd_' + class_name)}
+    return sample_dir
