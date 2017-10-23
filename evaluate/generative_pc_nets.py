@@ -276,7 +276,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     return mmd, matched_dists
 
 
-def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False, ret_dist=False):
     _, n_pc_points, pc_dim = ref_pcs.shape
     n_sam, n_pc_points_s, pc_dim_s = sample_pcs.shape
 
@@ -287,6 +287,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
                                                                                             normalize=normalize, sess=sess,
                                                                                             use_sqrt=use_sqrt, use_EMD=use_EMD)
     matched_gt = []
+    matched_dist = []
     for i in xrange(n_sam):
 
         best_in_all_batches = []
@@ -301,7 +302,12 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
             best_in_all_batches.append(b)
             loc_in_all_batches.append(loc)
 
-        b_hit = np.argmin(np.array(best_in_all_batches))    # In which batch it minimum occurred.
+        best_in_all_batches = np.array(best_in_all_batches)
+        b_hit = np.argmin(best_in_all_batches)    # In which batch it minimum occurred.
+        matched_dist.append(np.min(best_in_all_batches))
         hit = np.array(loc_in_all_batches)[b_hit]
         matched_gt.append(batch_size * b_hit + hit)
-    return matched_gt
+    if ret_dist:
+        return matched_gt, matched_dist
+    else:
+        return matched_gt
