@@ -92,8 +92,10 @@ class Evaluator():
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
 
-    def compute_jsd(self, f_out=sys.stdout):
+    def compute_jsd(self, f_out=sys.stdout, skip=[]):
         for s in self.splits:
+            if s in skip:
+                continue
             sample_grid_var = entropy_of_occupancy_grid(self.sample_data[s], self.voxel_res, self.jsd_in_sphere)[1]
             jsd_score = jensen_shannon_divergence(sample_grid_var, self.gt_grid_vars[s])
             print(s, jsd_score, file=f_out)
