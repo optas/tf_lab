@@ -25,8 +25,12 @@ try:
         from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
         from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
     else:
-        from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-        from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+        if tf.__version__.startswith('0'):
+            from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
+            from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
+        else:
+            from .. external.Chamfer_EMD_tf1plus.tf_nndistance import nn_distance
+            from .. external.Chamfer_EMD_tf1plus.tf_approxmatch import approx_match, match_cost
 except:
     print('External Losses (Chamfer-EMD) cannot be loaded.')
 
