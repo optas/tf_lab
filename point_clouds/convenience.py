@@ -120,7 +120,7 @@ def compute_structural_loss(pc1, pc2, batch_size, loss_type):
         all_dist_in_batch = match_cost(pc_1_pl, pc_2_pl, match)
     elif loss_type == 'chamfer':
         cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
-        all_dist_in_batch = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+        all_dist_in_batch = tf.reduce_mean(cost_p1_p2, 1) + tf.reduce_mean(cost_p2_p1, 1)
     else:
         raise ValueError()
 
