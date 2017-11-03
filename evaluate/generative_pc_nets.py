@@ -19,11 +19,9 @@ try:
 except:
     print ('sklearn module not installed.')
 
-try:
-    from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-    from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-except:
-    print('External Losses (Chamfer-EMD) cannot be loaded.')
+
+from .. external.structural_pc_losses import losses
+nn_distance, approx_match, match_cost = losses()
 
 
 def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
