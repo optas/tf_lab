@@ -19,20 +19,8 @@ from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
 from .. fundamentals.inspect import count_trainable_parameters
-
-try:
-    if socket.gethostname() == socket.gethostname() == 'oriong2.stanford.edu':
-        from .. external.oriong2.Chamfer_EMD_losses.tf_nndistance import nn_distance
-        from .. external.oriong2.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-    else:
-        if tf.__version__.startswith('0'):
-            from .. external.Chamfer_EMD_losses.tf_nndistance import nn_distance
-            from .. external.Chamfer_EMD_losses.tf_approxmatch import approx_match, match_cost
-        else:
-            from .. external.Chamfer_EMD_tf1plus.tf_nndistance import nn_distance
-            from .. external.Chamfer_EMD_tf1plus.tf_approxmatch import approx_match, match_cost
-except:
-    print('External Losses (Chamfer-EMD) cannot be loaded.')
+from .. external.structural_pc_losses import losses
+nn_distance, approx_match, match_cost = losses()
 
 
 class PointNetAutoEncoder(AutoEncoder):

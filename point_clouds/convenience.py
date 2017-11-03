@@ -5,6 +5,9 @@ Created on September 5, 2017
 '''
 import numpy as np
 from general_tools.simpletons import iterate_in_chunks
+import tensorflow as tf
+from .. external.structural_pc_losses import losses
+nn_distance, approx_match, match_cost = losses()
 
 
 def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, compute_loss=True):
@@ -96,3 +99,35 @@ def decode_latent_codes(autoencoder, latent_codes, batch_size=100):
     for b in iterate_in_chunks(idx, batch_size):
         pclouds.append(autoencoder.decode(latent_codes[b]))
     return np.vstack(pclouds)
+
+
+def compute_structural_loss(pc1, pc2, batch_size, loss_type):
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+
+    n_pc, n_pc_points_1, pc_dim = pc1.shape
+    n_pc_, n_pc_points_2, pc_dim_s = pc2.shape
+
+    if n_pc != n_pc_ or pc_dim != pc_dim_s:
+        raise ValueError()
+
+    # TF Graph Operations
+    pc_1_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points_1, 3))
+    pc_2_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points_2, 3))
+    if loss_type == 'emd':
+        match = approx_match(pc_1_pl, pc_2_pl)
+        all_dist_in_batch = match_cost(pc_1_pl, pc_2_pl, match)
+    elif loss_type == 'chamfer':
+        cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
+        all_dist_in_batch = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+    else:
+        raise ValueError()
+
+    all_dists = []
+    for chunk in iterate_in_chunks(np.arange(n_pc), batch_size):
+        feed_dict = {pc_1_pl: pc1[chunk], pc_2_pl: pc2[chunk]}
+        b = sess.run(all_dist_in_batch, feed_dict=feed_dict)
+        all_dists.append(b)
+    sess.close()
+    return np.array(all_dists)[0]
