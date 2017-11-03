@@ -88,3 +88,11 @@ def get_latent_codes(autoencoder, pclouds, batch_size=100):
     for b in iterate_in_chunks(idx, batch_size):
         latent_codes.append(autoencoder.transform(pclouds[b]))
     return np.vstack(latent_codes)
+
+
+def decode_latent_codes(autoencoder, latent_codes, batch_size=100):
+    pclouds = []
+    idx = np.arange(len(latent_codes))
+    for b in iterate_in_chunks(idx, batch_size):
+        pclouds.append(autoencoder.decode(latent_codes[b]))
+    return np.vstack(pclouds)
