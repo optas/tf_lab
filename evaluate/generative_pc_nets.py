@@ -19,7 +19,6 @@ try:
 except:
     print ('sklearn module not installed.')
 
-
 from .. external.structural_pc_losses import losses
 nn_distance, approx_match, match_cost = losses()
 

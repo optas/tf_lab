@@ -126,7 +126,6 @@ class AutoEncoder(NeuralNet):
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
         '''
-        #is_training(False, session=self.sess) #FUCKED UP THING TO DO
         is_training(True, session=self.sess)
         try:
             if GT is not None:
