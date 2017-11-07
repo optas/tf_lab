@@ -72,6 +72,6 @@ def default_train_params(single_class=True):
 
     if not single_class:
         params['z_rotate'] = True
-        params['training_epochs'] = 2000
+        params['training_epochs'] = 1000
 
     return params
