@@ -303,4 +303,3 @@ class AutoEncoder(NeuralNet):
 
         embedding = np.vstack(embedding)
         return feed, embedding, ids
-    
