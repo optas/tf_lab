@@ -11,13 +11,13 @@ import tensorflow as tf
 
 from general_tools.in_out.basics import create_dir
 
-from .. neural_net import NeuralNet
+from .. neural_net import Neural_Net
 
 
-class GAN(NeuralNet):
+class GAN(Neural_Net):
 
     def __init__(self, name, graph):
-        NeuralNet.__init__(self, name, graph)
+        Neural_Net.__init__(self, name, graph)
 
     def save_model(self, tick):
         self.saver.save(self.sess, self.MODEL_SAVER_ID, global_step=tick)

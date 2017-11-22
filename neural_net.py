@@ -10,7 +10,7 @@ import tensorflow as tf
 MODEL_SAVER_ID = 'models.ckpt'
 
 
-class NeuralNet(object):
+class Neural_Net(object):
 
     def __init__(self, name, graph):
         if graph is None:

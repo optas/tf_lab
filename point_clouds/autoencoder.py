@@ -15,7 +15,7 @@ from general_tools.in_out.basics import create_dir, pickle_data, unpickle_data
 from general_tools.simpletons import iterate_in_chunks
 
 from . in_out import apply_augmentations
-from .. neural_net import NeuralNet
+from .. neural_net import Neural_Net
 
 model_saver_id = 'models.ckpt'
 
@@ -87,12 +87,12 @@ class Configuration():
         return unpickle_data(file_name + '.pickle').next()
 
 
-class AutoEncoder(NeuralNet):
+class AutoEncoder(Neural_Net):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
 
     def __init__(self, name, graph, configuration):
-        NeuralNet.__init__(self, name, graph)
+        Neural_Net.__init__(self, name, graph)
         self.is_denoising = configuration.is_denoising
         self.n_input = configuration.n_input
         self.n_output = configuration.n_output   # TODO Re-factor for AP

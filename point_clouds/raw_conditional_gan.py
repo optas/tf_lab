@@ -22,7 +22,7 @@ class RawConditionalGAN():
 
         self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])                # Noise vector.
         self.input_pc = tf.placeholder(tf.float32, in_shape)                            # Conditional pc.
-        
+
         self.out_pc = tf.placeholder(tf.float32, out_shape)                             # Ground-truth.
 
         with tf.variable_scope('generator'):

@@ -11,17 +11,17 @@ from tflearn import is_training
 from . in_out import apply_augmentations
 from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.inspect import count_trainable_parameters
-from .. neural_net import NeuralNet
+from .. neural_net import Neural_Net
 
 
-class PointNetClassifier(NeuralNet):
+class PointNetClassifier(Neural_Net):
     '''
     An Classifier replicating the architecture of Charles and Hao paper.
     '''
 
     def __init__(self, name, configuration, graph=None):
 
-        NeuralNet.__init__(self, name, graph)
+        Neural_Net.__init__(self, name, graph)
         c = configuration
         self.configuration = c
         self.n_input = c.n_input
