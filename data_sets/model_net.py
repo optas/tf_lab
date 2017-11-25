@@ -30,6 +30,15 @@ rotation_angles = {'bed': -90, 'desk': -90, 'dresser': 180, 'chair': -90, 'night
                    'sofa': 180, 'monitor': 180, 'bathtub': 0, 'table': 0, 'toilet': -90}
 
 
+def n_examples(net):
+    if net == 40:
+        return [('train', 9843), ('test', 2468)]
+    elif net == 10:
+        return [('train', 3991), ('test', 908)]
+    else:
+        raise ValueError('Model net 10 or 40.')
+
+
 def classes_to_integers(net, instances=None):
     if net == 10:
         classes = sorted(net_10_classes)
