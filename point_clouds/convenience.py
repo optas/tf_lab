@@ -8,6 +8,8 @@ from general_tools.simpletons import iterate_in_chunks
 import tensorflow as tf
 from .. external.structural_pc_losses import losses
 nn_distance, approx_match, match_cost = losses()
+#from latent_3d_points.external.structural_losses import nn_distance, approx_match, match_cost
+
 
 
 def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, compute_loss=True):
