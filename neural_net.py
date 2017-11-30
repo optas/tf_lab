@@ -8,6 +8,9 @@ import os.path as osp
 import tensorflow as tf
 import warnings
 
+from fundamentals.inspect import count_trainable_parameters
+
+
 MODEL_SAVER_ID = 'models.ckpt'
 
 
@@ -29,6 +32,9 @@ class Neural_Net(object):
         is_training_op = self.graph.get_collection('is_training')
         return self.sess.run(is_training_op)[0]
 
+    def trainable_parameters(self):
+        return count_trainable_parameters(self.graph, name_space=self.name)
+
     def restore_model(self, model_path, epoch, verbose=False):
         '''Restore all the variables of a saved model.
         '''
@@ -39,3 +45,8 @@ class Neural_Net(object):
         else:
             if verbose:
                 print('Model restored in epoch {0}.'.format(epoch))
+
+
+class Neural_Net_Conf(object):
+    def __init__(self):
+        pass
