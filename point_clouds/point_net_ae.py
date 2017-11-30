@@ -6,7 +6,6 @@ Created on January 26, 2017
 
 import time
 import tensorflow as tf
-import socket
 import os.path as osp
 
 from tflearn.layers.conv import conv_1d

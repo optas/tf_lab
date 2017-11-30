@@ -22,17 +22,6 @@ class GAN(Neural_Net):
     def save_model(self, tick):
         self.saver.save(self.sess, self.MODEL_SAVER_ID, global_step=tick)
 
-    def restore_model(self, model_path, epoch, verbose=False):
-        '''Restore all the variables of a saved model.
-        '''
-        self.saver.restore(self.sess, osp.join(model_path, self.MODEL_SAVER_ID + '-' + str(int(epoch))))
-
-        if self.epoch.eval(session=self.sess) != epoch:
-            warnings.warn('Loaded model\'s epoch doesn\'t match the requested one.')
-        else:
-            if verbose:
-                print('Model restored in epoch {0}.'.format(epoch))
-
     def optimizer(self, learning_rate, beta, loss, var_list):
         initial_learning_rate = learning_rate
         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=beta).minimize(loss, var_list=var_list)
