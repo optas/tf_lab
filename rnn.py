@@ -75,3 +75,41 @@ def get_state_reset_op(state_variables, cell, batch_size):
     # Return an operation to set each variable in a list of LSTMStateTuples to zero
     zero_states = cell.zero_state(batch_size, tf.float32)
     return get_state_update_op(state_variables, zero_states)
+
+
+
+  # # # # NEW STUFF TO CONSIDER
+
+# def lstm_w_attention_get_state_variables(batch_size, cell):
+#     # For each layer, get the initial state and make a variable out of it
+#     # to enable updating its value.
+#     state_variables = []
+#     for layer in cell.zero_state(batch_size, tf.float32):
+#         for k in layer:
+#             if type(k) == tf.contrib.rnn.LSTMStateTuple:
+#                 state_c, state_h = k
+#                 state_variables.append(tf.nn.rnn_cell.LSTMStateTuple(
+#                     tf.Variable(state_c, trainable=False),tf.Variable(state_h, trainable=False)))
+#     # Return as a tuple, so that it can be fed to dynamic_rnn as an initial state
+#     return tuple(state_variables)
+
+# def deep_lstm(n_layers, n_hidden, dropout_prob=None, attn_len=None, activation=tf.nn.tanh):
+#     cells = []
+#     for _ in range(n_layers):
+#         
+#         cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden, activation=activation)
+#         
+#         if attn_len is not None:
+#             cell = tf.contrib.rnn.AttentionCellWrapper(cell, attn_len)
+#     
+#         if dropout_prob is not None:            
+#             cell = tf.nn.rnn_cell.DropoutWrapper(cell, input_keep_prob=1.0 - dropout_prob)
+# #             cell = tf.nn.rnn_cell.DropoutWrapper(cell, 
+# #                                                  input_keep_prob=1.0 - dropout_prob,
+# #                                                  output_keep_prob=1.0 - dropout_prob,
+# #                                                  state_keep_prob = 1.0 - dropout_prob
+# #                                                 )
+#             
+#         cells.append(cell)
+#     model = tf.nn.rnn_cell.MultiRNNCell(cells)
+#     return model

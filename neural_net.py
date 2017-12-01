@@ -46,6 +46,14 @@ class Neural_Net(object):
             if verbose:
                 print('Model restored in epoch {0}.'.format(epoch))
 
+    def start_session(self, allow_growth=True):
+        '''Associates with the Neura_Net a tf.Session object which is used to initialize the tf.global_variables'''
+        gpu_config = tf.ConfigProto()
+        gpu_config.gpu_options.allow_growth = allow_growth
+        self.init = tf.global_variables_initializer()
+        self.sess = tf.Session(config=gpu_config)
+        self.sess.run(self.init)
+
 
 class Neural_Net_Conf(object):
     def __init__(self):
