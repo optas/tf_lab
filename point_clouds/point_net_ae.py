@@ -83,10 +83,17 @@ class PointNetAutoEncoder(AutoEncoder):
             self.loss = Loss.l2_loss(self.x_reconstr, self.gt)
         elif c.loss == 'chamfer':
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
-            self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-#             TRY POST ICLR:
-#             self.loss = tf.reduce_mean(tf.reduce_sum(cost_p1_p2 + cost_p2_p1, 1))
-#             self.loss = tf.reduce_mean(tf.reduce_sum(tf.sqrt(cost_p1_p2) + tf.sqrt(cost_p2_p1), 1))
+            if c.exists_and_is_not_none('loss_reduction'):
+                if c.loss_reduction == 'log_sum_exp':
+                    self.loss = tf.reduce_logsumexp(cost_p1_p2, 1) + tf.reduce_logsumexp(cost_p2_p1, 1)
+
+                elif c.loss_reduction == 'euclid_sqrt':
+                    self.loss = tf.reduce_sum(tf.sqrt(cost_p1_p2) + tf.sqrt(cost_p2_p1), 1)
+                else:
+                    assert(False)
+                self.loss = tf.reduce_mean(self.loss)
+            else:
+                self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
         elif c.loss == 'emd':
             match = approx_match(self.x_reconstr, self.gt)
             self.loss = tf.reduce_mean(match_cost(self.x_reconstr, self.gt, match))
