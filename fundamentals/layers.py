@@ -160,7 +160,7 @@ def conv_1d_tranpose(layer, nb_filter, filter_size, strides, padding='same',
         # expand dims to make it compatible with conv2d
         W = tf.expand_dims(W, 0)
         layer = tf.expand_dims(layer, spatial_start_dim)
-        output_shape_ = array_ops.concat_v2([output_shape_[:1], [1], output_shape_[1:]], axis=0)
+        output_shape_ = array_ops.concat([output_shape_[:1], [1], output_shape_[1:]], axis=0)
 
         result = gen_nn_ops.conv2d_backprop_input(input_sizes=output_shape_, filter=W, out_backprop=layer, strides=strides,
                                                   padding=padding, name=name)
