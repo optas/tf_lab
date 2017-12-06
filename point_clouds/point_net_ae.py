@@ -86,7 +86,6 @@ class PointNetAutoEncoder(AutoEncoder):
             if c.exists_and_is_not_none('loss_reduction'):
                 if c.loss_reduction == 'log_sum_exp':
                     self.loss = tf.reduce_logsumexp(cost_p1_p2, 1) + tf.reduce_logsumexp(cost_p2_p1, 1)
-
                 elif c.loss_reduction == 'euclid_sqrt':
                     self.loss = tf.reduce_sum(tf.sqrt(cost_p1_p2) + tf.sqrt(cost_p2_p1), 1)
                 else:

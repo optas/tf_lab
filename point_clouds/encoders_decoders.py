@@ -15,6 +15,8 @@ from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected, dropout
 
 from . spatial_transformer import transformer as pcloud_spn
+
+from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
 
@@ -206,7 +208,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_lineari
 
 
 def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding='same', b_norm=True, non_linearity=tf.nn.relu,
-                            conv_op=conv_1d, regularizer=None, weight_decay=0.001, dropout_prob=None, upsample_sizes=None,
+                            conv_op=conv_1d_tranpose, regularizer=None, weight_decay=0.001, dropout_prob=None, upsample_sizes=None,
                             b_norm_finish=False, scope=None, reuse=False, verbose=False):
 
     if verbose:
