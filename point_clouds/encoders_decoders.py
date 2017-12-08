@@ -74,6 +74,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
                 layer = pool(layer, kernel_size=pool_sizes[i])
 
         if dropout_prob is not None and dropout_prob[i] != 1:
+            print "mesa"
 #             layer = dropout(layer, 1.0 - dropout_prob[i])
             layer = dropout(layer, dropout_prob[i])
 
