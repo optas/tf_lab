@@ -33,7 +33,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
-    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
+#     dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
 
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
@@ -69,7 +69,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             if pool_sizes[i] is not None:
                 layer = pool(layer, kernel_size=pool_sizes[i])
 
-        if dropout_prob is not None and dropout_prob[i] > 0:
+        if dropout_prob is not None: #and dropout_prob[i] > 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
         if verbose:
