@@ -22,7 +22,8 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
-dropout = tf.layers.dropout
+dropout = tf.nn.dropout
+
 
 def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
@@ -73,10 +74,8 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             if pool_sizes[i] is not None:
                 layer = pool(layer, kernel_size=pool_sizes[i])
 
-        if dropout_prob is not None and dropout_prob[i] != 1:
-            print "mesa"
-#             layer = dropout(layer, 1.0 - dropout_prob[i])
-            layer = dropout(layer, dropout_prob[i])
+        if dropout_prob is not None and dropout_prob[i] != 0:
+            layer = dropout(layer, 1.0 - dropout_prob[i])
 
         if verbose:
             print layer
