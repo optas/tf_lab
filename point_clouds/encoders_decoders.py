@@ -15,12 +15,14 @@ from tflearn.layers.normalization import batch_normalization
 # from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.core import fully_connected
 
-from tf.nn import dropout
+
 
 from . spatial_transformer import transformer as pcloud_spn
 
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
+
+dropout = tensorflow.nn.dropout
 
 
 def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
