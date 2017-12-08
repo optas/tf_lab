@@ -12,7 +12,10 @@ import warnings
 from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
-from tflearn.layers.core import fully_connected, dropout
+# from tflearn.layers.core import fully_connected, dropout
+from tflearn.layers.core import fully_connected
+
+from tf.nn import dropout
 
 from . spatial_transformer import transformer as pcloud_spn
 
@@ -69,7 +72,7 @@ def encoder_with_convs_and_symmetry_new(in_signal, n_filters=[64, 128, 256, 1024
             if pool_sizes[i] is not None:
                 layer = pool(layer, kernel_size=pool_sizes[i])
 
-        if dropout_prob is not None: #and dropout_prob[i] > 0:
+        if dropout_prob is not None and dropout_prob[i] != 0:
             layer = dropout(layer, 1.0 - dropout_prob[i])
 
         if verbose:
