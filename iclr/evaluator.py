@@ -85,9 +85,10 @@ class Evaluator():
 
         if random_seed is not None:
             np.random.seed(random_seed)
-
+        
         test_idx = np.random.choice(np.arange(n_train), boost_sample * n_test)
         val_idx = np.random.choice(np.arange(n_train), boost_sample * n_val)
+                
         sample_data['test'] = sample_data['train'][test_idx]
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
