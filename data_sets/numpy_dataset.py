@@ -83,6 +83,9 @@ class NumpyDataset(object):
         for name in self.tensor_names:
             ret_res.append(self.__getattribute__(name)[start:end])
 
+        if self.n_tensors == 1:
+            ret_res = ret_res[0]
+
         return ret_res
 
     def is_equal(self, other_dataset):

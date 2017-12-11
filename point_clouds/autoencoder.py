@@ -107,7 +107,7 @@ class AutoEncoder(Neural_Net):
             else:
                 self.gt = self.x
 
-    def partial_fit(self, X, GT=None):
+    def partial_fit(self, X, GT=None, ret_reconstruction=True):
         '''Trains the model with mini-batches of input data.
         If GT is not None, then the reconstruction loss compares the output of the net that is fed X, with the GT.
         This can be useful when training for instance a denoising auto-encoder.
@@ -115,12 +115,17 @@ class AutoEncoder(Neural_Net):
             The loss of the mini-batch.
             The reconstructed (output) point-clouds.
         '''
+        if ret_reconstruction:
+            x_recon = self.x_reconstr
+        else:
+            x_recon = tf.no_op()
+
         is_training(True, session=self.sess)
         try:
             if GT is not None:
-                _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X, self.gt: GT})
+                _, loss, recon = self.sess.run((self.train_step, self.loss, x_recon), feed_dict={self.x: X, self.gt: GT})
             else:
-                _, loss, recon = self.sess.run((self.train_step, self.loss, self.x_reconstr), feed_dict={self.x: X})
+                _, loss, recon = self.sess.run((self.train_step, self.loss, x_recon), feed_dict={self.x: X})
 
             is_training(False, session=self.sess)
         except Exception:
