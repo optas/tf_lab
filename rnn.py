@@ -1,13 +1,16 @@
 import tensorflow as tf
 
 
-def deep_lstm(n_layers, n_hidden, dropout_prob=None, activation=tf.nn.tanh):
+def deep_lstm(n_layers, n_hidden, out_keep_prob=1, input_keep_prob=1, activation=tf.nn.tanh):
     cells = []
     for _ in range(n_layers):
         cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden, activation=activation)
-        if dropout_prob is not None:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=1.0 - dropout_prob)
+
+        if out_keep_prob is not 1 or input_keep_prob is not 1:
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=out_keep_prob, input_keep_prob=input_keep_prob)
+
         cells.append(cell)
+
     model = tf.nn.rnn_cell.MultiRNNCell(cells)
     return model
 
