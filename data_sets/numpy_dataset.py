@@ -110,9 +110,22 @@ class NumpyDataset(object):
             np.random.shuffle(perm)
 
         ret_res = []
-        for name in(self.tensor_names):
+        for name in self.tensor_names:
             ret_res.append(self.__getattribute__(name)[perm])
         return ret_res
+
+    def merge(self, other_data_set):
+        self._index_in_epoch = 0
+        self.epochs_completed = 0
+
+        for name in self.tensor_names:
+            merged_prop = np.vstack([self.__getattribute__(name), other_data_set.__getattribute__(name)])
+            self.__setattr__(name, merged_prop)
+
+        self.n_examples = self.n_examples + other_data_set.n_examples
+
+        return self
+
 
 ## VERSION WITH OrderedDict.     
 #     
