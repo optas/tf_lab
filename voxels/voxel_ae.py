@@ -25,6 +25,7 @@ class Voxel_AE(AutoEncoder):
             self.z = c.encoder(self.x)
             self.x_reconstr = c.decoder(self.z)
             self._create_loss()
+            self.saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name))
 
         self.start_session()
 
