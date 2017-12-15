@@ -21,9 +21,11 @@ class Voxel_AE(AutoEncoder):
         c = configuration
         self.configuration = c
         AutoEncoder.__init__(self, name, graph, configuration)
-        self.z = c.encoder(self.x)
-        self.x_reconstr = c.decoder(self.z)
-        self._create_loss()
+        with tf.variable_scope(name):
+            self.z = c.encoder(self.x)
+            self.x_reconstr = c.decoder(self.z)
+            self._create_loss()
+
         self.start_session()
 
     def _create_loss(self):
@@ -45,7 +47,7 @@ class Voxel_AE(AutoEncoder):
 
         if type(batch_size) is not int:   # TODO temp fix.
              batch_size = batch_size.batch_size
-             
+
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         if only_fw:
