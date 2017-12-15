@@ -42,6 +42,10 @@ class Voxel_AE(AutoEncoder):
         '''
         n_examples = train_data.n_examples
         epoch_loss = 0.
+
+        if type(batch_size) is not int:   # TODO temp fix.
+             batch_size = batch_size.batch_size
+             
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         if only_fw:
