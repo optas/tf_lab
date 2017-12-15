@@ -25,7 +25,8 @@ class Voxel_AE(AutoEncoder):
             self.z = c.encoder(self.x)
             self.x_reconstr = c.decoder(self.z)
             self._create_loss()
-            self.saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name))
+            self.saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name),
+                                        max_to_keep=c.saver_max_to_keep)
 
         self.start_session()
 
@@ -47,7 +48,7 @@ class Voxel_AE(AutoEncoder):
         epoch_loss = 0.
 
         if type(batch_size) is not int:   # TODO temp fix.
-             batch_size = batch_size.batch_size
+            batch_size = batch_size.batch_size
 
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
