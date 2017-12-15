@@ -22,8 +22,8 @@ class Voxel_AE(AutoEncoder):
         self.configuration = c
         AutoEncoder.__init__(self, name, graph, configuration)
         with tf.variable_scope(name):
-            self.z = c.encoder(self.x)
-            self.x_reconstr = c.decoder(self.z)
+            self.z = c.encoder(self.x, **c.encoder_args)
+            self.x_reconstr = c.decoder(self.z, **c.decoder_args)
             self._create_loss()
             self.saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=name),
                                         max_to_keep=c.saver_max_to_keep)
