@@ -16,7 +16,7 @@ from general_tools.in_out.basics import create_dir
 from .. point_clouds.autoencoder import AutoEncoder
 
 
-class Voxel_Based_AE(AutoEncoder):
+class Voxel_AE(AutoEncoder):
     def __init__(self, name, configuration, graph=None):
         c = configuration
         self.configuration = c
@@ -24,7 +24,6 @@ class Voxel_Based_AE(AutoEncoder):
         self.z = c.encoder(self.x)
         self.x_reconstr = c.decoder(self.z)
         self._create_loss()
-        init = tf.global_variables_initializer()    # TODO -> make part of Neural_Net
         self.start_session()
 
     def _create_loss(self):
@@ -39,6 +38,8 @@ class Voxel_Based_AE(AutoEncoder):
         self.train_step = self.optimizer.minimize(self.loss)
 
     def _single_epoch_train(self, train_data, batch_size, only_fw=False):
+        ''' train_data: first returned argument of next_batch must be voxel grid.
+        '''
         n_examples = train_data.n_examples
         epoch_loss = 0.
         n_batches = int(n_examples / batch_size)
@@ -50,7 +51,7 @@ class Voxel_Based_AE(AutoEncoder):
 
         # Loop over all batches
         for _ in xrange(n_batches):
-            batch_i, _ = train_data.next_batch(batch_size)
+            batch_i = train_data.next_batch(batch_size)[0]
             _, loss = fit(batch_i)
             # Compute average loss
             epoch_loss += loss
