@@ -10,7 +10,7 @@ import numpy as np
 import warnings
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from skimage import measure
-
+import os.path as osp
 from external_tools.binvox_rw.binvox_rw import read_as_3d_array
 
 
@@ -52,6 +52,13 @@ def read_shape_net_bin_vox(binvox_filename):
     class_id = tokens[-3]
     vol_grid = read_bin_vox_file(binvox_filename, perm_axis=(0, 2, 1))
     return vol_grid, model_id, class_id
+
+
+def read_tartachenko_car_bin_vox(binvox_filename):
+    model_id = osp.basename(binvox_filename)
+    model_id = model_id.split('.')[0]
+    vol_grid = read_bin_vox_file(binvox_filename, perm_axis=(0, 2, 1))
+    return vol_grid, model_id, 'car'
 
 
 def load_voxel_grids_from_filenames(file_names, n_threads=1, loader=read_shape_net_bin_vox, verbose=False, dtype=np.float32):
