@@ -8,8 +8,9 @@ import time
 import tensorflow as tf
 import os.path as osp
 
-from tflearn.layers.conv import conv_1d
 from tflearn.layers.core import fully_connected
+from tflearn.layers.conv import conv_3d, conv_3d_transpose
+from tflearn.layers.normalization import batch_normalization
 
 from general_tools.in_out.basics import create_dir
 
@@ -66,3 +67,29 @@ class Voxel_AE(AutoEncoder):
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
+
+
+def res_32_conv_encoder(in_signal, b_neck=64):
+    ''' Used in rebuttal of ICLR.
+    '''
+    layer = in_signal
+    layer = conv_3d(layer, nb_filter=32, filter_size=6, strides=2, activation='relu')
+    layer = conv_3d(layer, nb_filter=32, filter_size=6, strides=2, activation='relu')
+    layer = batch_normalization(layer)
+    layer = conv_3d(layer, nb_filter=64, filter_size=4, strides=2, activation='relu')
+    layer = conv_3d(layer, nb_filter=64, filter_size=2, strides=2, activation='relu')
+    layer = batch_normalization(layer)
+    layer = conv_3d(layer, nb_filter=b_neck, filter_size=2, strides=2, activation='relu')
+    return layer
+
+
+def res_32_conv_decoder(in_signal):
+    ''' Used in rebuttal of ICLR.
+    '''
+    layer = in_signal
+    layer = conv_3d_transpose(layer, nb_filter=64, filter_size=2, strides=2, output_shape=[2, 2, 2], activation='relu')
+    layer = conv_3d_transpose(layer, nb_filter=32, filter_size=4, strides=2, output_shape=[4, 4, 4], activation='relu')
+    layer = batch_normalization(layer)
+    layer = conv_3d_transpose(layer, nb_filter=32, filter_size=6, strides=2, output_shape=[8, 8, 8], activation='relu')
+    layer = conv_3d_transpose(layer, nb_filter=1, filter_size=8, strides=4, output_shape=[32, 32, 32], activation='linear')
+    return layer
