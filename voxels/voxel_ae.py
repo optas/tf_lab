@@ -69,7 +69,7 @@ class Voxel_AE(AutoEncoder):
         return epoch_loss, duration
 
 
-def res_32_conv_encoder(in_signal, b_neck=64):
+def iclr_conv_encoder(in_signal, resolution, b_neck=64):
     ''' Used in rebuttal of ICLR.
     '''
     layer = in_signal
@@ -77,13 +77,20 @@ def res_32_conv_encoder(in_signal, b_neck=64):
     layer = conv_3d(layer, nb_filter=32, filter_size=6, strides=2, activation='relu')
     layer = batch_normalization(layer)
     layer = conv_3d(layer, nb_filter=64, filter_size=4, strides=2, activation='relu')
-    layer = conv_3d(layer, nb_filter=64, filter_size=2, strides=2, activation='relu')
-    layer = batch_normalization(layer)
+    if resolution == 32:
+        layer = conv_3d(layer, nb_filter=64, filter_size=2, strides=2, activation='relu')
+        layer = batch_normalization(layer)
+    elif resolution == 64:
+        layer = conv_3d(layer, nb_filter=64, filter_size=4, strides=2, activation='relu')
+        layer = batch_normalization(layer)
+        layer = conv_3d(layer, nb_filter=64, filter_size=2, strides=2, activation='relu')
+    else:
+        raise ValueError()
     layer = conv_3d(layer, nb_filter=b_neck, filter_size=2, strides=2, activation='relu')
     return layer
 
 
-def res_32_conv_decoder(in_signal):
+def iclr_conv_decoder(in_signal, resolution):
     ''' Used in rebuttal of ICLR.
     '''
     layer = in_signal
@@ -91,5 +98,13 @@ def res_32_conv_decoder(in_signal):
     layer = conv_3d_transpose(layer, nb_filter=32, filter_size=4, strides=2, output_shape=[4, 4, 4], activation='relu')
     layer = batch_normalization(layer)
     layer = conv_3d_transpose(layer, nb_filter=32, filter_size=6, strides=2, output_shape=[8, 8, 8], activation='relu')
-    layer = conv_3d_transpose(layer, nb_filter=1, filter_size=8, strides=4, output_shape=[32, 32, 32], activation='linear')
+    if resolution == 32:
+        layer = conv_3d_transpose(layer, nb_filter=1, filter_size=8, strides=4, output_shape=[32, 32, 32], activation='linear')
+    elif resolution == 64:
+        layer = conv_3d_transpose(layer, nb_filter=32, filter_size=6, strides=2, output_shape=[16, 16, 16], activation='relu')
+        layer = batch_normalization(layer)
+        layer = conv_3d_transpose(layer, nb_filter=32, filter_size=8, strides=2, output_shape=[32, 32, 32], activation='relu')
+        layer = conv_3d_transpose(layer, nb_filter=1, filter_size=8, strides=2, output_shape=[64, 64, 64], activation='linear')
+    else:
+        raise ValueError
     return layer
