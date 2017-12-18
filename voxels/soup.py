@@ -121,7 +121,6 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
         syn_id = snc_category_to_synth_id()[class_name]
         top_voxel_dir = osp.join(top_data_dir, 'Voxels/Choy_ShapeNetVox32')
         if load_phuoc:
-            resolution = 64
             loader = read_phuoc_bin_vox
             top_voxel_dir = osp.join(top_data_dir, 'Voxels/Two_Phuong_Chair_64')
             phu_dict_file = '/orions4-zfs/projects/optas/DATA/OUT/2d_to_pc/from_phuoc/phuoc_to_sn_map.pickle'
@@ -150,7 +149,7 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
                 if osp.exists(d_file):
                     data_in_split_full_path.append(d_file)
                 else:
-                    print 'missing:', d_file 
+                    print 'missing:', d_file
 
             voxel_grids, model_names, class_ids = load_voxel_grids_from_filenames(data_in_split_full_path, loader=loader,
                                                                                   n_threads=10)
