@@ -103,7 +103,6 @@ class RawGAN_GP(GAN):
                     _, loss_d = self.sess.run([self.opt_d, self.loss_d], feed_dict=feed_dict)
                     epoch_loss_d += loss_d
 
-
                 # Update generator.
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
                 feed_dict = {self.noise: z}

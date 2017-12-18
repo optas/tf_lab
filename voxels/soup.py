@@ -15,6 +15,8 @@ from skimage import measure
 from external_tools.binvox_rw.binvox_rw import read_as_3d_array
 from general_tools.simpletons import invert_dictionary
 
+from geo_tool import Point_Cloud, Mesh 
+
 from .. in_out.basics import Data_Splitter
 from .. data_sets.numpy_dataset import NumpyDataset
 from .. data_sets.shape_net import snc_category_to_synth_id
@@ -37,6 +39,18 @@ def plot_isosurface(voxel_grid, iso_val=0):
     ax.set_zlim(0, d2)
     plt.tight_layout()
     plt.show()
+
+
+def uniform_sampling(voxels_grids, n_points, iso_value, normalize=True):
+    n_clouds = len(voxels_grids)
+    out_pc = np.zeros(shape=(n_clouds, n_points, 3))
+    for i in xrange(n_clouds):
+        verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
+        recon_mesh = Mesh(vertices=verts, triangles=faces)
+        out_pc[i], _ = recon_mesh.sample_faces(n_points)
+        if normalize:
+            out_pc[i] = Point_Cloud(out_pc[i]).center_in_unit_sphere().points
+    return out_pc
 
 
 def read_bin_vox_file(binvox_filename, perm_axis=(0, 1, 2), expand_last_dim=True, dtype=np.float32):
