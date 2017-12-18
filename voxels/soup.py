@@ -41,7 +41,7 @@ def plot_isosurface(voxel_grid, iso_val=0):
     plt.show()
 
 
-def uniform_sampling(voxels_grids, n_points, iso_value, normalize=True):
+def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True):
     n_clouds = len(voxels_grids)
     out_pc = np.zeros(shape=(n_clouds, n_points, 3))
     for i in xrange(n_clouds):
