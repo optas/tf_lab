@@ -177,6 +177,9 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
     return in_data
 
 
+def sigmoid(x, derivative=False):
+    return x * (1 - x) if derivative else 1 / (1 + np.exp(-x))
+
 def reconstruct_voxels(autoencoder, voxel_feed, batch_size, compute_loss=True):
     recon_data = []
     loss = 0.
@@ -190,7 +193,8 @@ def reconstruct_voxels(autoencoder, voxel_feed, batch_size, compute_loss=True):
     for b in iterate_in_chunks(idx, batch_size):
         feed = voxel_feed[b]
         rec, loss_batch = autoencoder.reconstruct(feed, compute_loss=compute_loss)
-        rec = autoencoder.sess.run(tf.nn.sigmoid(rec))
+        rec = sigmoid(rec)
+#         rec = autoencoder.sess.run(tf.nn.sigmoid(rec))
         recon_data.append(np.squeeze(rec))
         if compute_loss:
             if len(b) == batch_size:
