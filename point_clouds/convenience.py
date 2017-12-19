@@ -11,7 +11,6 @@ nn_distance, approx_match, match_cost = losses()
 #from latent_3d_points.external.structural_losses import nn_distance, approx_match, match_cost
 
 
-
 def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, compute_loss=True):
     recon_data = []
     loss = 0.

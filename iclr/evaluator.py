@@ -35,12 +35,12 @@ def sampling_mmd(sample_data, ref_data, n_samples=10, ref_pop_size=50, sample_po
             sb_ref = ref_ids
         else:
             sb_ref = np.random.choice(ref_ids, ref_pop_size, replace=False)
-        
+
         if sample_pop_size >= n_sample:
             sb_sam = sample_ids
         else:
             sb_sam = np.random.choice(sample_ids, sample_pop_size, replace=False)
-            
+
         mi = minimum_mathing_distance(sample_data[sb_sam], ref_data[sb_ref], batch_size, normalize=normalize, use_EMD=emd)
         scores.append(mi[0])
     scores = np.array(scores)
