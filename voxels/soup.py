@@ -177,7 +177,7 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
     return in_data
 
 
-def sigmoid(x, derivative=False):
+def sigmoid(x, derivative=False): # TODO: Move to general tools
     return x * (1 - x) if derivative else 1 / (1 + np.exp(-x))
 
 def reconstruct_voxels(autoencoder, voxel_feed, batch_size, compute_loss=True):
