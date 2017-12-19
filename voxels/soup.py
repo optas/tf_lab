@@ -43,16 +43,16 @@ def plot_isosurface(voxel_grid, iso_val=0):
     plt.show()
 
 
-def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True):
+def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True, alter_iso=10.0):
     n_clouds = len(voxels_grids)
     out_pc = np.zeros(shape=(n_clouds, n_points, 3))
     for i in xrange(n_clouds):
         max_g_val = np.max(voxels_grids[i])
         if max_g_val < iso_value:
             warnings.warn('iso_value bigger than max voxel_grid value.')
-            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
+            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], max_g_val / alter_iso)
         else:
-            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], max_g_val)
+            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
         recon_mesh = Mesh(vertices=verts, triangles=faces)
         out_pc[i], _ = recon_mesh.sample_faces(n_points)
         if normalize:
@@ -179,6 +179,7 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
 
 def sigmoid(x, derivative=False): # TODO: Move to general tools
     return x * (1 - x) if derivative else 1 / (1 + np.exp(-x))
+
 
 def reconstruct_voxels(autoencoder, voxel_feed, batch_size, compute_loss=True):
     recon_data = []
