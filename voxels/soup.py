@@ -11,11 +11,13 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from skimage import measure
+import tensorflow as tf
 
 from external_tools.binvox_rw.binvox_rw import read_as_3d_array
 from general_tools.simpletons import invert_dictionary
 
 from geo_tool import Point_Cloud, Mesh 
+from general_tools.simpletons import iterate_in_chunks
 
 from .. in_out.basics import Data_Splitter
 from .. data_sets.numpy_dataset import NumpyDataset
@@ -45,7 +47,12 @@ def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True
     n_clouds = len(voxels_grids)
     out_pc = np.zeros(shape=(n_clouds, n_points, 3))
     for i in xrange(n_clouds):
-        verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
+        max_g_val = np.max(voxels_grids[i])
+        if max_g_val < iso_value:
+            warnings.warn('iso_value bigger than max voxel_grid value.')
+            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
+        else:
+            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], max_g_val)
         recon_mesh = Mesh(vertices=verts, triangles=faces)
         out_pc[i], _ = recon_mesh.sample_faces(n_points)
         if normalize:
@@ -165,8 +172,38 @@ def load_data_for_rebuttal(load_tartachenko, load_phuoc, class_name, resolution)
                 else:
                     print 'missing:', d_file
 
-            voxel_grids, model_names, class_ids = load_voxel_grids_from_filenames(data_in_split_full_path, loader=loader,
-                                                                                  n_threads=10)
+            voxel_grids, model_names, class_ids = load_voxel_grids_from_filenames(data_in_split_full_path, loader=loader, n_threads=10)
             in_data[s] = NumpyDataset([voxel_grids, class_ids + '_' + model_names], ['voxels', 'labels'])
-
     return in_data
+
+
+def reconstruct_voxels(autoencoder, voxel_feed, batch_size, compute_loss=True):
+    recon_data = []
+    loss = 0.
+    last_examples_loss = 0.     # keep track of loss on last batch which potentially is smaller than batch_size
+    n_last = 0.
+
+    n_grids = len(voxel_feed)
+    n_batches = 0.0
+    idx = np.arange(n_grids)
+
+    for b in iterate_in_chunks(idx, batch_size):
+        feed = voxel_feed[b]
+        rec, loss_batch = autoencoder.reconstruct(feed, compute_loss=compute_loss)
+        rec = autoencoder.sess.run(tf.nn.sigmoid(rec))
+        recon_data.append(np.squeeze(rec))
+        if compute_loss:
+            if len(b) == batch_size:
+                loss += loss_batch
+            else:  # last index was smaller than batch_size
+                last_examples_loss = loss_batch
+                n_last = len(b)
+        n_batches += 1
+
+    if n_last == 0:
+        loss /= n_batches
+    else:
+        loss = (loss * batch_size) + (last_examples_loss * n_last)
+        loss /= ((n_batches - 1) * batch_size + n_last)
+
+    return np.vstack(recon_data), loss

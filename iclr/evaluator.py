@@ -85,10 +85,10 @@ class Evaluator():
 
         if random_seed is not None:
             np.random.seed(random_seed)
-        
+
         test_idx = np.random.choice(np.arange(n_train), boost_sample * n_test)
         val_idx = np.random.choice(np.arange(n_train), boost_sample * n_val)
-                
+
         sample_data['test'] = sample_data['train'][test_idx]
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
@@ -133,9 +133,8 @@ class Evaluator():
                 print(s, np.mean(scores), np.std(scores))
             all_scores[s] = scores
         return all_scores
-    
-    
-    def compute_coverage(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):        
+
+    def compute_coverage(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):
         if loss == 'emd':
             emd = True
             normalize = False
@@ -145,7 +144,7 @@ class Evaluator():
         else:
             assert(False)
 
-        all_scores = dict()        
+        all_scores = dict()
         for s in self.splits:
             if s in skip:
                 continue
@@ -163,5 +162,5 @@ class Evaluator():
             if f_out != sys.stdout:
                 print(s, np.mean(scores), np.std(scores))
             all_scores[s] = scores
-        
+
         return all_scores
