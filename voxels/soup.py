@@ -12,6 +12,7 @@ from multiprocessing import Pool
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from skimage import measure
 import tensorflow as tf
+from scipy.ndimage import zoom
 
 from external_tools.binvox_rw.binvox_rw import read_as_3d_array
 from general_tools.simpletons import invert_dictionary
@@ -58,6 +59,13 @@ def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True
         if normalize:
             out_pc[i] = Point_Cloud(out_pc[i]).center_in_unit_sphere().points
     return out_pc
+
+
+def upsample_voxel_grid(in_grid, order=1):
+    '''
+    order 1: linear
+    '''
+    return zoom(in_grid, 2, prefilter=True, order=order)
 
 
 def read_bin_vox_file(binvox_filename, perm_axis=(0, 1, 2), expand_last_dim=True, dtype=np.float32):
