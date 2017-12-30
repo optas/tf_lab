@@ -10,6 +10,10 @@ from geo_tool import Point_Cloud, Mesh
 from tf_lab.voxels.soup import plot_isosurface
 from tf_lab.data_sets.numpy_dataset import NumpyDataset
 
+total_shapes = 2000
+members_per_pose_class = 250
+n_pose_classes = 8
+
 def plot_mesh(in_mesh):
     faces = in_mesh.triangles
     verts = in_mesh.vertices
@@ -32,52 +36,51 @@ def plot_mesh(in_mesh):
     plt.tight_layout()
     plt.show()
 
-def load_pclouds_of_shapes(top_data_dir, members_per_class, normalize=True, n_pc_points=1024):
-    in_pcs = osp.join(top_data_dir, '%d_shape_pc_points.mat' % (members_per_class, ))
-    in_pcs = loadmat(in_pcs)
-    in_pcs = in_pcs['selected_points']
-    n_shapes = len(in_pcs)
-    res = np.zeros((n_shapes, n_pc_points, 3))
-    for i in xrange(n_shapes):
-        pc = Point_Cloud(in_pcs[i])
-        pc, _ = pc.sample(n_pc_points)
-        res[i] = pc.points
-        if normalize:
-            pc = Point_Cloud(res[i]).center_in_unit_sphere()
+def sub_collection_indices(sub_size_per_class):
+    sub_size = sub_size_per_class * n_pose_classes
+    original_idx = np.zeros(sub_size, dtype=int)
+    c = 0
+    for i in range(0, total_shapes, members_per_pose_class):
+        for j in range(sub_size_per_class):
+            original_idx[c] = i + j
+            c += 1
+    return original_idx
+
+def sub_collection_pose_labels(sub_size_per_class):
+    n_sub = sub_size_per_class * n_pose_classes
+    pose_labels = np.zeros(n_sub)
+    c = -1
+    for i in range(n_sub):
+        if i % sub_size_per_class == 0:
+            c += 1
+        pose_labels[i] = c    
+    return pose_labels
+
+
+def load_pclouds_of_shapes(top_data_dir, sub_size_per_class, n_pc_points, normalize=False):
+    in_pcs = osp.join(top_data_dir, 'uniform_point_clouds_%d_pts.npz' % (n_pc_points, ))
+    in_pcs = np.load(in_pcs)
+    in_pcs = in_pcs[in_pcs.keys()[0]]
+    
+    idx = sub_collection_indices(sub_size_per_class)
+    in_pcs = in_pcs[idx]
+    
+    if normalize:
+        res = np.zeros_like(in_pcs)
+        for i, pts in enumerate(in_pcs):        
+            pc = Point_Cloud(pts).center_in_unit_sphere()
             res[i] = pc.points
+    else:
+        res = in_pcs
     return res
     
-def load_diff_maps(in_file, zero_thres):    
-    in_diffs = hdf5storage.loadmat(in_file)
-    n_shapes = len(in_diffs['ucb'])
-    diff_dims = in_diffs['ucb'][1][0].shape
-    temp = np.zeros(shape=(n_shapes, ) + diff_dims )
-    for i in xrange(n_shapes):
-        temp[i] = in_diffs['ucb'][i][0]
-    in_diffs = temp    
-    return in_diffs
-
-def pose_labels_and_original_index(n_shapes, members_per_class, orinal_class_size):
-    pose_labels = np.zeros(n_shapes)
-    original_idx = np.zeros(n_shapes, dtype=int)
-    c = 0
-    s = 0
-    for i in range(n_shapes):
-        if i % members_per_class == 0:
-            c += 1
-            s = 0
-        pose_labels[i] = c
-        original_idx[i] = s + ((i / members_per_class) * orinal_class_size)
-        s += 1
-
-    pose_labels -= 1
-    return pose_labels, original_idx
-
-def load_gt_latent_params(top_data_dir):
+    
+def load_gt_latent_params(top_data_dir, sub_size_per_class):
     gt_latent_params = osp.join(top_data_dir, 'gt_shape_params.mat')
     gt_latent_params = loadmat(gt_latent_params)
     gt_latent_params = gt_latent_params['parammat'].T
-    return gt_latent_params
+    original_idx = sub_collection_indices(sub_size_per_class)    
+    return gt_latent_params[original_idx]
 
 def load_meshes(mesh_ids):
     meshes = []
@@ -105,3 +108,15 @@ def make_data(in_data, in_feeds, class_labels):
         idx = in_data[s].copy()
         res[s] = NumpyDataset([in_feeds[idx], class_labels[idx], idx], ['feed', 'labels', 'ids'])
     return res
+
+
+### DELETE Below
+def load_diff_maps(in_file, zero_thres):    
+    in_diffs = hdf5storage.loadmat(in_file)
+    n_shapes = len(in_diffs['ucb'])
+    diff_dims = in_diffs['ucb'][1][0].shape
+    temp = np.zeros(shape=(n_shapes, ) + diff_dims )
+    for i in xrange(n_shapes):
+        temp[i] = in_diffs['ucb'][i][0]
+    in_diffs = temp    
+    return in_diffs
