@@ -3,38 +3,14 @@ import hdf5storage
 import os.path as osp
 import matplotlib.pylab as plt
 from scipy.io import loadmat, savemat
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from sklearn.model_selection import train_test_split
 
 from geo_tool import Point_Cloud, Mesh
-from tf_lab.voxels.soup import plot_isosurface
 from tf_lab.data_sets.numpy_dataset import NumpyDataset
 
 total_shapes = 2000
 members_per_pose_class = 250
 n_pose_classes = 8
-
-def plot_mesh(in_mesh):
-    faces = in_mesh.triangles
-    verts = in_mesh.vertices
-    verts = Point_Cloud(verts).center_in_unit_sphere().points
-    
-    fig = plt.figure(figsize=(5, 5))
-    ax = fig.add_subplot(111, projection='3d')
-    mesh = Poly3DCollection(verts[faces])    
-    mesh.set_edgecolor('k')
-    ax.add_collection3d(mesh)
-    ax.set_xlabel("x-axis")
-    ax.set_ylabel("y-axis")
-    ax.set_zlabel("z-axis")
-    
-    miv = np.min(verts)
-    mav = np.max(verts)
-    ax.set_xlim(miv, mav)
-    ax.set_ylim(miv, mav)
-    ax.set_zlim(miv, mav)
-    plt.tight_layout()
-    plt.show()
 
 def sub_collection_indices(sub_size_per_class):
     sub_size = sub_size_per_class * n_pose_classes
