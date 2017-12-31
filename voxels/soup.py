@@ -17,7 +17,7 @@ from scipy.ndimage import zoom
 from external_tools.binvox_rw.binvox_rw import read_as_3d_array
 from general_tools.simpletons import invert_dictionary
 
-from geo_tool import Point_Cloud, Mesh 
+from geo_tool import Point_Cloud, Mesh
 from general_tools.simpletons import iterate_in_chunks
 
 from .. in_out.basics import Data_Splitter
@@ -44,7 +44,7 @@ def plot_isosurface(voxel_grid, iso_val=0):
     plt.show()
 
 
-def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True, alter_iso=10.0):
+def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True, only_lcc=True, alter_iso=10.0):
     n_clouds = len(voxels_grids)
     out_pc = np.zeros(shape=(n_clouds, n_points, 3))
     for i in xrange(n_clouds):
@@ -55,7 +55,12 @@ def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True
         else:
             verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
         recon_mesh = Mesh(vertices=verts, triangles=faces)
+
+        if only_lcc:
+            recon_mesh = recon_mesh.largest_connected_component()
+
         out_pc[i], _ = recon_mesh.sample_faces(n_points)
+
         if normalize:
             out_pc[i] = Point_Cloud(out_pc[i]).center_in_unit_sphere().points
     return out_pc
