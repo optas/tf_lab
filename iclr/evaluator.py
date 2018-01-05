@@ -92,8 +92,17 @@ class Evaluator():
         sample_data['test'] = sample_data['train'][test_idx]
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
+        
+    def prepare_sample_data_for_wu_no_sub_sample(self, sample_file, random_seed=None):
+        sample_data = {}
+        sample_load = np.load(sample_file)
+        sample_data['train'] = self.normalizer(sample_load[sample_load.keys()[0]])
+        sample_data['test'] = sample_data['train'].copy()
+        sample_data['val'] =  sample_data['train'].copy()
+        self.sample_data = sample_data
 
     def compute_jsd(self, f_out=sys.stdout, skip=[]):
+        all_scores = dict()
         for s in self.splits:
             if s in skip:
                 continue
@@ -102,7 +111,9 @@ class Evaluator():
             print(s, jsd_score, file=f_out)
             if f_out != sys.stdout:
                 print(s, jsd_score)
-
+            all_scores[s] = jsd_score
+        return all_scores
+    
     def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):        
         if loss == 'emd':
             emd = True
