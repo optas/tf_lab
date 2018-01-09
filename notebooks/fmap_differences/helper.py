@@ -8,6 +8,10 @@ from sklearn.model_selection import train_test_split
 from geo_tool import Point_Cloud, Mesh
 from tf_lab.data_sets.numpy_dataset import NumpyDataset
 
+'''
+Funcs to deal with SCAPE_8_pose collection.
+'''
+
 total_shapes = 2000
 members_per_pose_class = 250
 n_pose_classes = 8
