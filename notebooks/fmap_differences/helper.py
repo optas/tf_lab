@@ -22,6 +22,7 @@ def sub_collection_indices(sub_size_per_class):
             c += 1
     return original_idx
 
+
 def sub_collection_pose_labels(sub_size_per_class):
     n_sub = sub_size_per_class * n_pose_classes
     pose_labels = np.zeros(n_sub)
@@ -51,25 +52,33 @@ def load_pclouds_of_shapes(top_data_dir, sub_size_per_class, n_pc_points, normal
     return res
     
     
-def load_gt_latent_params(top_data_dir, sub_size_per_class):
-    gt_latent_params = osp.join(top_data_dir, 'gt_shape_params.mat')
+def load_gt_latent_params(gt_file, sub_size_per_class):
+    gt_latent_params = osp.join(gt_file)
     gt_latent_params = loadmat(gt_latent_params)
     gt_latent_params = gt_latent_params['parammat'].T
     original_idx = sub_collection_indices(sub_size_per_class)    
     return gt_latent_params[original_idx]
 
-def load_meshes(mesh_ids):
+def load_meshes(mesh_dir, mesh_ids):
     meshes = []
     for i in mesh_ids:
-        in_f = '/orions4-zfs/projects/optas/DATA/Meshes/SCAPE_8_poses_Ananth/Shape%s.off' % (i,)
+        in_f = osp.join(mesh_dir, 'Shape%s.off' % (i,))
         in_m = Mesh(file_name=in_f)
         meshes.append(in_m)
     return meshes
 
-def prepare_train_test_val(n_shapes, class_labels, train_per, test_per, seed=None):
+def prepare_train_test_val(n_shapes, class_labels, train_per, test_per, seed=None, stratify=None):
     all_ids = np.arange(n_shapes)
-    train_ids, rest_ids = train_test_split(all_ids, stratify=class_labels, train_size=train_per, random_state=seed)
-    test_ids, val_ids = train_test_split(rest_ids, stratify=class_labels[rest_ids],
+    
+    if stratify is not None:
+        stratify = class_labels
+    
+    train_ids, rest_ids = train_test_split(all_ids, stratify=stratify, train_size=train_per, random_state=seed)
+    
+    if stratify is not None:
+        stratify = class_labels[rest_ids]
+    
+    test_ids, val_ids = train_test_split(rest_ids, stratify=stratify,
                                          train_size=int(n_shapes*test_per), random_state=seed)
     in_data = dict()
     in_data['train'] = train_ids
