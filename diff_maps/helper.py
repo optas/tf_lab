@@ -99,7 +99,7 @@ def make_data(in_data, in_feeds, class_labels):
     res = dict()
     for s in ['train', 'test', 'val']:
         idx = in_data[s].copy()
-        res[s] = NumpyDataset([in_feeds[idx], class_labels[idx], idx], ['feed', 'labels', 'ids'])
+        res[s] = NumpyDataset([in_feeds[idx], class_labels[idx], idx], ['feed', 'labels', 'ids'], init_shuffle=False)
     return res
 
 
