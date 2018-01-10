@@ -12,7 +12,7 @@ from tflearn.layers.conv import conv_2d
 from tf_lab import Neural_Net
 from tf_lab.point_clouds.encoders_decoders import encoder_with_convs_and_symmetry_new, decoder_with_fc_only
 from tf_lab.fundamentals.inspect import count_trainable_parameters
-
+from tflearn import is_training
 
 from .in_out import classes_of_tasks
 
@@ -93,13 +93,13 @@ class Basic_Net(Neural_Net):
         train_data = dataset['train']
         batches_for_epoch = train_data.n_examples / batch_size
         for _ in range(n_epochs):
-            self.is_training(True, self.session)
+            is_training(True, session=self.sess)
             for _ in range(batches_for_epoch):
                 batch_d, batch_l, _ = train_data.next_batch(batch_size)
                 feed_dict = {self.feed_pl: batch_d, self.labels_pl: batch_l}
                 self.sess.run([self.opt_step], feed_dict=feed_dict)
             epoch = self.sess.run(self.epoch.assign_add(tf.constant(1.0)))
-            self.is_training(False, session=self.sess)
+            is_training(False, session=self.sess)
 
             if verbose:
                 print epoch,
