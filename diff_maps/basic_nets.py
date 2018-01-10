@@ -22,7 +22,7 @@ n_best_pc_parms = 34124
 def pc_net(n_pc_points, task, n_filters, n_neurons):
 
     n_classes = classes_of_tasks(task)
-    labels_pl, last_nn = start_end_of_nets(task, n_classes)
+    labels_pl, last_nn = start_end_of_nets(task)
     with tf.variable_scope('pc_based_net'):
         feed_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points, 3))
         layer = encoder_with_convs_and_symmetry_new(feed_pl, n_filters=n_filters, b_norm=False)
@@ -39,7 +39,7 @@ def pc_net(n_pc_points, task, n_filters, n_neurons):
 
 def diff_mlp_net(n_cons, task):
     n_classes = classes_of_tasks(task)
-    labels_pl, last_nn = start_end_of_nets(task, n_classes)
+    labels_pl, last_nn = start_end_of_nets(task)
     f_layer = mlp_neurons_on_first_layer(n_cons)
     with tf.variable_scope('mlp_diff_based_net'):
         feed_pl = tf.placeholder(tf.float32, shape=(None, n_cons, n_cons))
@@ -56,7 +56,7 @@ def diff_mlp_net(n_cons, task):
 
 def diff_conv_net(n_cons, task):
     n_classes = classes_of_tasks(task)
-    _, last_nn = start_end_of_nets(task, n_classes)
+    _, last_nn = start_end_of_nets(task)
     feed_pl = tf.placeholder(tf.float32, shape=(None, n_cons, n_cons))
     layer = tf.expand_dims(feed_pl, -1)
     layer = conv_2d(layer, nb_filter=6, filter_size=4, strides=2, activation='relu')
