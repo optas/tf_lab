@@ -39,8 +39,6 @@ class NumpyDataset(object):
         if tensor_names is None:
             tensor_names = [num2alpha[i] for i in range(self.n_tensors)]
 
-        print tensor_names
-
         self.tensor_names = tensor_names
 
         for name, val in zip(self.tensor_names, tensor_list):

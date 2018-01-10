@@ -19,7 +19,7 @@ from .in_out import classes_of_tasks
 n_best_pc_parms = 34124
 
 
-def pc_net(n_pc_points, task, n_filters, n_neurons):
+def pc_net(n_pc_points, task, n_filters, n_neurons, verbose=False):
 
     n_classes = classes_of_tasks(task)
     labels_pl, last_nn = start_end_of_nets(task)
@@ -31,13 +31,14 @@ def pc_net(n_pc_points, task, n_filters, n_neurons):
         if last_nn == 'relu':
             net_out = tf.nn.relu(net_out)
 
-        n_tp = count_trainable_parameters()
-        print '#PARAMS ', n_tp
+        if verbose:
+            n_tp = count_trainable_parameters()
+            print '#PARAMS ', n_tp
 
     return net_out, feed_pl, labels_pl
 
 
-def diff_mlp_net(n_cons, task):
+def diff_mlp_net(n_cons, task, verbose, verbose=False):
     n_classes = classes_of_tasks(task)
     labels_pl, last_nn = start_end_of_nets(task)
     f_layer = mlp_neurons_on_first_layer(n_cons)
@@ -48,7 +49,9 @@ def diff_mlp_net(n_cons, task):
         layer = fully_connected(layer, 100, activation='relu', weights_init='xavier')
         net_out = fully_connected(layer, n_classes, activation=last_nn, weights_init='xavier')
         n_tp = count_trainable_parameters()
-        print '#PARAMS ', n_tp
+        if verbose:
+            print '#PARAMS ', n_tp
+
         assert (n_tp <= 0.01 * n_best_pc_parms + n_best_pc_parms)
         assert (n_tp >= n_best_pc_parms - 0.01 * n_best_pc_parms)
     return net_out, feed_pl, labels_pl
