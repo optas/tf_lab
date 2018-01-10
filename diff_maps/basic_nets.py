@@ -38,7 +38,7 @@ def pc_net(n_pc_points, task, n_filters, n_neurons, verbose=False):
     return net_out, feed_pl, labels_pl
 
 
-def diff_mlp_net(n_cons, task, verbose, verbose=False):
+def diff_mlp_net(n_cons, task, verbose=False):
     n_classes = classes_of_tasks(task)
     labels_pl, last_nn = start_end_of_nets(task)
     f_layer = mlp_neurons_on_first_layer(n_cons)
