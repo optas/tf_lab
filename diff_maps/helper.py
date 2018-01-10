@@ -16,6 +16,7 @@ total_shapes = 2000
 members_per_pose_class = 250
 n_pose_classes = 8
 
+
 def sub_collection_indices(sub_size_per_class):
     sub_size = sub_size_per_class * n_pose_classes
     original_idx = np.zeros(sub_size, dtype=int)
@@ -34,7 +35,7 @@ def sub_collection_pose_labels(sub_size_per_class):
     for i in range(n_sub):
         if i % sub_size_per_class == 0:
             c += 1
-        pose_labels[i] = c    
+        pose_labels[i] = c
     return pose_labels
 
 
@@ -71,26 +72,28 @@ def load_meshes(mesh_dir, mesh_ids):
         meshes.append(in_m)
     return meshes
 
+
 def prepare_train_test_val(n_shapes, class_labels, train_per, test_per, seed=None, stratify=None):
     all_ids = np.arange(n_shapes)
-    
+
     if stratify is not None:
         stratify = class_labels
-    
-    train_ids, rest_ids = train_test_split(all_ids, stratify=stratify, train_size=train_per, random_state=seed)
-    
+
+    train_ids, rest_ids = train_test_split(all_ids, stratify=stratify, train_size=train_per, test_size=1.0 - train_per, random_state=seed)
+
     if stratify is not None:
         stratify = class_labels[rest_ids]
-    
-    test_ids, val_ids = train_test_split(rest_ids, stratify=stratify,
-                                         train_size=int(n_shapes*test_per), random_state=seed)
+
+    ts = int(n_shapes * test_per)
+    test_s = len(rest_ids) - ts
+    test_ids, val_ids = train_test_split(rest_ids, stratify=stratify, train_size=ts, test_size=test_s, random_state=seed)
     in_data = dict()
     in_data['train'] = train_ids
     in_data['test'] = test_ids
     in_data['val'] = val_ids
-    
     return in_data
-    
+
+
 def make_data(in_data, in_feeds, class_labels):
     res = dict()
     for s in ['train', 'test', 'val']:

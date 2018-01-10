@@ -112,8 +112,8 @@ class Basic_Net(Neural_Net):
                 stats[s].append(r)
                 if verbose:
                     print r,
-                if verbose:
-                    print
+            if verbose:
+                print
 
         return stats
 
