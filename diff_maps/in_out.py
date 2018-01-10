@@ -75,7 +75,6 @@ def prep_splits_labels_for_task(task, gt_latent_params, pose_labels, train_per, 
         labels = gt_latent_params
 
     n_shapes = len(gt_latent_params)
-    print n_shapes
 
     if task.endswith('clf'):
         splits = prepare_train_test_val(n_shapes, labels, train_per, test_per, seed=seed, stratify=True)
@@ -102,5 +101,4 @@ def produce_net_data(in_pcs, splits, labels, diff_maps, use_pc, norm_diffs=True)
         train_data.feed -= diff_mu
         test_data.feed -= diff_mu
         val_data.feed -= diff_mu
-    return train_data, val_data, test_data
- 
+    return data
