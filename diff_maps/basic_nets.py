@@ -70,7 +70,7 @@ class Basic_Net(Neural_Net):
         Neural_Net.__init__(self, name, graph)
         self.net_out = net_out
         self.feed_pl = feed_pl
-        self.label_pl = label_pl
+        self.labels_pl = label_pl
 
     def define_loss(self, task):
         n_classes = classes_of_tasks(task)
