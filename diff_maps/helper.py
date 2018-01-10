@@ -43,26 +43,27 @@ def load_pclouds_of_shapes(top_data_dir, sub_size_per_class, n_pc_points, normal
     in_pcs = osp.join(top_data_dir, 'uniform_point_clouds_%d_pts.npz' % (n_pc_points, ))
     in_pcs = np.load(in_pcs)
     in_pcs = in_pcs[in_pcs.keys()[0]]
-    
+
     idx = sub_collection_indices(sub_size_per_class)
     in_pcs = in_pcs[idx]
-    
+
     if normalize:
         res = np.zeros_like(in_pcs)
-        for i, pts in enumerate(in_pcs):        
+        for i, pts in enumerate(in_pcs):
             pc = Point_Cloud(pts).center_in_unit_sphere()
             res[i] = pc.points
     else:
         res = in_pcs
     return res
-    
-    
+
+
 def load_gt_latent_params(gt_file, sub_size_per_class):
     gt_latent_params = osp.join(gt_file)
     gt_latent_params = loadmat(gt_latent_params)
     gt_latent_params = gt_latent_params['parammat'].T
-    original_idx = sub_collection_indices(sub_size_per_class)    
+    original_idx = sub_collection_indices(sub_size_per_class)
     return gt_latent_params[original_idx]
+
 
 def load_meshes(mesh_dir, mesh_ids):
     meshes = []
