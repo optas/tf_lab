@@ -56,16 +56,29 @@ def diff_mlp_net(n_cons, task, verbose=False):
         assert (n_tp >= n_best_pc_parms - 0.01 * n_best_pc_parms)
     return net_out, feed_pl, labels_pl
 
+                                    
 
-def diff_conv_net(n_cons, task):
+def diff_conv_net(n_cons, task, verbose=False):
     n_classes = classes_of_tasks(task)
-    _, last_nn = start_end_of_nets(task)
-    feed_pl = tf.placeholder(tf.float32, shape=(None, n_cons, n_cons))
-    layer = tf.expand_dims(feed_pl, -1)
-    layer = conv_2d(layer, nb_filter=6, filter_size=4, strides=2, activation='relu')
-    layer = conv_2d(layer, nb_filter=7, filter_size=2, strides=1, activation='relu')
-    net_out = fully_connected(layer, n_classes, activation=last_nn, weights_init='xavier')
-    return net_out, feed_pl
+    labels_pl, last_nn = start_end_of_nets(task)
+    with tf.variable_scope('conv_diff_based_net'):
+        feed_pl = tf.placeholder(tf.float32, shape=(None, n_cons, n_cons))
+        layer = tf.expand_dims(feed_pl, -1)
+        
+        if n_cons == 20:
+            layer = conv_2d(layer, nb_filter=10, filter_size=2, strides=1, activation='relu')
+        elif n_cons == 40:
+            layer = conv_2d(layer, nb_filter=10, filter_size=3, strides=2, activation='relu')
+        else:
+            assert(False)            
+        layer = conv_2d(layer, nb_filter=10, filter_size=4, strides=2, activation='relu')        
+        net_out = fully_connected(layer, n_classes, activation=last_nn, weights_init='xavier')
+        
+    n_tp = count_trainable_parameters()
+    if verbose:
+        print '#PARAMS ', n_tp
+        
+    return net_out, feed_pl, labels_pl
 
 
 class Basic_Net(Neural_Net):
