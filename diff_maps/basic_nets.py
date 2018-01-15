@@ -20,7 +20,6 @@ n_best_pc_parms = 34124
 
 
 def pc_net(n_pc_points, task, n_filters, n_neurons, verbose=False):
-
     n_classes = classes_of_tasks(task)
     labels_pl, last_nn = start_end_of_nets(task)
     with tf.variable_scope('pc_based_net'):
