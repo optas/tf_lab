@@ -48,9 +48,9 @@ def produce_diff_maps(synced_bases_file, n_cons, n_shapes):
     return in_diffs
 
 
-def raw_data(top_mesh_dir, gt_param_f, sub_member_per_class, n_pc_points):
+def raw_data(top_mesh_dir, gt_param_f, sub_member_per_class, n_pc_points, norm_pc=False):
     gt_latent_params = load_gt_latent_params(gt_param_f, sub_member_per_class)
-    in_pcs = load_pclouds_of_shapes(top_mesh_dir, sub_member_per_class, n_pc_points, normalize=False)
+    in_pcs = load_pclouds_of_shapes(top_mesh_dir, sub_member_per_class, n_pc_points, normalize=norm_pc)
     pose_labels = sub_collection_pose_labels(sub_member_per_class)
     return gt_latent_params, in_pcs, pose_labels
 
