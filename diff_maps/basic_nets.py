@@ -67,10 +67,15 @@ def diff_conv_net(n_cons, task, verbose=False):
         if n_cons == 20:
             layer = conv_2d(layer, nb_filter=10, filter_size=2, strides=1, activation='relu')
         elif n_cons == 40:
-            layer = conv_2d(layer, nb_filter=10, filter_size=3, strides=2, activation='relu')
+            if task == "pose_clf":
+                layer = conv_2d(layer, nb_filter=10, filter_size=6, strides=2, activation='relu')
+            else:
+                layer = conv_2d(layer, nb_filter=10, filter_size=3, strides=2, activation='relu')
+        elif n_cons == 50:
+            layer = conv_2d(layer, nb_filter=10, filter_size=4, strides=2, activation='relu')            
         else:
             assert(False)            
-        layer = conv_2d(layer, nb_filter=10, filter_size=4, strides=2, activation='relu')        
+        layer = conv_2d(layer, nb_filter=10, filter_size=4, strides=2, activation='relu')
         net_out = fully_connected(layer, n_classes, activation=last_nn, weights_init='xavier')
         
     n_tp = count_trainable_parameters()
