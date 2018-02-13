@@ -50,42 +50,6 @@ def reconstruct_pclouds(autoencoder, pclouds_feed, batch_size, pclouds_gt=None, 
     return np.vstack(recon_data), loss
 
 
-def classify_pclouds(clf, pclouds_feed, batch_size, pclouds_labels):
-
-    predictions = []
-    avg_acc = 0.
-    last_examples_acc = 0.     # keep track of accuracy on last batch which potentially is smaller than batch_size
-    n_last = 0.
-
-    n_pclouds = len(pclouds_feed)
-    if pclouds_labels is not None:
-        if len(pclouds_labels) != n_pclouds:
-            raise ValueError()
-
-    n_batches = 0.0
-    idx = np.arange(n_pclouds)
-
-    for b in iterate_in_chunks(idx, batch_size):
-        feed_in = pclouds_feed[b]
-        feed_labels = pclouds_labels[b]
-        batch_predictions, batch_acc = clf.predict(feed_in, gt_labels=feed_labels)
-        predictions.append(batch_predictions)
-        if len(b) == batch_size:
-            avg_acc += batch_acc
-        else:  # last index was smaller than batch_size
-            last_examples_acc = batch_acc
-            n_last = len(b)
-        n_batches += 1
-
-    if n_last == 0:
-        avg_acc /= n_batches
-    else:
-        avg_acc = (avg_acc * batch_size) + (last_examples_acc * n_last)
-        avg_acc /= ((n_batches - 1) * batch_size + n_last)
-
-    return predictions, avg_acc
-
-
 def get_latent_codes(autoencoder, pclouds, batch_size=100):
     latent_codes = []
     idx = np.arange(len(pclouds))
