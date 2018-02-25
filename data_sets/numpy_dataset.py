@@ -6,6 +6,7 @@ Created on August 29, 2017
 
 import numpy as np
 import string
+import copy
 
 
 def _all_tensors_have_same_rows(tensor_list):
@@ -111,6 +112,7 @@ class NumpyDataset(object):
     def all_data(self, shuffle=True, seed=None):
         '''Returns a copy of the examples of the entire data set (i.e. an epoch's data), shuffled.
         '''
+
         if shuffle and seed is not None:
             np.random.seed(seed)
         perm = np.arange(self.n_examples)  # Shuffle the data.
@@ -133,3 +135,22 @@ class NumpyDataset(object):
         self.n_examples = self.n_examples + other_data_set.n_examples
 
         return self
+
+    def clone(self):
+        tensor_list = self.all_data(shuffle=False)
+        tensor_names = copy.deepcopy(self.tensor_names)
+        return NumpyDataset(tensor_list, tensor_names, init_shuffle=False, copy=True)
+
+    def subsample(self, n_samples, replace=True, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+        new_dataset = self.clone()
+        all_ids = np.arange(new_dataset.n_examples)
+        sub_ids = np.random.choice(all_ids, n_samples, replace=replace)
+
+        for name in new_dataset.tensor_names:
+            sub_prop = new_dataset.__getattribute__(name)[sub_ids]
+            new_dataset.__setattr__(name, sub_prop)
+
+        new_dataset.n_examples = n_samples
+        return new_dataset
