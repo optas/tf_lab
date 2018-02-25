@@ -61,7 +61,6 @@ class NumpyDataset(object):
             res += name + ' ' + str(self.__getattribute__(name).shape) + '\n'
         return res
 
-
     def shuffle_data(self, seed=None):
         if seed is not None:
             np.random.seed(seed)
@@ -112,7 +111,7 @@ class NumpyDataset(object):
             return False
 
         for name in self.tensor_names:
-            if not np.all(sorted(self.__getattribute__(name)) == sorted(other_dataset.__getattribute__(name))):
+            if not np.all(np.sort(self.__getattribute__(name)) == np.sort(other_dataset.__getattribute__(name))):
                 return False
         return True
 
