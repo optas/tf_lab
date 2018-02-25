@@ -24,7 +24,7 @@ class NumpyDataset(object):
     def __init__(self, tensor_list, tensor_names=None, copy=True, init_shuffle=True):
         '''
         Constructor
-        TODO: copy False, is not really working.
+        TODO: copy False, is not working, we still get new data.
         '''
         if tensor_names is not None and len(tensor_names) != len(tensor_list):
             raise ValueError('Each tensor must have a name or none of them has.')
@@ -55,6 +55,13 @@ class NumpyDataset(object):
         if init_shuffle:
             self.shuffle_data()
 
+    def __str__(self):
+        res = ''
+        for name in self.tensor_names:
+            res += name + ' ' + str(self.__getattribute__(name).shape) + '\n'
+        return res
+
+
     def shuffle_data(self, seed=None):
         if seed is not None:
             np.random.seed(seed)
@@ -67,9 +74,9 @@ class NumpyDataset(object):
 
     def next_batch(self, batch_size, tensor_names=None, seed=None):
         '''Return the next batch_size examples from this data set.
-        
+
         tensor_names: (list of strings, default=None) describes the names of the tensors that will be returned.
-        If none, all tensors will be batched.        
+        If none, all tensors will be batched.
         '''
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
@@ -83,12 +90,12 @@ class NumpyDataset(object):
         end = self._index_in_epoch
 
         ret_res = []
-        
+
         if tensor_names is not None:
             tensors_to_look = tensor_names
         else:
-            tensors_to_look = self.tensor_names # I.e., use all of them.
-            
+            tensors_to_look = self.tensor_names     # I.e., use all of them.
+
         for name in tensors_to_look:
             ret_res.append(self.__getattribute__(name)[start:end])
 
