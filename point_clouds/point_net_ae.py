@@ -19,8 +19,6 @@ from . spatial_transformer import transformer as pcloud_spn
 from .. fundamentals.loss import Loss
 from .. fundamentals.inspect import count_trainable_parameters
 
-#from latent_3d_points.external.structural_losses import nn_distance, approx_match, match_cost
-
 from .. external.structural_pc_losses import losses
 nn_distance, approx_match, match_cost = losses()
 

@@ -70,7 +70,19 @@ class NumpyDataset(object):
         for name in self.tensor_names:
             self.__setattr__(name, self.__getattribute__(name)[perm])
         return self
-
+    
+    def add_tensor(self, new_tensor, tensor_name):
+        a_tensor = self.__getattribute__(self.tensor_names[0])
+        if a_tensor.shape[0] != new_tensor.shape[0]:    
+            raise ValueError('Input tensor has different number of rows than established tensors.')
+            
+        if tensor_name in self.tensor_names:
+            raise ValueError('Tensor with the same name already exists.')
+        
+        self.__setattr__(tensor_name, new_tensor)
+        self.tensor_names.append(tensor_name)
+        return self
+    
     def next_batch(self, batch_size, tensor_names=None, seed=None):
         '''Return the next batch_size examples from this data set.
 
