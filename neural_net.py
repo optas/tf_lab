@@ -4,11 +4,13 @@ Created on August 28, 2017
 @author: optas
 '''
 
-import os.path as osp
+import numpy as np
 import tensorflow as tf
 import warnings
+import os.path as osp
 
 from fundamentals.inspect import count_trainable_parameters
+from general_tools.in_out.basics import pickle_data, unpickle_data
 
 
 MODEL_SAVER_ID = 'models.ckpt'
@@ -58,3 +60,28 @@ class Neural_Net(object):
 class Neural_Net_Conf(object):
     def __init__(self):
         pass
+
+    def exists_and_is_not_none(self, attribute):
+        return hasattr(self, attribute) and getattr(self, attribute) is not None
+
+    def __str__(self):
+        keys = self.__dict__.keys()
+        vals = self.__dict__.values()
+        index = np.argsort(keys)
+        res = ''
+        for i in index:
+            if callable(vals[i]):
+                v = vals[i].__name__
+            else:
+                v = str(vals[i])
+            res += '%30s: %s\n' % (str(keys[i]), v)
+        return res
+
+    def save(self, file_name):
+        pickle_data(file_name + '.pickle', self)
+        with open(file_name + '.txt', 'w') as fout:
+            fout.write(self.__str__())
+
+    @staticmethod
+    def load(file_name):
+        return unpickle_data(file_name + '.pickle').next()
