@@ -172,3 +172,12 @@ class NumpyDataset(object):
 
         new_dataset.n_examples = n_samples
         return new_dataset
+    
+    def apply_mask(self, mask):
+        ''' boolean mask of self.n_examples will be applied to its stored tensor.
+        '''
+        for name in self.tensor_names:
+            self.__setattr__(name, self.__getattribute__(name)[mask])
+        self.n_examples = int(np.sum(mask))
+        assert(self.n_examples == len(self.__getattribute__(name)))
+        return self
