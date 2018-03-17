@@ -7,8 +7,6 @@ Created on October 11, 2017
 import tensorflow as tf
 import numpy as np
 import warnings
-import os.path as osp
-import time
 
 from scipy.stats import entropy
 from general_tools.simpletons import iterate_in_chunks
@@ -33,10 +31,10 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     epsilon = 10e-4
     bound = 0.5 + epsilon
     if abs(np.max(pclouds)) > bound or abs(np.min(pclouds)) > bound:
-        warnings.warn('Point-clouds not in in unit cube.')
+        warnings.warn('Point-clouds are not in unit cube.')
 
     if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > bound:
-        warnings.warn('Point-clouds not unit sphere.')
+        warnings.warn('Point-clouds are not in unit sphere.')
 
     if in_sphere:
         grid_coordinates, _ = compute_3D_sphere(grid_resolution)
@@ -145,9 +143,25 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
     return loss_list
 
 
-def minimum_mathing_distance_old(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
-    ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
-                             point-distances. Alternatively, is their sum.
+def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+    ''' Produces the graph operations necessary to compute the MMD and consequently also the Coverage due to their 'symmetric' nature.
+    Assuming a "reference" and a "sample" set of point-clouds that will be matched, this function creates the operation that matches
+    a _single_ "reference" point-cloud to all the "sample" point-clouds given in a batch. Thus, is the building block of the function
+    ```minimum_mathing_distance`` and ```coverage``` that iterate over the "sample" batches and each "reference" point-cloud.
+
+    Args:
+        n_pc_points (int): how many points each point-cloud of those to be compared has.
+        batch_size (optional, int): if the iterator code that uses this function will
+            use a constant batch size for iterating the sample point-clouds you can
+            specify it hear to speed up the compute. Alternatively, the code is adapted
+            to read the batch size dynamically.
+        normalize (boolean): When the matching is based on Chamfer (default behavior), if True,
+            the Chamfer is computed as the average of the matched point-wise squared euclidean
+            distances. Alternatively, is their sum.
+        use_sqrt (boolean): When the matching is based on Chamfer (default behavior), if True,
+            the Chamfer is computed based on the (not-squared) euclidean distances of the
+            matched point-wise euclidean distances.
+        use_EMD (boolean): If true, the matchings are based on the EMD.
     '''
     if normalize:
         reducer = tf.reduce_mean
@@ -159,86 +173,26 @@ def minimum_mathing_distance_old(sample_pcs, ref_pcs, batch_size, normalize=Fals
         config.gpu_options.allow_growth = True
         sess = tf.Session(config=config)
 
-    n_ref, n_pc_points, pc_dim = ref_pcs.shape
-    _, n_pc_points_s, pc_dim_s = sample_pcs.shape
-
-    if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
-        raise ValueError('Incompatible Point-Clouds.')
-
-    # TF Graph Operations
-    ref_pl = tf.placeholder(tf.float32, shape=(1, n_pc_points, pc_dim))
-    sample_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points, pc_dim))
-
-    repeat_times = tf.shape(sample_pl)[0]   # slower- could be used to use entire set of samples.
-#     repeat_times = batch_size
-    ref_repeat = tf.tile(ref_pl, [repeat_times, 1, 1])
-    ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, pc_dim])
-
-    if not use_EMD:
-        ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
-
-        if use_sqrt:
-            ref_to_s = tf.sqrt(ref_to_s)
-            s_to_ref = tf.sqrt(s_to_ref)
-
-        all_dist_in_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
-    else:
-        match = approx_match(ref_repeat, sample_pl)
-        all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
-
-    best_in_batch = tf.reduce_min(all_dist_in_batch)   # Best distance, of those that were matched to single ref pc.
-    matched_dists = []
-    for i in xrange(n_ref):
-        best_in_all_batches = []
-        if verbose and i % 50 == 0:
-            print i
-        for sample_chunk in iterate_in_chunks(sample_pcs, batch_size):
-#             if len(sample_chunk) != batch_size:
-#                 continue
-            feed_dict = {ref_pl: np.expand_dims(ref_pcs[i], 0), sample_pl: sample_chunk}
-            b = sess.run(best_in_batch, feed_dict=feed_dict)
-            best_in_all_batches.append(b)
-
-        matched_dists.append(np.min(best_in_all_batches))
-
-    mmd = np.mean(matched_dists)
-    return mmd, matched_dists
-
-
-def minimum_mathing_distance_tf_graph(n_pc_points, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
-    ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
-                             point-distances. Alternatively, is their sum.
-    '''
-    if normalize:
-        reducer = tf.reduce_mean
-    else:
-        reducer = tf.reduce_sum
-
-    if sess is None:
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        sess = tf.Session(config=config)
-
-    # TF Graph Operations
+    # Placeholders for the point-clouds: 1 for the reference (usually Ground-truth) and one of variable size for the collection
+    # which is going to be matched with the reference.
     ref_pl = tf.placeholder(tf.float32, shape=(1, n_pc_points, 3))
-    sample_pl = tf.placeholder(tf.float32, shape=(None, n_pc_points, 3))
+    sample_pl = tf.placeholder(tf.float32, shape=(batch_size, n_pc_points, 3))
 
-    repeat_times = tf.shape(sample_pl)[0]   # slower- could be used to use entire set of samples.
-#     repeat_times = batch_size
-    ref_repeat = tf.tile(ref_pl, [repeat_times, 1, 1])
-    ref_repeat = tf.reshape(ref_repeat, [repeat_times, n_pc_points, 3])
+    if batch_size is None:
+        batch_size = tf.shape(sample_pl)[0]
 
-    if not use_EMD:
+    ref_repeat = tf.tile(ref_pl, [batch_size, 1, 1])
+    ref_repeat = tf.reshape(ref_repeat, [batch_size, n_pc_points, 3])
+
+    if use_EMD:
+        match = approx_match(ref_repeat, sample_pl)
+        all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
+    else:
         ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
-
         if use_sqrt:
             ref_to_s = tf.sqrt(ref_to_s)
             s_to_ref = tf.sqrt(s_to_ref)
-
         all_dist_in_batch = reducer(ref_to_s, 1) + reducer(s_to_ref, 1)
-    else:
-        match = approx_match(ref_repeat, sample_pl)
-        all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
 
     best_in_batch = tf.reduce_min(all_dist_in_batch)   # Best distance, of those that were matched to single ref pc.
     location_of_best = tf.argmin(all_dist_in_batch, axis=0)
@@ -246,15 +200,33 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size, normalize=False, 
 
 
 def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
-    ''' normalize (boolean): if True the Chamfer distance between two point-clouds is the average of matched
-                             point-distances. Alternatively, is their sum.
+    '''Computes the MMD between two sets of point-clouds.
+
+    Args:
+        sample_pcs (numpy array SxKx3): the S point-clouds, each of K points that will be matched and
+            compared to a set of "reference" point-clouds.
+        ref_pcs (numpy array RxKx3): the R point-clouds, each of K points that constitute the set of
+            "reference" point-clouds.
+        batch_size (int): specifies how large will the batches be that the compute will use to make
+            the comparisons of the sample-vs-ref point-clouds.
+        normalize (boolean): When the matching is based on Chamfer (default behavior), if True, the
+            Chamfer is computed as the average of the matched point-wise squared euclidean distances.
+            Alternatively, is their sum.
+        use_sqrt: (boolean): When the matching is based on Chamfer (default behavior), if True, the
+            Chamfer is computed based on the (not-squared) euclidean distances of the matched point-wise
+             euclidean distances.
+        sess (tf.Session, default None): if None, it will make a new Session for this.
+        use_EMD (boolean: If true, the matchings are based on the EMD.
+
+    Returns:
+        A tuple containing the MMD and all the matched distances of which the MMD is their mean.
     '''
 
     n_ref, n_pc_points, pc_dim = ref_pcs.shape
     _, n_pc_points_s, pc_dim_s = sample_pcs.shape
 
     if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
-        raise ValueError('Incompatible Point-Clouds.')
+        raise ValueError('Incompatible size of point-clouds.')
 
     ref_pl, sample_pl, best_in_batch, _, sess = minimum_mathing_distance_tf_graph(n_pc_points, batch_size,
                                                                                   normalize=normalize, sess=sess,
@@ -274,6 +246,27 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
 
 
 def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False, ret_dist=False):
+    '''Computes the Coverage between two sets of point-clouds.
+
+    Args:
+        sample_pcs (numpy array SxKx3): the S point-clouds, each of K points that will be matched
+            and compared to a set of "reference" point-clouds.
+        ref_pcs    (numpy array RxKx3): the R point-clouds, each of K points that constitute the
+            set of "reference" point-clouds.
+        batch_size (int): specifies how large will the batches be that the compute will use to
+            make the comparisons of the sample-vs-ref point-clouds.
+        normalize  (boolean): When the matching is based on Chamfer (default behavior), if True,
+            the Chamfer is computed as the average of the matched point-wise squared euclidean
+            distances. Alternatively, is their sum.
+        use_sqrt  (boolean): When the matching is based on Chamfer (default behavior), if True,
+            the Chamfer is computed based on the (not-squared) euclidean distances of the matched
+            point-wise euclidean distances.
+        sess (tf.Session):  If None, it will make a new Session for this.
+        use_EMD (boolean): If true, the matchings are based on the EMD.
+        ret_dist (boolean): If true, it will also return the MMD distances of all the sample_pcs
+            wrt. the ref_pcs.
+        Returns: the coverage score and optionally the MMD distances of the samples_pcs.
+    '''
     _, n_pc_points, pc_dim = ref_pcs.shape
     n_sam, n_pc_points_s, pc_dim_s = sample_pcs.shape
 
@@ -286,7 +279,6 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
     matched_gt = []
     matched_dist = []
     for i in xrange(n_sam):
-
         best_in_all_batches = []
         loc_in_all_batches = []
 

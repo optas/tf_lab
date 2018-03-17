@@ -92,7 +92,7 @@ class Evaluator():
         sample_data['test'] = sample_data['train'][test_idx]
         sample_data['val'] = sample_data['train'][val_idx]
         self.sample_data = sample_data
-        
+
     def prepare_sample_data_for_wu_no_sub_sample(self, sample_file, random_seed=None):
         sample_data = {}
         sample_load = np.load(sample_file)
