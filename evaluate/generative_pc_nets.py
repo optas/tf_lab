@@ -228,9 +228,9 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
         raise ValueError('Incompatible size of point-clouds.')
 
-    ref_pl, sample_pl, best_in_batch, _, sess = minimum_mathing_distance_tf_graph(n_pc_points, batch_size,
-                                                                                  normalize=normalize, sess=sess,
-                                                                                  use_sqrt=use_sqrt, use_EMD=use_EMD)
+    ref_pl, sample_pl, best_in_batch, _, sess = minimum_mathing_distance_tf_graph(n_pc_points, normalize=normalize,
+                                                                                  sess=sess, use_sqrt=use_sqrt,
+                                                                                  use_EMD=use_EMD)
     matched_dists = []
     for i in xrange(n_ref):
         best_in_all_batches = []
@@ -273,9 +273,9 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
     if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
         raise ValueError('Incompatible Point-Clouds.')
 
-    ref_pl, sample_pl, best_in_batch, loc_of_best, sess = minimum_mathing_distance_tf_graph(n_pc_points, batch_size,
-                                                                                            normalize=normalize, sess=sess,
-                                                                                            use_sqrt=use_sqrt, use_EMD=use_EMD)
+    ref_pl, sample_pl, best_in_batch, loc_of_best, sess = minimum_mathing_distance_tf_graph(n_pc_points, normalize=normalize,
+                                                                                            sess=sess, use_sqrt=use_sqrt,
+                                                                                            use_EMD=use_EMD)
     matched_gt = []
     matched_dist = []
     for i in xrange(n_sam):
@@ -292,7 +292,7 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
             loc_in_all_batches.append(loc)
 
         best_in_all_batches = np.array(best_in_all_batches)
-        b_hit = np.argmin(best_in_all_batches)    # In which batch it minimum occurred.
+        b_hit = np.argmin(best_in_all_batches)    # In which batch the minimum occurred.
         matched_dist.append(np.min(best_in_all_batches))
         hit = np.array(loc_in_all_batches)[b_hit]
         matched_gt.append(batch_size * b_hit + hit)
