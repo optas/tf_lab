@@ -136,7 +136,7 @@ class Evaluator():
                         batch_size = 450 # (max in Titan-x)
                     else:
                         batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
-                #print(len(self.sample_data[s]), len(self.gt_data[s]))
+
                 scores = minimum_mathing_distance(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)[1]
 
             print(s, np.mean(scores), np.std(scores), file=f_out)
