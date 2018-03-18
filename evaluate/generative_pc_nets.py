@@ -10,7 +10,7 @@ import warnings
 
 from scipy.stats import entropy
 from general_tools.simpletons import iterate_in_chunks
-from .. nips.helper import compute_3D_grid, compute_3D_sphere
+from geo_tool.point_clouds.aux import unit_cube_grid_point_cloud
 
 try:
     from sklearn.neighbors import NearestNeighbors
@@ -36,11 +36,7 @@ def entropy_of_occupancy_grid(pclouds, grid_resolution, in_sphere=False):
     if in_sphere and np.max(np.sqrt(np.sum(pclouds ** 2, axis=2))) > bound:
         warnings.warn('Point-clouds are not in unit sphere.')
 
-    if in_sphere:
-        grid_coordinates, _ = compute_3D_sphere(grid_resolution)
-    else:
-        grid_coordinates, _ = compute_3D_grid(grid_resolution)
-
+    grid_coordinates, _ = unit_cube_grid_point_cloud(grid_resolution, in_sphere)
     grid_coordinates = grid_coordinates.reshape(-1, 3)
     grid_counters = np.zeros(len(grid_coordinates))
     grid_bernoulli_rvars = np.zeros(len(grid_coordinates))

@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from geo_tool import Point_Cloud
+from geo_tool.point_clouds.aux import unit_cube_grid_point_cloud
 from general_tools.in_out.basics import files_in_subdirs
 
 from .. point_clouds.in_out import load_point_clouds_from_filenames
@@ -51,27 +52,6 @@ def average_per_class(lsvc, test_emb, gt_labels):
         s /= n_class
         scores_per_class.append(s)
     return np.mean(scores_per_class)
-
-
-def compute_3D_grid(resolution):
-    '''Returns the center coordinates of each cell of a 3D Grid with resolution^3 cells.
-    '''
-    grid = np.ndarray((resolution, resolution, resolution, 3), np.float32)
-    spacing = 1.0 / float(resolution - 1)
-    for i in xrange(resolution):
-        for j in xrange(resolution):
-            for k in xrange(resolution):
-                grid[i, j, k, 0] = i * spacing - 0.5
-                grid[i, j, k, 1] = j * spacing - 0.5
-                grid[i, j, k, 2] = k * spacing - 0.5
-    return grid, spacing
-
-
-def compute_3D_sphere(resolution):
-    grid, spacing = compute_3D_grid(resolution=resolution)
-    pts = grid.reshape(-1, 3)
-    pts = pts[norm(pts, axis=1) <= 0.5]  # clip in half-sphere
-    return pts, spacing
 
 
 def pclouds_with_zero_mean_in_unit_sphere(in_pclouds):
@@ -131,11 +111,7 @@ def plot_probability_space_on_voxels(voxel_resolution, prb_thres, three_d_variab
     ''' Used to visualize JSD measurements.
         prb_thres: [0,1] float, only plot cells that have higher than prb_thres mass.
     '''
-    if in_sphere:
-        grid_centers, _ = compute_3D_sphere(voxel_resolution)
-    else:
-        grid_centers, _ = compute_3D_grid(voxel_resolution)
-
+    grid_centers, _ = unit_cube_grid_point_cloud(voxel_resolution, in_sphere)
     grid_centers = grid_centers.reshape(-1, 3)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
