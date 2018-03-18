@@ -98,7 +98,7 @@ class Evaluator():
         sample_load = np.load(sample_file)
         sample_data['train'] = self.normalizer(sample_load[sample_load.keys()[0]])
         sample_data['test'] = sample_data['train'].copy()
-        sample_data['val'] =  sample_data['train'].copy()
+        sample_data['val'] = sample_data['train'].copy()
         self.sample_data = sample_data
 
     def compute_jsd(self, f_out=sys.stdout, skip=[]):
@@ -113,7 +113,7 @@ class Evaluator():
                 print(s, jsd_score)
             all_scores[s] = jsd_score
         return all_scores
-    
+
     def compute_mmd(self, loss='chamfer', sample_estimator=False, n_samples=5, ref_pop_size=50, sample_pop_size=None, f_out=sys.stdout, skip=[], batch_size=None):        
         if loss == 'emd':
             emd = True
@@ -166,8 +166,7 @@ class Evaluator():
                 else:
                     batch_size = len(self.sample_data[s])   # Use all samples-at-once in Chamfer.
 
-            idx = coverage(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)
-            scores = len(np.unique(idx)) / float(len(self.gt_data[s]))
+            scores, _ = coverage(self.sample_data[s], self.gt_data[s], batch_size, normalize=normalize, use_EMD=emd)
 
             print(s, np.mean(scores), np.std(scores), file=f_out)
             if f_out != sys.stdout:

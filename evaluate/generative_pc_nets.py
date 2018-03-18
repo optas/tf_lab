@@ -259,11 +259,13 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
             point-wise euclidean distances.
         sess (tf.Session):  If None, it will make a new Session for this.
         use_EMD (boolean): If true, the matchings are based on the EMD.
-        ret_dist (boolean): If true, it will also return the MMD distances of all the sample_pcs
-            wrt. the ref_pcs.
-        Returns: the coverage score and optionally the MMD distances of the samples_pcs.
+        ret_dist (boolean): If true, it will also return the distances between each sample_pcs and
+            it's matched ground-truth.
+        Returns: the coverage score (int),
+                 the indices of the ref_pcs that are matched with each sample_pc
+                 and optionally the matched distances of the samples_pcs.
     '''
-    _, n_pc_points, pc_dim = ref_pcs.shape
+    n_ref, n_pc_points, pc_dim = ref_pcs.shape
     n_sam, n_pc_points_s, pc_dim_s = sample_pcs.shape
 
     if n_pc_points != n_pc_points_s or pc_dim != pc_dim_s:
@@ -292,7 +294,10 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
         matched_dist.append(np.min(best_in_all_batches))
         hit = np.array(loc_in_all_batches)[b_hit]
         matched_gt.append(batch_size * b_hit + hit)
+
+    cov = len(np.unique(matched_gt)) / float(n_ref)
+
     if ret_dist:
-        return matched_gt, matched_dist
+        return cov, matched_gt, matched_dist
     else:
-        return matched_gt
+        return cov, matched_gt
