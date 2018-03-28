@@ -1,7 +1,10 @@
 import tensorflow as tf
 from tensorflow.python.framework import ops
+import os
+import sys
 
-nn_distance_module = tf.load_op_library('/orions4-zfs/projects/optas/Git_Repos/tf_lab/external/Chamfer_EMD_tf1plus/tf_nndistance_so.so')
+BASE_DIR = os.path.dirname(__file__)
+nn_distance_module = tf.load_op_library(os.path.join(BASE_DIR, 'tf_nndistance_so.so'))
 
 
 def nn_distance(xyz1, xyz2):
