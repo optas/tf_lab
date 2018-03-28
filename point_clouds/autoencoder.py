@@ -64,6 +64,7 @@ class Configuration(Neural_Net_Conf):
         # Fancy - TODO factor seperetaly.
         self.consistent_io = consistent_io
 
+
 class AutoEncoder(Neural_Net):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''

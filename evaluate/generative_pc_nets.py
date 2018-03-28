@@ -139,7 +139,7 @@ def sample_pclouds_distances(pclouds, batch_size, n_samples, dist='emd', sess=No
     return loss_list
 
 
-def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=True, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     ''' Produces the graph operations necessary to compute the MMD and consequently also the Coverage due to their 'symmetric' nature.
     Assuming a "reference" and a "sample" set of point-clouds that will be matched, this function creates the operation that matches
     a _single_ "reference" point-cloud to all the "sample" point-clouds given in a batch. Thus, is the building block of the function
@@ -151,9 +151,8 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Fa
             use a constant batch size for iterating the sample point-clouds you can
             specify it hear to speed up the compute. Alternatively, the code is adapted
             to read the batch size dynamically.
-        normalize (boolean): When the matching is based on Chamfer (default behavior), if True,
-            the Chamfer is computed as the average of the matched point-wise squared euclidean
-            distances. Alternatively, is their sum.
+        normalize (boolean): if True, the distances are normalized by diving them with the number of the points
+        of the point-clouds (n_pc_points).
         use_sqrt (boolean): When the matching is based on Chamfer (default behavior), if True,
             the Chamfer is computed based on the (not-squared) euclidean distances of the
             matched point-wise euclidean distances.
@@ -183,6 +182,8 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Fa
     if use_EMD:
         match = approx_match(ref_repeat, sample_pl)
         all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
+        if normalize:    # TODO-double-check by recomputing some of the reported ICLR numbers.
+            all_dist_in_batch /= n_pc_points
     else:
         ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
         if use_sqrt:
@@ -195,7 +196,7 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Fa
     return ref_pl, sample_pl, best_in_batch, location_of_best, sess
 
 
-def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
+def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose=False, use_sqrt=False, use_EMD=False):
     '''Computes the MMD between two sets of point-clouds.
 
     Args:
@@ -205,9 +206,8 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
             "reference" point-clouds.
         batch_size (int): specifies how large will the batches be that the compute will use to make
             the comparisons of the sample-vs-ref point-clouds.
-        normalize (boolean): When the matching is based on Chamfer (default behavior), if True, the
-            Chamfer is computed as the average of the matched point-wise squared euclidean distances.
-            Alternatively, is their sum.
+        normalize (boolean): if True, the distances are normalized by diving them with the number of the points
+            of the point-clouds (n_pc_points).
         use_sqrt: (boolean): When the matching is based on Chamfer (default behavior), if True, the
             Chamfer is computed based on the (not-squared) euclidean distances of the matched point-wise
              euclidean distances.
@@ -241,7 +241,7 @@ def minimum_mathing_distance(sample_pcs, ref_pcs, batch_size, normalize=False, s
     return mmd, matched_dists
 
 
-def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbose=False, use_sqrt=False, use_EMD=False, ret_dist=False):
+def coverage(sample_pcs, ref_pcs, batch_size, normalize=True, sess=None, verbose=False, use_sqrt=False, use_EMD=False, ret_dist=False):
     '''Computes the Coverage between two sets of point-clouds.
 
     Args:
@@ -251,9 +251,8 @@ def coverage(sample_pcs, ref_pcs, batch_size, normalize=False, sess=None, verbos
             set of "reference" point-clouds.
         batch_size (int): specifies how large will the batches be that the compute will use to
             make the comparisons of the sample-vs-ref point-clouds.
-        normalize  (boolean): When the matching is based on Chamfer (default behavior), if True,
-            the Chamfer is computed as the average of the matched point-wise squared euclidean
-            distances. Alternatively, is their sum.
+        normalize (boolean): if True, the distances are normalized by diving them with the number of the points
+            of the point-clouds (n_pc_points).
         use_sqrt  (boolean): When the matching is based on Chamfer (default behavior), if True,
             the Chamfer is computed based on the (not-squared) euclidean distances of the matched
             point-wise euclidean distances.

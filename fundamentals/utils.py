@@ -52,7 +52,7 @@ def get_incoming_shape(incoming):
     """ Returns the incoming data shape """
     if isinstance(incoming, tf.Tensor):
         return incoming.get_shape().as_list()
-    elif type(incoming) in [np.array, list, tuple]:
+    elif type(incoming) in [np.array, np.ndarray, list, tuple]:
         return np.shape(incoming)
     else:
         raise Exception("Invalid incoming layer.")
@@ -66,3 +66,11 @@ def count_cmp_to_value(in_tensor, bound_val, comparator=tf.equal, axis=None):
     count = tf.reduce_sum(as_ints, axis=axis)
     count = tf.cast(count, tf.float32)
     return count
+
+
+def safe_norm(s, axis=-1, epsilon=1e-7, keep_dims=False):
+    '''Even at zero it will return epsilon. 
+    Reminder: l2_norm has no derivative at 0.0.
+    '''
+    squared_norm = tf.reduce_sum(tf.square(s), axis=axis, keep_dims=keep_dims)
+    return tf.sqrt(squared_norm + epsilon)
