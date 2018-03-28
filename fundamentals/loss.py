@@ -3,6 +3,9 @@ Created on December 31, 2016
 '''
 
 import tensorflow as tf
+import numpy as np
+
+from .. utils import get_incoming_shape, safe_norm
 
 
 class Loss():
@@ -35,4 +38,18 @@ class Loss():
         cosine = tf.reduce_sum(prediction * ground_truth, 2)
         norm = tf.sqrt(tf.reduce_sum(prediction * prediction, 2) + epsilon)
         return tf.reduce_mean(- 1.0 * tf.abs(cosine / norm))
-    
+
+    @staticmethod
+    def cosine(a, b):
+        ''' a, b: 2D Tensors (n_vectors, n_dims). Will compute the cosine
+        for each corresponding vector between a and b.
+        '''
+        sa = get_incoming_shape(a)
+        sb = get_incoming_shape(b)
+        if not np.all(sa == sb) or len(sa) != 2:
+            raise ValueError('Bad input tensors.')
+
+        norm_a = safe_norm(a)
+        norm_b = safe_norm(b)
+        d_prod = tf.reduce_sum(tf.multiply(a, b), axis=1)
+        return d_prod / (norm_a * norm_b)
