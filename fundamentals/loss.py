@@ -5,7 +5,7 @@ Created on December 31, 2016
 import tensorflow as tf
 import numpy as np
 
-from .. utils import get_incoming_shape, safe_norm
+from . utils import get_incoming_shape, safe_norm
 
 
 class Loss():
