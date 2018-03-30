@@ -145,6 +145,13 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
+def encoder_with_covns_and_grouping(reuse=False, scope=None):
+    '''
+        Point-Net++ encoder.
+    '''
+    pass
+
+
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None,
                          b_norm_finish=False, verbose=False):
