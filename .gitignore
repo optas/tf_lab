@@ -1,7 +1,7 @@
 *.pyc
 .project
 .pydevproject
-#.ipynb_checkpoints
+.ipynb_checkpoints
 .settings
 *.swp
 notebooks/panos/.ipynb_checkpoints/
