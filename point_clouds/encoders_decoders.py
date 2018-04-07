@@ -14,7 +14,7 @@ from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected
 from . spatial_transformer import transformer as pcloud_spn
-
+from . point_net_pp.modules import pointnet_pp_module
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
@@ -143,6 +143,13 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         layer = symmetry(layer, axis=1)
 
     return layer
+
+def encoder_with_grouping_and_interpolation(in_signal, grp_config=None, interp_config=None, b_norm=True, bn_decay=None, use_normal=False, scope=None, reuse=False, is_training=None):            
+
+    sa_fp=pointnet_pp_module(in_signal, grp_config.filters, grp_config.points, grp_config.radii, grp_config.samples, interp_config.filters, interp_config.idx, interp_config.use_pts0, return_all=interp_config.return_all, b_norm=b_norm, bn_decay=bn_decay, use_normal=use_normal, scope=scope, reuse=reuse, is_training=is_training)
+    #note, if no interp layers, we need to squeeze the pointwise features (1,n_dim) to (n_dim)
+    sa_fp=tf.reshape(sa_fp,[-1,sa_fp.get_shape()[-1]])
+    return sa_fp
 
 
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
