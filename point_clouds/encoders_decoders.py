@@ -152,6 +152,13 @@ def encoder_with_grouping_and_interpolation(in_signal, grp_config=None, interp_c
     return sa_fp
 
 
+def encoder_with_covns_and_grouping(reuse=False, scope=None):
+    '''
+        Point-Net++ encoder.
+    '''
+    pass
+
+
 def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=True, non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None,
                          b_norm_finish=False, verbose=False):
