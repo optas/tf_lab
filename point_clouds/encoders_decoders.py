@@ -14,7 +14,7 @@ from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected
 from . spatial_transformer import transformer as pcloud_spn
-from . point_net_pp.modules import pointnet_pp_module
+#from . point_net_pp.modules import pointnet_pp_module
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
