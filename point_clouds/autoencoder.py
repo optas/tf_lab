@@ -21,7 +21,7 @@ from .. neural_net import Neural_Net, Neural_Net_Conf
 model_saver_id = 'models.ckpt'
 
 
-class Configuration(object):
+class Configuration():
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
                  training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
                  saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None,
