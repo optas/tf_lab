@@ -6,13 +6,10 @@ Created on Dec 14, 2017
 
 import time
 import tensorflow as tf
-import os.path as osp
 
 from tflearn.layers.core import fully_connected
 from tflearn.layers.conv import conv_3d, conv_3d_transpose
 from tflearn.layers.normalization import batch_normalization
-
-from general_tools.in_out.basics import create_dir
 
 from .. point_clouds.autoencoder import AutoEncoder
 
