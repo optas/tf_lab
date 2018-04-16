@@ -27,13 +27,12 @@ class RawGAN_GP(GAN):
         GAN.__init__(self, name, graph)
 
         with tf.variable_scope(name):
-
             self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])            # Noise vector.
             self.real_pc = tf.placeholder(tf.float32, shape=[None] + self.n_output)     # Ground-truth.
 
             with tf.variable_scope('generator'):
-                self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)
-#                 self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
+#                 self.generator_out = self.generator(self.noise, self.n_output, **gen_kwargs)  # slight-mod for vector
+                self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
 
             with tf.variable_scope('discriminator') as scope:
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
@@ -54,8 +53,7 @@ class RawGAN_GP(GAN):
                 gradients = tf.gradients(self.discriminator(interpolates, reuse=True, scope=scope, **disc_kwargs)[1], [interpolates])[0]
 
             # Reduce over all but the first dimension
-#             slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=range(1, ndims)))
-            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=range(1, ndims)))
             gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
             self.loss_d += lam * gradient_penalty
 
