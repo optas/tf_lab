@@ -7,6 +7,8 @@ Created on August 29, 2017
 import numpy as np
 import string
 import copy
+from mock.mock import self
+from bokeh.core.properties import value
 
 
 def _all_tensors_have_same_rows(tensor_list):
@@ -51,7 +53,7 @@ class NumpyDataset(object):
 
         self.epochs_completed = 0
         self._index_in_epoch = 0
-
+        self._frozen = False
         if init_shuffle:
             self.shuffle_data()
 
@@ -62,6 +64,9 @@ class NumpyDataset(object):
         return res
 
     def shuffle_data(self, seed=None):
+        if self.frozen:
+            return self
+
         if seed is not None:
             np.random.seed(seed)
         perm = np.arange(self.n_examples)
@@ -114,6 +119,18 @@ class NumpyDataset(object):
             ret_res = ret_res[0]
 
         return ret_res
+
+    def freeze(self):
+        if self._frozen:
+            raise ValueError('Dataset is already frozen.')
+        self._frozen = True
+        return self
+
+    def unfreeze(self):
+        if not self._frozen:
+            raise ValueError('Dataset is not frozen.')
+        self._frozen = False
+        return self
 
     def is_equal(self, other_dataset):
 

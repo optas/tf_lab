@@ -25,7 +25,6 @@ nn_distance, approx_match, match_cost = losses()
 
 class PointNetAutoEncoder(AutoEncoder):
     '''
-    An Auto-Encoder replicating the architecture of Charles and Hao paper.
     '''
 
     def __init__(self, name, configuration, graph=None):
