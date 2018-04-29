@@ -7,8 +7,6 @@ Created on August 29, 2017
 import numpy as np
 import string
 import copy
-from mock.mock import self
-from bokeh.core.properties import value
 
 
 def _all_tensors_have_same_rows(tensor_list):
