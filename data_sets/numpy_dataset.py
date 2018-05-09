@@ -62,7 +62,7 @@ class NumpyDataset(object):
         return res
 
     def shuffle_data(self, seed=None):
-        if self.frozen:
+        if self._frozen:
             return self
 
         if seed is not None:
