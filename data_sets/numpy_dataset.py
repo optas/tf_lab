@@ -188,6 +188,24 @@ class NumpyDataset(object):
         new_dataset.n_examples = n_samples
         return new_dataset
     
+    def extract(self, indices, in_place=False):
+        ''' Constrain the tensors along the given indices (on zero-th dimension).
+        '''        
+        if np.max(indices) >= self.n_examples or np.min(indices) < 0:
+            raise ValueError('Not appropriate indices provided.')
+                    
+        if in_place:
+            new_dataset = self
+        else:
+            new_dataset = self.clone()
+        
+        for name in new_dataset.tensor_names:
+            sub_prop = new_dataset.__getattribute__(name)[indices]
+            new_dataset.__setattr__(name, sub_prop)
+        
+        new_dataset.n_examples = len(indices)
+        return new_dataset
+    
     def apply_mask(self, mask):
         ''' boolean mask of self.n_examples will be applied to its stored tensor.
         '''
