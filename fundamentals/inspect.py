@@ -159,3 +159,9 @@ def sparsity_summary_of_trainable():
         for var in tf.trainable_variables():
             summaries.append(tf.scalar_summary('sparsity_' + var.op.name, tf.nn.zero_fraction(var)))
     return summaries
+
+
+def operations_of_graph(in_graph=None):
+    if in_graph is None:
+        in_graph = tf.get_default_graph()
+    return in_graph.get_operations()
