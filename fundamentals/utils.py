@@ -6,6 +6,7 @@ Created on February 2, 2017
 
 import tensorflow as tf
 import numpy as np
+from six import string_types
 
 
 def expand_scope_by_name(scope, name):
@@ -14,7 +15,7 @@ def expand_scope_by_name(scope, name):
     tflearn seems to not append the name in the scope automatically.
     """
 
-    if isinstance(scope, basestring):
+    if isinstance(scope, string_types):
         scope += '/' + name
         return scope
 
@@ -69,7 +70,7 @@ def count_cmp_to_value(in_tensor, bound_val, comparator=tf.equal, axis=None):
 
 
 def safe_norm(s, axis=-1, epsilon=1e-7, keep_dims=False):
-    '''Even at zero it will return epsilon. 
+    '''Even at zero it will return epsilon.
     Reminder: l2_norm has no derivative at 0.0.
     '''
     squared_norm = tf.reduce_sum(tf.square(s), axis=axis, keep_dims=keep_dims)

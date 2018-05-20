@@ -7,6 +7,7 @@ Created on August 29, 2017
 import numpy as np
 import string
 import copy
+from six.moves import xrange
 
 
 def _all_tensors_have_same_rows(tensor_list):
