@@ -14,9 +14,12 @@ from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected
 from . spatial_transformer import transformer as pcloud_spn
+from . utils import pairwise_distance, get_edge_feature, knn
+
 #from . point_net_pp.modules import pointnet_pp_module
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
+
 
 dropout = tf.nn.dropout
 # from tflearn.layers.core import fully_connected, dropout
@@ -143,6 +146,77 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         layer = symmetry(layer, axis=1)
 
     return layer
+
+
+def encoder_with_dynamic_edge_convolutions(in_signal, n_filters, filter_sizes=[1], strides=[1], neighbs=[20], b_norm=[True],
+                                           regularizer=None, weight_decay=0.001, conv_op=conv_1d, symmetry=tf.reduce_max,
+                                           non_linearity=tf.nn.relu,
+                                           padding='same', reuse=False, scope=None, verbose=False):
+    if verbose:
+        print 'Building Encoder'
+
+    n_layers = len(n_filters)
+
+    if n_layers < 2:
+        raise ValueError('More than 1 layers are expected.')
+
+    filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
+    strides = replicate_parameter_for_all_layers(strides, n_layers)
+    neighb_sizes = replicate_parameter_for_all_layers(neighbs, n_layers)
+    b_norms = replicate_parameter_for_all_layers(b_norm, n_layers)
+
+#     if spn:
+#         transformer = pcloud_spn(in_signal)
+#         in_signal = tf.batch_matmul(in_signal, transformer)
+#         print 'Spatial transformer was activated.'
+
+    for i in range(n_layers):
+        if i == 0:
+            layer = in_signal
+
+        name = 'encoder_conv_layer_' + str(i)
+        scope_i = expand_scope_by_name(scope, name)
+
+        adj_matrix = pairwise_distance(layer)
+        nn_idx = knn(adj_matrix, k=neighb_sizes[i])
+        edge_feature = get_edge_feature(layer, nn_idx=nn_idx, k=neighb_sizes[i])
+        layer = conv_op(edge_feature, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
+                        weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i, padding=padding)
+
+        if verbose:
+            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
+
+        if b_norms[i]:
+            name += '_bnorm'
+            scope_i = expand_scope_by_name(scope, name)
+            layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
+            if verbose:
+                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
+
+        if non_linearity is not None:
+            layer = non_linearity(layer)
+
+        if symmetry is not None:
+            layer = symmetry(layer, axis=1)
+
+        if verbose:
+            print layer
+
+#         if pool is not None and pool_sizes is not None:
+#             if pool_sizes[i] is not None:
+#                 layer = pool(layer, kernel_size=pool_sizes[i])
+# 
+#         if dropout_prob is not None and dropout_prob[i] != 0:
+#             layer = dropout(layer, 1.0 - dropout_prob[i])
+
+#         if verbose:
+#             print layer
+#             print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
+
+
+    return layer
+
+
 
 def encoder_with_grouping_and_interpolation(in_signal, grp_config=None, interp_config=None, b_norm=True, bn_decay=None, use_normal=False, scope=None, reuse=False, is_training=None):            
 
