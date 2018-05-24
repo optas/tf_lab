@@ -42,12 +42,12 @@ def adaptive_hierarchical_encoder_1(in_signal, n_filters=[64, 128, 256, 1024], f
                 print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list())+np.prod(layer.gamma.get_shape().as_list())
 
         
-            # NEW
-            layer = layer - tf.reduce_mean(layer, axis=[1], keep_dims=True)
-            cov_layer_i = tf.matmul(layer, layer, transpose_b=True)
-            cov_layer_i = tf.nn.softmax(cov_layer_i, dim=1, name="soft-max-coupling")
-            cov_layer_i = tf.matrix_set_diag(cov_layer_i, tf.zeros(shape=(batch_size, n_pc_points)))                    
-            layer = tf.matmul(cov_layer_i, layer)
+        # NEW
+        layer = layer - tf.reduce_mean(layer, axis=[1], keep_dims=True)
+        cov_layer_i = tf.matmul(layer, layer, transpose_b=True)
+        cov_layer_i = tf.nn.softmax(cov_layer_i, dim=1, name="soft-max-coupling")
+        cov_layer_i = tf.matrix_set_diag(cov_layer_i, tf.zeros(shape=(batch_size, n_pc_points)))                    
+        layer = tf.matmul(cov_layer_i, layer)
             
             
         if non_linearity is not None:

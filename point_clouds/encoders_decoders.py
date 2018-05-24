@@ -10,16 +10,17 @@ import numpy as np
 import warnings
 
 from tflearn.layers.core import fully_connected, dropout
-from tflearn.layers.conv import conv_1d, avg_pool_1d, highway_conv_1d
+from tflearn.layers.conv import conv_1d, conv_2d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected
 from . spatial_transformer import transformer as pcloud_spn
-from . utils import pairwise_distance, get_edge_feature, knn
+from . utils import pairwise_distance, get_edge_feature, knn, soft_maxed_edge
 
 #from . point_net_pp.modules import pointnet_pp_module
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
+import ipdb
 
 dropout = tf.nn.dropout
 # from tflearn.layers.core import fully_connected, dropout
@@ -148,8 +149,23 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
+def cluster_pool(batch_size, in_features, n_clusters):
+    ''' read again capsules.
+    '''
+    class_scores = conv_1d(in_features, nb_filter=n_clusters, filter_size=1)    
+    class_scores = tf.nn.softmax(class_scores)    
+    res = []
+    for i in range(batch_size):  # TODO - implement nicely.
+        _, nn_idx = tf.nn.top_k(class_scores[i], k=1)    # << This is not differentiable.
+        nn_idx = tf.squeeze(nn_idx, -1)    
+        class_aggregate = tf.unsorted_segment_max(in_features[i], nn_idx, n_clusters)
+        res.append(class_aggregate)
+    res = tf.stack(res)
+    return res
+
+    
 def encoder_with_dynamic_edge_convolutions(in_signal, n_filters, filter_sizes=[1], strides=[1], neighbs=[20], b_norm=[True],
-                                           regularizer=None, weight_decay=0.001, conv_op=conv_1d, symmetry=tf.reduce_max,
+                                           regularizer=None, weight_decay=0.001, conv_op=conv_2d, symmetry=tf.reduce_max,
                                            non_linearity=tf.nn.relu,
                                            padding='same', reuse=False, scope=None, verbose=False):
     if verbose:
@@ -159,16 +175,11 @@ def encoder_with_dynamic_edge_convolutions(in_signal, n_filters, filter_sizes=[1
 
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
-
+    
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
     neighb_sizes = replicate_parameter_for_all_layers(neighbs, n_layers)
     b_norms = replicate_parameter_for_all_layers(b_norm, n_layers)
-
-#     if spn:
-#         transformer = pcloud_spn(in_signal)
-#         in_signal = tf.batch_matmul(in_signal, transformer)
-#         print 'Spatial transformer was activated.'
 
     for i in range(n_layers):
         if i == 0:
@@ -177,12 +188,15 @@ def encoder_with_dynamic_edge_convolutions(in_signal, n_filters, filter_sizes=[1
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
 
+        # conv_op = conv_1d
+        # TODO read again Implementation.
         adj_matrix = pairwise_distance(layer)
         nn_idx = knn(adj_matrix, k=neighb_sizes[i])
-        edge_feature = get_edge_feature(layer, nn_idx=nn_idx, k=neighb_sizes[i])
-        layer = conv_op(edge_feature, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
+        layer = get_edge_feature(layer, nn_idx=nn_idx, k=neighb_sizes[i])
+        
+        layer = conv_op(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
                         weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i, padding=padding)
-
+        
         if verbose:
             print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
@@ -195,25 +209,23 @@ def encoder_with_dynamic_edge_convolutions(in_signal, n_filters, filter_sizes=[1
 
         if non_linearity is not None:
             layer = non_linearity(layer)
+        
 
+        
         if symmetry is not None:
-            layer = symmetry(layer, axis=1)
+            layer = symmetry(layer, axis=2)
 
         if verbose:
             print layer
 
-#         if pool is not None and pool_sizes is not None:
-#             if pool_sizes[i] is not None:
-#                 layer = pool(layer, kernel_size=pool_sizes[i])
-# 
-#         if dropout_prob is not None and dropout_prob[i] != 0:
-#             layer = dropout(layer, 1.0 - dropout_prob[i])
+        
+        # batch_size = 50
+        # if neighb_sizes[i] > 0:
+        #     layer = cluster_pool(batch_size, layer, neighb_sizes[i])
+        # print layer
 
-#         if verbose:
-#             print layer
-#             print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
-
-
+    if symmetry is not None:
+        layer = symmetry(layer, axis=1)    
     return layer
 
 

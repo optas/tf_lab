@@ -56,7 +56,6 @@ def diff_mlp_net(n_cons, task, verbose=False):
     return net_out, feed_pl, labels_pl
 
                                     
-
 def diff_conv_net(n_cons, task, verbose=False):
     n_classes = classes_of_tasks(task)
     labels_pl, last_nn = start_end_of_nets(task)
@@ -86,7 +85,7 @@ def diff_conv_net(n_cons, task, verbose=False):
 
 
 class Basic_Net(Neural_Net):
-    def __init__(self, net_out, feed_pl, label_pl, name='todo', graph=None):
+    def __init__(self, net_out, feed_pl, label_pl, name='fmap_net', graph=None):
         Neural_Net.__init__(self, name, graph)
         self.net_out = net_out
         self.feed_pl = feed_pl
