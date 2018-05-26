@@ -76,6 +76,12 @@ class Neural_Net_Conf(object):
                 v = str(vals[i])
             res += '%30s: %s\n' % (str(keys[i]), v)
         return res
+            
+    # def __getattr__(self, key):
+    #     if key in self.__dict__.keys():
+    #         return self.__dict__[key]
+    #     else:
+    #         return None
 
     def save(self, file_name):
         pickle_data(file_name + '.pickle', self)
