@@ -5,7 +5,7 @@ Created on May 21, 2018
 
 '''
 import tensorflow as tf
-import ipdb
+#import ipdb
 from .. fundamentals.utils import safe_norm
 
 def pairwise_angles(layer, epsilon=10e-7):
