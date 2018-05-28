@@ -20,7 +20,7 @@ from . utils import pairwise_distance, get_edge_feature, knn, soft_maxed_edge
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
-import ipdb
+# import ipdb
 
 dropout = tf.nn.dropout
 # from tflearn.layers.core import fully_connected, dropout

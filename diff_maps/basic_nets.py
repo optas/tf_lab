@@ -1,7 +1,7 @@
 '''
 Created on Jan 9, 2018
 
-@author: optas
+@author: Achlioptas Panos.
 '''
 
 from collections import defaultdict
@@ -14,7 +14,7 @@ from tf_lab.point_clouds.encoders_decoders import encoder_with_convs_and_symmetr
 from tf_lab.fundamentals.inspect import count_trainable_parameters
 from tflearn import is_training
 
-from .in_out import classes_of_tasks
+from . in_out import classes_of_tasks
 
 n_best_pc_parms = 34124
 
@@ -27,6 +27,7 @@ def pc_net(n_pc_points, task, n_filters, n_neurons, verbose=False):
         layer = encoder_with_convs_and_symmetry_new(feed_pl, n_filters=n_filters, b_norm=False)
         n_neurons = n_neurons + [n_classes]
         net_out = decoder_with_fc_only(layer, n_neurons, b_norm=False)
+        
         if last_nn == 'relu':
             net_out = tf.nn.relu(net_out)
 
