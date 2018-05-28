@@ -10,7 +10,6 @@ import tensorflow as tf
 from tflearn import is_training
 
 from . gan import GAN
-from .. fundamentals.layers import safe_log
 
 
 class RawGAN(GAN):
@@ -19,7 +18,6 @@ class RawGAN(GAN):
 
         self.noise_dim = noise_dim
         self.n_output = n_output
-        out_shape = [None] + self.n_output
         self.discriminator = discriminator
         self.generator = generator
 
@@ -27,8 +25,8 @@ class RawGAN(GAN):
 
         with tf.variable_scope(name):
 
-            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])     # Noise vector.
-            self.real_pc = tf.placeholder(tf.float32, shape=out_shape)           # Ground-truth.
+            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])         # Noise vector.
+            self.gt = tf.placeholder(tf.float32, shape=[None] + self.n_output)  # Ground-truth.
 
             with tf.variable_scope('generator'):
                 self.generator_out = self.generator(self.noise, self.n_output[0], **gen_kwargs)
@@ -37,8 +35,7 @@ class RawGAN(GAN):
                 self.real_prob, self.real_logit = self.discriminator(self.real_pc, scope=scope, **disc_kwargs)
                 self.synthetic_prob, self.synthetic_logit = self.discriminator(self.generator_out, reuse=True, scope=scope, **disc_kwargs)
 
-            self.loss_d = tf.reduce_mean(-safe_log(self.real_prob) - safe_log(1 - self.synthetic_prob))
-            self.loss_g = tf.reduce_mean(-safe_log(self.synthetic_prob))
+            self.loss_d, self.loss_g = self.add_vanilla_gan_objective(self.real_prob, self.synthetic_prob, safe_log=True)
 
             train_vars = tf.trainable_variables()
 
@@ -59,7 +56,7 @@ class RawGAN(GAN):
     def generator_noise_distribution(self, n_samples, ndims, mu, sigma):
         return np.random.normal(mu, sigma, (n_samples, ndims))
 
-    def _single_epoch_train(self, train_data, batch_size, noise_params={}, adaptive=None):
+    def _single_epoch_train(self, train_data, batch_size, noise_params):
         '''
         see: http://blog.aylien.com/introduction-generative-adversarial-networks-code-tensorflow/
              http://wiseodd.github.io/techblog/2016/09/17/gan-tensorflow/
@@ -70,51 +67,30 @@ class RawGAN(GAN):
         batch_size = batch_size
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-        updated_d = 0
-        # Loop over all batches
-        _real_s = []
-        _fake_s = []
+
         is_training(True, session=self.sess)
         try:
+            # Loop over all batches
             for _ in xrange(n_batches):
                 feed, _, _ = train_data.next_batch(batch_size)
+
                 # Update discriminator.
                 z = self.generator_noise_distribution(batch_size, self.noise_dim, **noise_params)
-                feed_dict = {self.real_pc: feed, self.noise: z}
-                if adaptive is not None:
-                    s1 = tf.reduce_mean(self.real_prob)
-                    s2 = tf.reduce_mean(1 - self.synthetic_prob)
-                    sr, sf = self.sess.run([s1, s2], feed_dict=feed_dict)
-                    _real_s.append(sr)
-                    _fake_s.append(sf)
-                    if np.mean([sr, sf]) < adaptive:
-                        loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-                        updated_d += 1
-                        epoch_loss_d += loss_d
-                else:
-                    loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
-                    updated_d += 1
-                    epoch_loss_d += loss_d
-                # Update generator.
+                feed_dict = {self.gt: feed, self.noise: z}
+                loss_d, _ = self.sess.run([self.loss_d, self.opt_d], feed_dict=feed_dict)
                 loss_g, _ = self.sess.run([self.loss_g, self.opt_g], feed_dict=feed_dict)
+
                 # Compute average loss
-    #             epoch_loss_d += loss_d
+                epoch_loss_d += loss_d
                 epoch_loss_g += loss_g
+
             is_training(False, session=self.sess)
         except Exception:
             raise
         finally:
             is_training(False, session=self.sess)
 
-#         epoch_loss_d /= n_batches
-        if updated_d > 1:
-            epoch_loss_d /= updated_d
-        else:
-            print 'Discriminator was not updated in this epoch.'
-
-        if adaptive is not None:
-            print np.mean(_real_s), np.mean(_fake_s)
-
+        epoch_loss_d /= n_batches
         epoch_loss_g /= n_batches
         duration = time.time() - start_time
         return (epoch_loss_d, epoch_loss_g), duration

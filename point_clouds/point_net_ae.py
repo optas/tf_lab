@@ -20,6 +20,7 @@ from .. fundamentals.loss import Loss
 from .. fundamentals.inspect import count_trainable_parameters
 
 from .. external.structural_pc_losses import losses
+
 nn_distance, approx_match, match_cost = losses()
 
 
