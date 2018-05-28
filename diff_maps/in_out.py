@@ -1,7 +1,7 @@
 '''
 Created on Jan 9, 2018
 
-@author: optas
+@Author: Panos Achlioptas.
 '''
 
 

@@ -64,6 +64,12 @@ class Neural_Net_Conf(object):
     def exists_and_is_not_none(self, attribute):
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
+    def value_or_none(self, attribute):
+        if hasattr(self, attribute):
+            return getattr(self, attribute)
+        else:
+            return None
+        
     def __str__(self):
         keys = self.__dict__.keys()
         vals = self.__dict__.values()
@@ -76,7 +82,8 @@ class Neural_Net_Conf(object):
                 v = str(vals[i])
             res += '%30s: %s\n' % (str(keys[i]), v)
         return res
-
+            
+        
     def save(self, file_name):
         pickle_data(file_name + '.pickle', self)
         with open(file_name + '.txt', 'w') as fout:

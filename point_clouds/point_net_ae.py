@@ -104,16 +104,34 @@ class PointNetAutoEncoder(AutoEncoder):
         for rl in reg_losses:
             self.loss += (w_reg_alpha * rl)
 
-    def _setup_optimizer(self):
+    def _setup_optimizer(self):        
         c = self.configuration
-        self.lr = c.learning_rate
+        self.lr = c.learning_rate                
+        
         if hasattr(c, 'exponential_decay'):
             self.lr = tf.train.exponential_decay(c.learning_rate, self.epoch, c.decay_steps, decay_rate=0.5, staircase=True, name="learning_rate_decay")
             self.lr = tf.maximum(self.lr, 1e-5)
             tf.summary.scalar('learning_rate', self.lr)
 
+        #cap = 1
+        #def ClipIfNotNone(grad, var):
+         #   if grad is None:
+          #      print 'Has not gradient', var
+           #     return grad        
+           # return tf.clip_by_value(grad, -cap, cap)
+        
+       # net = self
+       # net.optimizer = tf.train.AdamOptimizer(net.lr)
+        #net.opt_step = net.optimizer.minimize(net.loss)    
+        #net.grads_and_vars = net.optimizer.compute_gradients(net.loss)
+        #capped_gp = [(ClipIfNotNone(grad, var), var) for grad, var in net.grads_and_vars]
+        
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
+        
         self.train_step = self.optimizer.minimize(self.loss)
+        #net.train_step = net.optimizer.apply_gradients(capped_gp)
+        
+        
 
     def _single_epoch_train(self, train_data, configuration, only_fw=False):
         n_examples = train_data.num_examples

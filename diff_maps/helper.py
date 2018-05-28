@@ -1,3 +1,8 @@
+'''
+Funcs to deal with SCAPE_8_pose collection.
+'''
+
+
 import numpy as np
 import hdf5storage
 import os.path as osp
@@ -8,9 +13,7 @@ from sklearn.model_selection import train_test_split
 from geo_tool import Point_Cloud, Mesh
 from tf_lab.data_sets.numpy_dataset import NumpyDataset
 
-'''
-Funcs to deal with SCAPE_8_pose collection.
-'''
+
 
 total_shapes = 2000
 members_per_pose_class = 250
@@ -101,15 +104,3 @@ def make_data(in_data, in_feeds, class_labels):
         idx = in_data[s].copy()
         res[s] = NumpyDataset([in_feeds[idx], class_labels[idx], idx], ['feed', 'labels', 'ids'], init_shuffle=False)
     return res
-
-
-### DELETE Below
-def load_diff_maps(in_file, zero_thres):    
-    in_diffs = hdf5storage.loadmat(in_file)
-    n_shapes = len(in_diffs['ucb'])
-    diff_dims = in_diffs['ucb'][1][0].shape
-    temp = np.zeros(shape=(n_shapes, ) + diff_dims )
-    for i in xrange(n_shapes):
-        temp[i] = in_diffs['ucb'][i][0]
-    in_diffs = temp    
-    return in_diffs
