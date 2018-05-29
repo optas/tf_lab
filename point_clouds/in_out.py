@@ -90,9 +90,8 @@ def apply_augmentations(batch, conf):
             r_rotation[2, 1] = 0
             r_rotation[2, 2] = 1
             batch = batch.dot(r_rotation)
-
         return batch
-
+    
 
 class PointCloudDataSet(object):
     '''

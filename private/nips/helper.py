@@ -40,31 +40,6 @@ def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
     return pclouds, model_ids, syn_ids
 
 
-def average_per_class(lsvc, test_emb, gt_labels):
-    y_pred = lsvc.predict(test_emb)
-    gt_labels = np.array(gt_labels)
-    scores_per_class = []
-
-    for c in np.unique(gt_labels):
-        index_c = gt_labels == c
-        n_class = float(np.sum(index_c))
-        s = np.sum(gt_labels[index_c] == y_pred[index_c])
-        s /= n_class
-        scores_per_class.append(s)
-    return np.mean(scores_per_class)
-
-
-def pclouds_with_zero_mean_in_unit_sphere(in_pclouds):
-    ''' Zero MEAN + Max_dist = 0.5
-    '''
-    pclouds = in_pclouds.copy()
-    pclouds = pclouds - np.expand_dims(np.mean(pclouds, axis=1), 1)
-    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
-    dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / (dist * 2.0)
-    return pclouds
-
-
 def center_pclouds_in_unit_sphere(pclouds):
     for i, pc in enumerate(pclouds):
         pc, _ = Point_Cloud(pc).center_axis()
