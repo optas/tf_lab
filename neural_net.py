@@ -21,14 +21,14 @@ class Neural_Net(object):
     def __init__(self, name, graph):
         if graph is None:
             graph = tf.get_default_graph()
-            # g = tf.Graph()
-            # with g.as_default():
         self.graph = graph
         self.name = name
 
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+                
+            self.increment_epoch = self.epoch.assign_add(tf.constant(1.0))
 
     def is_training(self):
         is_training_op = self.graph.get_collection('is_training')

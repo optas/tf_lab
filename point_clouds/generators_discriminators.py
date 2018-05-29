@@ -32,9 +32,14 @@ def mlp_discriminator(in_signal, non_linearity=tf.nn.relu, reuse=False, scope=No
     return d_prob, d_logit
 
 
-def point_cloud_generator(z, n_points, layer_sizes=[64, 128, 512, 1024], non_linearity=tf.nn.relu, b_norm=False, b_norm_last=False, dropout_prob=None):
+def point_cloud_generator(z, pc_dims, layer_sizes=[64, 128, 512, 1024], non_linearity=tf.nn.relu, b_norm=False, b_norm_last=False, dropout_prob=None):
     ''' used in nips submission.
     '''
+    
+    n_points, dummy = pc_dims
+    if (dummy != 3):
+        raise ValueError()
+    
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm)
     out_signal = non_linearity(out_signal)
     if dropout_prob is not None:
