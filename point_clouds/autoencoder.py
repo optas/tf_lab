@@ -8,6 +8,7 @@ import warnings
 import os.path as osp
 import tensorflow as tf
 import numpy as np
+from six import itervalues, iterkeys
 
 from tflearn import is_training
 
@@ -66,9 +67,9 @@ class Configuration():
     def exists_and_is_not_none(self, attribute):
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
-    def __str__(self):
-        keys = self.__dict__.keys()
-        vals = self.__dict__.values()
+    def __str__(self):        
+        keys = list(iterkeys(self.__dict__))
+        vals = list(itervalues(self.__dict__))
         index = np.argsort(keys)
         res = ''
         for i in index:
@@ -108,6 +109,7 @@ class AutoEncoder(Neural_Net):
                 self.gt = tf.placeholder(tf.float32, out_shape)
             else:
                 self.gt = self.x
+            self.no_op = tf.no_op()
 
     def partial_fit(self, X, GT=None, ret_reconstruction=True):
         '''Trains the model with mini-batches of input data.
@@ -120,7 +122,7 @@ class AutoEncoder(Neural_Net):
         if ret_reconstruction:
             x_recon = self.x_reconstr
         else:
-            x_recon = tf.no_op()
+            x_recon = self.no_op
 
         is_training(True, session=self.sess)
         try:
@@ -142,7 +144,7 @@ class AutoEncoder(Neural_Net):
         if compute_loss:
             loss = self.loss
         else:
-            loss = tf.no_op()
+            loss = self.no_op
 
         if GT is None:
             return self.sess.run((self.x_reconstr, loss), feed_dict={self.x: X})
@@ -180,7 +182,7 @@ class AutoEncoder(Neural_Net):
 
         for _ in xrange(c.training_epochs):
             loss, duration = self._single_epoch_train(train_data, c)
-            epoch = int(self.sess.run(self.epoch.assign_add(tf.constant(1.0))))
+            epoch = int(self.sess.run(self.increment_epoch))                    
             stats.append((epoch, loss, duration))
 
             if epoch % c.loss_display_step == 0:
@@ -224,9 +226,9 @@ class AutoEncoder(Neural_Net):
         reconstructions = np.zeros([n_examples] + self.n_output)
         for i in xrange(0, n_examples, b):
             if self.is_denoising:
-                reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
+                reconstructions[i: i + b], loss = self.reconstruct(feed_data[i:i + b], original_data[i:i + b])
             else:
-                reconstructions[i:i + b], loss = self.reconstruct(feed_data[i:i + b])
+                reconstructions[i: i + b], loss = self.reconstruct(feed_data[i:i + b])
 
             # Compute average loss
             data_loss += (loss * len(reconstructions[i:i + b]))

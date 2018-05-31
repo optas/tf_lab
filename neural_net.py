@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 import warnings
 import os.path as osp
+from six import itervalues, iterkeys
 
 from fundamentals.inspect import count_trainable_parameters
 from general_tools.in_out.basics import pickle_data, unpickle_data
@@ -62,6 +63,7 @@ class Neural_Net_Conf(object):
         pass
 
     def exists_and_is_not_none(self, attribute):
+        '''TODO: delete'''
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
     def value_or_none(self, attribute):
@@ -70,9 +72,9 @@ class Neural_Net_Conf(object):
         else:
             return None
         
-    def __str__(self):
-        keys = self.__dict__.keys()
-        vals = self.__dict__.values()
+    def __str__(self):        
+        keys = list(iterkeys(self.__dict__))
+        vals = list(itervalues(self.__dict__))
         index = np.argsort(keys)
         res = ''
         for i in index:

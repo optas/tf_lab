@@ -25,7 +25,7 @@ def encoder_with_convs_and_symmetry_new():
     pass
     
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
-                                        b_norm=True, spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+                                        b_norm=[False], spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                         symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None,
                                         reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
@@ -189,7 +189,7 @@ def encoder_with_covns_and_grouping(reuse=False, scope=None):
     pass
 
 
-def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=[True], non_linearity=tf.nn.relu,
+def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None,
                          b_norm_finish=False, verbose=False):
     '''A decoding network which maps points from the latent space back onto the data space.
@@ -198,7 +198,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=[True], non_linea
         print 'Building Decoder'
 
     n_layers = len(layer_sizes)
-    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
+    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers-1)
     b_norm = replicate_parameter_for_all_layers(b_norm, n_layers-1)
     
     if n_layers < 2:
@@ -254,7 +254,7 @@ def decoder_with_fc_only(latent_signal, layer_sizes=[], b_norm=[True], non_linea
     return layer
 
 
-def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding='same', b_norm=True, non_linearity=tf.nn.relu,
+def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding='same', b_norm=[True], non_linearity=tf.nn.relu,
                             conv_op=conv_1d_tranpose, regularizer=None, weight_decay=0.001, dropout_prob=None, upsample_sizes=None,
                             b_norm_finish=False, scope=None, reuse=False, verbose=False):
 
@@ -264,7 +264,8 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
-    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
+    dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers-1)
+    b_norm = replicate_parameter_for_all_layers(b_norm, n_layers-1)
 
     for i in xrange(n_layers):
         if i == 0:
