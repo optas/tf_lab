@@ -66,7 +66,7 @@ def decode_latent_codes(autoencoder, latent_codes, batch_size=100):
     return np.vstack(pclouds)
 
 
-def compute_structural_loss(pc1, pc2, batch_size, loss_type):
+def compute_structural_loss(pc1, pc2, batch_size, loss_type, normalize=True):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
@@ -85,14 +85,21 @@ def compute_structural_loss(pc1, pc2, batch_size, loss_type):
         all_dist_in_batch = match_cost(pc_1_pl, pc_2_pl, match)
     elif loss_type == 'chamfer':
         cost_p1_p2, _, cost_p2_p1, _ = nn_distance(pc_1_pl, pc_2_pl)
-        all_dist_in_batch = tf.reduce_mean(cost_p1_p2, 1) + tf.reduce_mean(cost_p2_p1, 1)
+        all_dist_in_batch = tf.reduce_sum(cost_p1_p2, 1) + tf.reduce_sum(cost_p2_p1, 1)
     else:
         raise ValueError()
 
+    if normalize:
+        if n_pc_points_1 != n_pc_points_2:
+            raise ValueError()
+        else:
+            all_dist_in_batch /= n_pc_points_1
+    
     all_dists = []
+        
     for chunk in iterate_in_chunks(np.arange(n_pc), batch_size):
         feed_dict = {pc_1_pl: pc1[chunk], pc_2_pl: pc2[chunk]}
         b = sess.run(all_dist_in_batch, feed_dict=feed_dict)
         all_dists.append(b)
     sess.close()
-    return np.array(all_dists)[0]
+    return np.hstack(all_dists)
