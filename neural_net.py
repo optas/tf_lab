@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 import warnings
 import os.path as osp
+from six import itervalues, iterkeys
 
 from fundamentals.inspect import count_trainable_parameters
 from general_tools.in_out.basics import pickle_data, unpickle_data
@@ -21,14 +22,14 @@ class Neural_Net(object):
     def __init__(self, name, graph):
         if graph is None:
             graph = tf.get_default_graph()
-            # g = tf.Graph()
-            # with g.as_default():
         self.graph = graph
         self.name = name
 
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
+                
+            self.increment_epoch = self.epoch.assign_add(tf.constant(1.0))
 
     def is_training(self):
         is_training_op = self.graph.get_collection('is_training')
@@ -62,6 +63,7 @@ class Neural_Net_Conf(object):
         pass
 
     def exists_and_is_not_none(self, attribute):
+        '''TODO: delete'''
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
     def value_or_none(self, attribute):
@@ -69,10 +71,17 @@ class Neural_Net_Conf(object):
             return getattr(self, attribute)
         else:
             return None
+<<<<<<< HEAD
 
     def __str__(self):
         keys = self.__dict__.keys()
         vals = self.__dict__.values()
+=======
+        
+    def __str__(self):        
+        keys = list(iterkeys(self.__dict__))
+        vals = list(itervalues(self.__dict__))
+>>>>>>> 3974d8b80daa5bcbd05f50f5ac9ccf6019f951d6
         index = np.argsort(keys)
         res = ''
         for i in index:

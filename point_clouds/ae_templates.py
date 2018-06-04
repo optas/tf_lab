@@ -5,13 +5,13 @@ Created on September 2, 2017
 '''
 import numpy as np
 
-from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only, encoder_with_convs_and_symmetry_new
+from . encoders_decoders import encoder_with_convs_and_symmetry, decoder_with_fc_only
 
 
 def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
     ''' Single class experiments.
     '''
-    encoder = encoder_with_convs_and_symmetry_new
+    encoder = encoder_with_convs_and_symmetry
     decoder = decoder_with_fc_only
 
     n_input = [n_pc_points, 3]
@@ -19,12 +19,12 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, bneck_post_mlp=False):
     encoder_args = {'n_filters': [64, 128, 128, 256, bneck_size],
                     'filter_sizes': [1],
                     'strides': [1],
-                    'b_norm': True,
+                    'b_norm': [True],
                     'verbose': True
                     }
 
     decoder_args = {'layer_sizes': [256, 256, np.prod(n_input)],
-                    'b_norm': False,
+                    'b_norm': [False],
                     'b_norm_finish': False,
                     'verbose': True
                     }

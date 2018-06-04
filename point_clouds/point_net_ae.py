@@ -38,11 +38,14 @@ class PointNetAutoEncoder(AutoEncoder):
             self.z = c.encoder(self.x, **c.encoder_args)
             self.bottleneck_size = int(self.z.get_shape()[1])
             layer = c.decoder(self.z, **c.decoder_args)
+            print layer
             if c.exists_and_is_not_none('close_with_tanh'):
+                print('Closing decoder with tanh.')
                 layer = tf.nn.tanh(layer)
+            
             if c.exists_and_is_not_none('do_completion'):                   # TODO Re-factor for AP
                 self.completion = tf.reshape(layer, [-1, c.n_completion[0], c.n_completion[1]])
-                self.x_reconstr = tf.concat(1, [self.x, self.completion])   # output is input + `completion`
+                self.x_reconstr = tf.concat([self.x, self.completion], axis=1)   # output is input + `completion`                
             else:
                 self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
 
@@ -104,7 +107,7 @@ class PointNetAutoEncoder(AutoEncoder):
         for rl in reg_losses:
             self.loss += (w_reg_alpha * rl)
 
-    def _setup_optimizer(self):        
+    def _setup_optimizer(self):
         c = self.configuration
         self.lr = c.learning_rate                
         
