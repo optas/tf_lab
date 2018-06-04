@@ -132,7 +132,6 @@ class PointNetAutoEncoder(AutoEncoder):
         #net.train_step = net.optimizer.apply_gradients(capped_gp)
         
         
-
     def _single_epoch_train(self, train_data, configuration, only_fw=False):
         n_examples = train_data.num_examples
         epoch_loss = 0.
