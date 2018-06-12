@@ -22,9 +22,6 @@ class GAN(Neural_Net):
     def __init__(self, name, graph):
         Neural_Net.__init__(self, name, graph)
 
-    def save_model(self, tick):
-        self.saver.save(self.sess, self.MODEL_SAVER_ID, global_step=tick)
-
     def optimizer(self, learning_rate, beta, loss, var_list):
         initial_learning_rate = learning_rate
         optimizer = tf.train.AdamOptimizer(initial_learning_rate, beta1=beta).minimize(loss, var_list=var_list)

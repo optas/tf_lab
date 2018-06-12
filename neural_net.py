@@ -73,10 +73,17 @@ class Neural_Net_Conf(object):
             return getattr(self, attribute)
         else:
             return None
+<<<<<<< HEAD
+
+    def __str__(self):
+        keys = self.__dict__.keys()
+        vals = self.__dict__.values()
+=======
         
     def __str__(self):        
         keys = list(iterkeys(self.__dict__))
         vals = list(itervalues(self.__dict__))
+>>>>>>> 3974d8b80daa5bcbd05f50f5ac9ccf6019f951d6
         index = np.argsort(keys)
         res = ''
         for i in index:
@@ -86,8 +93,7 @@ class Neural_Net_Conf(object):
                 v = str(vals[i])
             res += '%30s: %s\n' % (str(keys[i]), v)
         return res
-            
-        
+
     def save(self, file_name):
         pickle_data(file_name + '.pickle', self)
         with open(file_name + '.txt', 'w') as fout:
