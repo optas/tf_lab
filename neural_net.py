@@ -63,27 +63,16 @@ class Neural_Net(object):
 class Neural_Net_Conf(object):
     def __init__(self):
         pass
-
-    def exists_and_is_not_none(self, attribute):
-        '''TODO: delete'''
-        return hasattr(self, attribute) and getattr(self, attribute) is not None
-
+    
     def value_or_none(self, attribute):
         if hasattr(self, attribute):
             return getattr(self, attribute)
         else:
             return None
-<<<<<<< HEAD
-
-    def __str__(self):
-        keys = self.__dict__.keys()
-        vals = self.__dict__.values()
-=======
         
     def __str__(self):        
         keys = list(iterkeys(self.__dict__))
         vals = list(itervalues(self.__dict__))
->>>>>>> 3974d8b80daa5bcbd05f50f5ac9ccf6019f951d6
         index = np.argsort(keys)
         res = ''
         for i in index:
