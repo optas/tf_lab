@@ -63,14 +63,14 @@ class Neural_Net(object):
 class Neural_Net_Conf(object):
     def __init__(self):
         pass
-    
+
     def value_or_none(self, attribute):
         if hasattr(self, attribute):
             return getattr(self, attribute)
         else:
             return None
-        
-    def __str__(self):        
+
+    def __str__(self):
         keys = list(iterkeys(self.__dict__))
         vals = list(itervalues(self.__dict__))
         index = np.argsort(keys)

@@ -109,7 +109,6 @@ class AutoEncoder(Neural_Net):
                 self.gt = tf.placeholder(tf.float32, out_shape)
             else:
                 self.gt = self.x
-            self.no_op = tf.no_op()
 
     def partial_fit(self, X, GT=None, ret_reconstruction=True):
         '''Trains the model with mini-batches of input data.
