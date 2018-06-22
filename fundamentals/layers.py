@@ -44,13 +44,14 @@ def leaky_relu(alpha):
 
     return lambda x: tf.maximum(alpha * x, x)
 
-
 def dropout(in_layer, keep_prob=0.0):
     if keep_prob == 0.0:
         return in_layer
     else:
         return tf.nn.dropout(in_layer, keep_prob)
 
+def dropconnect(W, p):
+    return tf.nn.dropout(W, keep_prob=p) * p
 
 def fully_connected_layer(in_layer, out_dim, init={'type': 'glorot'}, wd=0, init_bias=0.0, name='fc'):
     '''Implements a fully connected (fc) layer.

@@ -62,6 +62,9 @@ class NumpyDataset(object):
             res += name + ' ' + str(self.__getattribute__(name).shape) + '\n'
         return res
 
+    def __getitem__(self, key):
+        return getattr(self, key)
+                
     def shuffle_data(self, seed=None):
         if self._frozen:
             return self
@@ -109,7 +112,7 @@ class NumpyDataset(object):
         if tensor_names is not None:
             tensors_to_look = tensor_names
         else:
-            tensors_to_look = self.tensor_names     # I.e., use all of them.
+            tensors_to_look = self.tensor_names     # I.e. use all of them.
 
         for name in tensors_to_look:
             ret_res.append(self.__getattribute__(name)[start:end])

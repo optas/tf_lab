@@ -191,9 +191,10 @@ def encoder_with_covns_and_grouping(reuse=False, scope=None):
 
 def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearity=tf.nn.relu,
                          regularizer=None, weight_decay=0.001, reuse=False, scope=None, dropout_prob=None,
-                         b_norm_finish=False, verbose=False):
+                         b_norm_finish=False, verbose=False, container=None):
     '''A decoding network which maps points from the latent space back onto the data space.
     '''
+    
     if verbose:
         print 'Building Decoder'
 
@@ -212,7 +213,10 @@ def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearit
             layer = latent_signal
 
         layer = fully_connected(layer, layer_sizes[i], activation='linear', weights_init='xavier', name=name, regularizer=regularizer, weight_decay=weight_decay, reuse=reuse, scope=scope_i)
-
+        
+        if container is not None:
+            container.append(layer)
+            
         if verbose:
             print name, 'FC params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
@@ -223,6 +227,9 @@ def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearit
             if verbose:
                 print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
+        if container is not None:
+            container.append(layer)
+            
         if non_linearity is not None:
             layer = non_linearity(layer)
 
@@ -232,6 +239,9 @@ def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearit
         if verbose:
             print layer
             print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
+        
+        if container is not None:
+            container.append(layer)
 
     # Last decoding layer never has a non-linearity.
     name = 'decoder_fc_' + str(n_layers - 1)
@@ -250,7 +260,8 @@ def decoder_with_fc_only(latent_signal, layer_sizes, b_norm=[True], non_linearit
     if verbose:
         print layer
         print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
-
+            
+     
     return layer
 
 
