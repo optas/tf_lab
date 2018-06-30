@@ -12,42 +12,47 @@ from tflearn.layers.core import fully_connected, dropout
 from tflearn.layers.conv import conv_1d, conv_2d, avg_pool_1d, highway_conv_1d
 from tflearn.layers.normalization import batch_normalization
 from tflearn.layers.core import fully_connected
-from . spatial_transformer import transformer as pcloud_spn
-from . utils import pairwise_distance, get_edge_feature, knn, soft_maxed_edge
 
+from . utils import pairwise_distance, get_edge_feature, knn, soft_maxed_edge, pdist
 #from . point_net_pp.modules import pointnet_pp_module
 from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
-
-def encoder_with_convs_and_symmetry_new():
-    # TODO delete after patching all AEs.
-    pass
+# For rotation transformers:
+from with_others.million_geometries.src.rotations import octahedral_rotation_group, rotation_from_degrees
+from with_others.million_geometries.src.hacks import bulb_pooling
+    
     
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=[False], spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                                         symmetry=tf.reduce_max, dropout_prob=None, pool=avg_pool_1d, pool_sizes=None, scope=None,
-                                        reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d):
+                                        reuse=False, padding='same', verbose=False, closing=None, conv_op=conv_1d, container=None):
     '''An Encoder (recognition network), which maps inputs onto a latent space.
     '''
-
     if verbose:
         print 'Building Encoder'
 
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
-    b_norm = replicate_parameter_for_all_layers(b_norm, n_layers)    
+    b_norm = replicate_parameter_for_all_layers(b_norm, n_layers)
     dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
 
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
 
     if spn:
-        transformer = pcloud_spn(in_signal)
-        in_signal = tf.batch_matmul(in_signal, transformer)
-        print 'Spatial transformer was activated.'
-
+        print 'Spatial transformer will be used.'
+        
+        with tf.variable_scope('spn') as sub_scope:
+            pool_size = 20  # how many points in each pool
+            n_rotations = len(octahedral_rotation_group())
+            R = pc_rotation_predictor(in_signal, pool_size, n_rotations, container=container)
+            
+            #in_signal = tf.matmul(in_signal, R)
+            if container is not None:
+                container['signal_transformed'] = tf.matmul(in_signal, R)
+                
     for i in xrange(n_layers):
         if i == 0:
             layer = in_signal
@@ -93,6 +98,11 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     return layer
 
 
+def encoder_with_convs_and_symmetry_new():
+    # TODO delete after patching all AEs.
+    pass
+    
+    
 def cluster_pool(batch_size, in_features, n_clusters):
     ''' read again capsules.
     '''
@@ -271,7 +281,7 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
 
     if verbose:
         print 'Building Decoder'
-
+    
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
@@ -313,3 +323,76 @@ def decoder_with_convs_only(in_signal, n_filters, filter_sizes, strides, padding
             print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
 
     return layer
+
+
+# SPATIAL TRANSFORMERS: they are here because they rely on encoder_decorer functions (circlurlar dependency)
+
+def pc_rotation_transformer(in_signal, n_pools, scope=None):
+    '''Does regression on degrees.
+    '''
+    k = 6    
+    feat_dim = 16
+    feat = intrinsic_knn_distances(in_signal, k)    
+    feat = encoder_with_convs_and_symmetry(feat, [32, 64, 64, feat_dim], symmetry=None, scope=scope)
+    
+    if n_pools is not None:
+        pool_index, n_bulbs = bulb_pools(in_signal, n_pools)
+        bulb_feats = tf.gather_nd(feat, pool_index)
+        print bulb_feats
+        bulb_feats = tf.reshape(bulb_feats, [-1, n_bulbs, n_pools, feat_dim])        
+        bulb_feats = tf.reduce_max(bulb_feats, axis=-2)
+        print bulb_feats
+    
+    if n_pools is None:
+        bulb_weights = bulb_pools(in_signal, n_pools)
+        n_bulbs = int(bulb_weights.shape[1])
+        yo = tf.tile(tf.expand_dims(bulb_weights, -1), [1, 1, 1, feat_dim])
+        ya = tf.tile(tf.expand_dims(feat, 1), [1, n_bulbs, 1, 1])
+        bulb_feats = tf.reduce_max(tf.multiply(yo, ya), axis=-2)
+        print bulb_feats
+
+    feats = decoder_with_fc_only(bulb_feats, layer_sizes=[32, 32, 3], scope=scope)
+    R = rotation_explicit_transformer_degrees(feats)
+    
+    return R, feats, bulb_feats
+
+
+def pc_rotation_predictor(in_pc, pool_size, n_rotations, container=None, scope=None):
+    ''' does prediction of angles by guessing one of from a predifined set of them (e.g. octahedral).
+    '''
+    batch_size = tf.shape(in_pc)[0]
+    emb_dim = 32
+    
+    pool_index, _, n_bulbs = bulb_pooling(in_pc, pool_size)
+    b_pools = tf.gather_nd(in_pc, pool_index)
+    bulb_pcs = tf.reshape(b_pools, [-1, n_bulbs, pool_size, 3])
+    means = tf.reduce_mean(bulb_pcs, axis=-2, keep_dims=True)
+    bulb_pcs -= means
+    bulb_pcs = tf.reshape(bulb_pcs, [-1, n_bulbs * pool_size, 3])        
+    bulb_feats = encoder_with_convs_and_symmetry(bulb_pcs, [64, 64, 128, emb_dim], 
+                                                 symmetry=None, scope=scope)
+    
+    bulb_feats = tf.reshape(bulb_feats, [-1, n_bulbs, pool_size, emb_dim])
+    bulb_feats = tf.reduce_max(bulb_feats, axis=2)
+        
+    aggregate_feats = decoder_with_fc_only(bulb_feats,
+                                           layer_sizes=[32, 32, 32, n_rotations], 
+                                           scope=scope)
+    probs = tf.nn.softmax(aggregate_feats)
+    
+    sharp_loss = tf.reduce_mean(-tf.log(tf.reduce_max(probs, 1)))
+    #tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, sharp_loss)
+
+    probs_tile = tf.tile(tf.expand_dims(probs, 2), [1, 1, 3])  # expand to multpily three angles.
+    rotation_group = tf.constant(octahedral_rotation_group())
+    rotation_group = tf.tile(tf.expand_dims(rotation_group, 0), [batch_size, 1, 1])
+    
+    pred = tf.reduce_sum(tf.multiply(probs_tile, rotation_group), axis=1) # MAX or mean?
+    R = rotation_from_degrees(pred)
+    
+    if container is not None:
+        container['predicted_angles'] = pred
+        container['r_probs'] = probs
+        container['rotation'] = R
+        container['sharp_loss'] = sharp_loss        
+    return R

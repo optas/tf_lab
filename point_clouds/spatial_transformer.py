@@ -9,6 +9,7 @@ from tflearn.layers.core import fully_connected
 from tflearn.layers.normalization import batch_normalization
 
 
+
 def transformer(point_cloud):
     '''Input is Batch_size x Num_Points x 3 point-clouds
     Returns:

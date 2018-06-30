@@ -7,6 +7,7 @@ Created on May 21, 2018
 import tensorflow as tf
 #import ipdb
 from .. fundamentals.utils import safe_norm
+from warnings import warn
 
 def pairwise_angles(layer, epsilon=10e-7):
     ''' layer: B x N x D
@@ -31,6 +32,22 @@ def soft_maxed_edge(layer, aggregation='sum'):
         raise NotImplemented()
     return res
 
+
+def pdist(A, B, epsilon=10e-9):
+    ''' Pairwise distances for all elements of A to B.
+    Args:
+        A (batch_size x M x D)
+        B (batch_size x N x D)
+    Returns (batch_size x M x N) dists
+    '''
+    warn('Fix the diagonal elementas when A equals B.')
+    a_norms = tf.reduce_sum(tf.square(A), axis=-1, keep_dims=True)
+    b_norms = tf.reduce_sum(tf.square(B), axis=-1, keep_dims=True)
+    b_norms = tf.transpose(b_norms, [0, 2, 1])
+    a_b_inner = -2 * tf.matmul(A, B, transpose_b=True)
+    a_b_dists =  a_b_inner + a_norms + b_norms
+    a_b_dists = tf.sqrt(tf.abs(a_b_dists + epsilon))
+    return a_b_dists
 
 def pairwise_distance(point_cloud):
     '''Compute euclidean pairwise distance between all points of a point cloud.

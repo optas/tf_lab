@@ -83,7 +83,7 @@ def apply_augmentations(batch, conf):
             batch += np.random.normal(mu, sigma, batch.shape)
 
         if conf.z_rotate:  # TODO -> add independent rotations to each object, not one per batch.
-            r_rotation = rand_rotation_matrix()
+            r_rotation = rand_rotation_matrix()            
             r_rotation[0, 2] = 0
             r_rotation[2, 0] = 0
             r_rotation[1, 2] = 0
