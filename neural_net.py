@@ -28,9 +28,9 @@ class Neural_Net(object):
         with tf.variable_scope(name):
             with tf.device('/cpu:0'):
                 self.epoch = tf.get_variable('epoch', [], initializer=tf.constant_initializer(0), trainable=False)
-                
+
             self.increment_epoch = self.epoch.assign_add(tf.constant(1.0))
-        
+
         self.no_op = tf.no_op()
 
     def is_training(self):
@@ -51,10 +51,14 @@ class Neural_Net(object):
             if verbose:
                 print('Model restored in epoch {0}.'.format(epoch))
 
-    def start_session(self, allow_growth=True):
+    def start_session(self, allow_growth=True, random_seed=None):
         '''Associates with the Neura_Net a tf.Session object which is used to initialize the tf.global_variables'''
         gpu_config = tf.ConfigProto()
         gpu_config.gpu_options.allow_growth = allow_growth
+
+        if random_seed is not None:
+            tf.set_random_seed(random_seed)
+
         self.init = tf.global_variables_initializer()
         self.sess = tf.Session(config=gpu_config)
         self.sess.run(self.init)
@@ -63,14 +67,14 @@ class Neural_Net(object):
 class Neural_Net_Conf(object):
     def __init__(self):
         pass
-    
+
     def value_or_none(self, attribute):
         if hasattr(self, attribute):
             return getattr(self, attribute)
         else:
             return None
-        
-    def __str__(self):        
+
+    def __str__(self):
         keys = list(iterkeys(self.__dict__))
         vals = list(itervalues(self.__dict__))
         index = np.argsort(keys)

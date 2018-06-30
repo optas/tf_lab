@@ -88,7 +88,7 @@ class PointNetClassifier(Neural_Net):
     def predict(self, X, gt_labels=None):
         feed_dict = {self.x: X}
         if gt_labels is None:
-            avg_acc = tf.no_op()
+            avg_acc = self.no_op
         else:
             avg_acc = self.avg_accuracy
             feed_dict[self.gt] = gt_labels
