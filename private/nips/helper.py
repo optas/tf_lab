@@ -40,24 +40,6 @@ def load_shape_net_models_used_by_wu(n_pc_samples, pclouds_path):
     return pclouds, model_ids, syn_ids
 
 
-def center_pclouds_in_unit_sphere(pclouds):
-    for i, pc in enumerate(pclouds):
-        pc, _ = Point_Cloud(pc).center_axis()
-        pclouds[i] = pc.points
-
-    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
-    dist = np.expand_dims(np.expand_dims(dist, 1), 2)
-    pclouds = pclouds / (dist * 2.0)
-
-    for i, pc in enumerate(pclouds):
-        pc, _ = Point_Cloud(pc).center_axis()
-        pclouds[i] = pc.points
-
-    dist = np.max(np.sqrt(np.sum(pclouds ** 2, axis=2)), 1)
-    assert(np.all(abs(dist - 0.5) < 0.0001))
-    return pclouds
-
-
 def visualize_voxel_content_as_pcloud(voxel_data):
     x, y, z = np.where(voxel_data)
     points = np.vstack((x, y, z)).T
