@@ -182,7 +182,7 @@ def minimum_mathing_distance_tf_graph(n_pc_points, batch_size=None, normalize=Tr
     if use_EMD:
         match = approx_match(ref_repeat, sample_pl)
         all_dist_in_batch = match_cost(ref_repeat, sample_pl, match)
-        if normalize:    # TODO-double-check by recomputing some of the reported ICLR numbers.
+        if normalize:
             all_dist_in_batch /= n_pc_points
     else:
         ref_to_s, _, s_to_ref, _ = nn_distance(ref_repeat, sample_pl)
