@@ -43,7 +43,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
     if spn:
         print 'Spatial transformer will be used.'
-        
+        raise ValueError()
         with tf.variable_scope('spn') as sub_scope:
             pool_size = 20  # how many points in each pool
             n_rotations = len(octahedral_rotation_group())

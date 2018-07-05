@@ -29,7 +29,7 @@ def load_point_clouds_from_filenames(file_names, n_threads=1, loader=_load_crude
     pool = Pool(n_threads)
     chunks = int(len(file_names) / (2.0 * n_threads))
     print chunks
-    for i, data in enumerate(pool.imap(loader, file_names), chunks):
+    for i, data in enumerate(pool.imap(loader, file_names)):
         pclouds[i, :, :], model_names[i], class_ids[i] = data
 
     pool.close()

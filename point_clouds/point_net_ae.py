@@ -20,13 +20,11 @@ from .. fundamentals.loss import Loss
 from .. fundamentals.inspect import count_trainable_parameters
 
 from .. external.structural_pc_losses import losses
-
 nn_distance, approx_match, match_cost = losses()
 
-import numpy as np
-from . utils import pdist
-
-from with_others.million_geometries.src.hacks import penalize_nn_of_two_embeddings
+#import numpy as np
+#from . utils import pdist
+#from with_others.million_geometries.src.hacks import penalize_nn_of_two_embeddings
 
 class PointNetAutoEncoder(AutoEncoder):
     '''
@@ -39,29 +37,27 @@ class PointNetAutoEncoder(AutoEncoder):
 
         with tf.variable_scope(name) as scope:
                         
-            c.encoder_args['scope'] = scope
-            c.encoder_args['reuse'] = False
-            c.encoder_args['spn'] = True
- 
-            self.container = c.encoder_args['container']
+            #c.encoder_args['scope'] = scope
+            #c.encoder_args['reuse'] = False
+            #c.encoder_args['spn'] = True 
+            #self.container = c.encoder_args['container']
             self.z = c.encoder(self.x, **c.encoder_args)
             self.bottleneck_size = int(self.z.get_shape()[1])
                         
-            self.x_r = self.container['signal_transformed']            
-            c.encoder_args['spn'] = False
-            c.encoder_args['reuse'] = True            
-            self.z_r = c.encoder(self.x_r, **c.encoder_args)
+            #self.x_r = self.container['signal_transformed']            
+            #c.encoder_args['spn'] = False
+            #c.encoder_args['reuse'] = True            
+            #self.z_r = c.encoder(self.x_r, **c.encoder_args)
                         
-            c.decoder_args['scope'] = scope
-            c.decoder_args['reuse'] = False
+            #c.decoder_args['scope'] = scope
+            #c.decoder_args['reuse'] = False
             layer = c.decoder(self.z, **c.decoder_args)
             self.x_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
             
-            c.decoder_args['reuse'] = True
-            layer = c.decoder(self.z_r, **c.decoder_args)
-            self.x_r_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])
-                                    
-            self.shrinkage_loss = 0.01 * penalize_nn_of_two_embeddings(self.z, self.z_r)
+            #c.decoder_args['reuse'] = True
+            #layer = c.decoder(self.z_r, **c.decoder_args)
+            #self.x_r_reconstr = tf.reshape(layer, [-1, self.n_output[0], self.n_output[1]])       
+            #self.shrinkage_loss = 0.01 * penalize_nn_of_two_embeddings(self.z, self.z_r)
 
             if False:
                 if c.exists_and_is_not_none('close_with_tanh'):
@@ -111,7 +107,7 @@ class PointNetAutoEncoder(AutoEncoder):
         elif c.loss == 'chamfer':
             
             cost_p1_p2, _, cost_p2_p1, _ = nn_distance(self.x_reconstr, self.gt)
-            cost_p1_p2_, _, cost_p2_p1_, _ = nn_distance(self.x_r_reconstr, self.x_r)
+            #cost_p1_p2_, _, cost_p2_p1_, _ = nn_distance(self.x_r_reconstr, self.x_r)
             
             if c.exists_and_is_not_none('loss_reduction'):
                 if c.loss_reduction == 'log_sum_exp':
@@ -122,20 +118,16 @@ class PointNetAutoEncoder(AutoEncoder):
                     assert(False)
                 self.loss = tf.reduce_mean(self.loss)
             else:
-                # self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
-                
-                self.cost_p1_p2 = cost_p1_p2
-                
+                self.loss = tf.reduce_mean(cost_p1_p2) + tf.reduce_mean(cost_p2_p1)
+                #self.cost_p1_p2 = cost_p1_p2
                 #self.loss_1 = tf.reduce_mean(cost_p1_p2, axis=1) + tf.reduce_mean(cost_p2_p1, axis=1)
-                
-                self.loss_2 = tf.reduce_mean(cost_p1_p2_, axis=1) + tf.reduce_mean(cost_p2_p1_, axis=1)                                
+                #self.loss_2 = tf.reduce_mean(cost_p1_p2_, axis=1) + tf.reduce_mean(cost_p2_p1_, axis=1)                                
                 
                 #rel = self.loss_2 - self.loss_1
                 #rel = rel * tf.cast(rel > 0, tf.float32)
                 #self.rel = rel
                 #self.loss = self.loss_2 + rel
-                
-                self.loss = tf.reduce_mean(self.loss_2 )
+                #self.loss = tf.reduce_mean(self.loss_2 )
                 
                 
         elif c.loss == 'emd':
@@ -164,16 +156,16 @@ class PointNetAutoEncoder(AutoEncoder):
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.grads_and_vars = self.optimizer.compute_gradients(self.loss)    
         
-        sensing_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name+'/spn')
-        g_sr = tf.gradients(self.shrinkage_loss, sensing_vars)
+        #sensing_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name+'/spn')
+        #g_sr = tf.gradients(self.shrinkage_loss, sensing_vars)
 
-        for g, v in zip(g_sr, sensing_vars):
-            if g is not None:
-                self.grads_and_vars.append((g, v))
+        #for g, v in zip(g_sr, sensing_vars):
+            #if g is not None:
+                #self.grads_and_vars.append((g, v))
         
-        self.train_step = self.optimizer.apply_gradients(self.grads_and_vars)
+        #self.train_step = self.optimizer.apply_gradients(self.grads_and_vars)
         
-        #self.train_step = self.optimizer.minimize(self.loss)
+        self.train_step = self.optimizer.minimize(self.loss)
         
     def _single_epoch_train(self, train_data, configuration, only_fw=False):
         n_examples = train_data.num_examples
