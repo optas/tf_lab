@@ -2,6 +2,8 @@ import tensorflow as tf
 
 from trainer import Trainer
 
+print check
+
 class MultiGPUTrainer(Trainer) :
     def __init__(self, graph, inputs, labels, create_inference, optimizer, loss, gpus=[0], name="trainer") :
         with tf.device('/cpu:0'):
