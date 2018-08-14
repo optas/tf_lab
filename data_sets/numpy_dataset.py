@@ -218,3 +218,10 @@ class NumpyDataset(object):
         self.n_examples = int(np.sum(mask))
         assert(self.n_examples == len(self.__getattribute__(name)))
         return self
+    
+    def permute_tensors(self, permutation):
+        if np.any(sorted(permutation) != np.arange(self.n_examples)):
+            raise ValueError('Not proper permutation was given.')
+
+        for name in self.tensor_names:
+            self.__setattr__(name, self.__getattribute__(name)[permutation])

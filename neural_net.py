@@ -81,7 +81,7 @@ class Neural_Net_Conf(object):
         res = ''
         for i in index:
             if callable(vals[i]):
-                v = vals[i].__name__
+                v = vals[i].__name__ + ' # ' + vals[i].func_code.co_filename
             else:
                 v = str(vals[i])
             res += '%30s: %s\n' % (str(keys[i]), v)
@@ -91,7 +91,7 @@ class Neural_Net_Conf(object):
         pickle_data(file_name + '.pickle', self)
         with open(file_name + '.txt', 'w') as fout:
             fout.write(self.__str__())
-
+            
     @staticmethod
     def load(file_name):
         return unpickle_data(file_name + '.pickle').next()

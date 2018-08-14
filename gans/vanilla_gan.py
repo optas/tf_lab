@@ -25,7 +25,7 @@ class Vanilla_GAN(GAN):
 
         with tf.variable_scope(name):
 
-            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])         # Noise vector.
+            self.noise = tf.placeholder(tf.float32, shape=[None, noise_dim])    # Noise vector.
             self.gt = tf.placeholder(tf.float32, shape=[None] + self.n_output)  # Ground-truth.
 
             with tf.variable_scope('generator'):

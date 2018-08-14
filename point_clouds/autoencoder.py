@@ -17,22 +17,22 @@ from general_tools.simpletons import iterate_in_chunks
 
 from . in_out import apply_augmentations
 from .. neural_net import Neural_Net, Neural_Net_Conf
+from .. neural_net import MODEL_SAVER_ID
 
 
-model_saver_id = 'models.ckpt'
-
-
-class Configuration():
+class Configuration(Neural_Net_Conf):
+            
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
-                 training_epochs=200, batch_size=10, learning_rate=0.001, denoising=False,
+                 training_epochs=200, batch_size=10, learning_rate=0.001, is_denoising=False,
                  saver_step=None, train_dir=None, z_rotate=False, loss='l2', gauss_augment=None,
                  saver_max_to_keep=None, loss_display_step=1, spatial_trans=False, debug=False,
                  n_z=None, n_output=None, latent_vs_recon=1.0, consistent_io=None):
 
-
+        Neural_Net_Conf.__init__(self)
+        
         # Parameters for any AE
         self.n_input = n_input
-        self.is_denoising = denoising
+        self.is_denoising = is_denoising
         self.loss = loss.lower()
         self.decoder = decoder
         self.encoder = encoder
@@ -67,29 +67,7 @@ class Configuration():
     def exists_and_is_not_none(self, attribute):
         return hasattr(self, attribute) and getattr(self, attribute) is not None
 
-    def __str__(self):        
-        keys = list(iterkeys(self.__dict__))
-        vals = list(itervalues(self.__dict__))
-        index = np.argsort(keys)
-        res = ''
-        for i in index:
-            if callable(vals[i]):
-                v = vals[i].__name__
-            else:
-                v = str(vals[i])
-            res += '%30s: %s\n' % (str(keys[i]), v)
-        return res
-
-    def save(self, file_name):
-        pickle_data(file_name + '.pickle', self)
-        with open(file_name + '.txt', 'w') as fout:
-            fout.write(self.__str__())
-
-    @staticmethod
-    def load(file_name):
-        return unpickle_data(file_name + '.pickle').next()
-
-
+    
 class AutoEncoder(Neural_Net):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
     '''
@@ -191,7 +169,7 @@ class AutoEncoder(Neural_Net):
 
             # Save the models checkpoint periodically.
             if c.saver_step is not None and (epoch % c.saver_step == 0 or epoch - 1 == 0):
-                checkpoint_path = osp.join(c.train_dir, model_saver_id)
+                checkpoint_path = osp.join(c.train_dir, MODEL_SAVER_ID)
                 self.saver.save(self.sess, checkpoint_path, global_step=self.epoch)
 
             if c.exists_and_is_not_none('summary_step') and (epoch % c.summary_step == 0 or epoch - 1 == 0):
@@ -237,37 +215,7 @@ class AutoEncoder(Neural_Net):
             return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data), pre_aug
         else:
             return reconstructions, data_loss, np.squeeze(feed_data), ids, np.squeeze(original_data)
-
-    def evaluate_one_by_one(self, in_data, configuration):
-        '''Evaluates every data point separately to recover the loss on it. Thus, the batch_size = 1 making it
-        a slower than the 'evaluate' method.
-        '''
-
-        if self.is_denoising:
-            original_data, ids, feed_data = in_data.full_epoch_data(shuffle=False)
-            if feed_data is None:
-                feed_data = original_data
-            feed_data = apply_augmentations(feed_data, configuration)  # This is a new copy of the batch.
-        else:
-            original_data, ids, _ = in_data.full_epoch_data(shuffle=False)
-            feed_data = apply_augmentations(original_data, configuration)
-
-        n_examples = in_data.num_examples
-        assert(len(original_data) == n_examples)
-
-        feed_data = np.expand_dims(feed_data, 1)
-        original_data = np.expand_dims(original_data, 1)
-        reconstructions = np.zeros([n_examples] + self.n_output)
-        losses = np.zeros([n_examples])
-
-        for i in xrange(n_examples):
-            if self.is_denoising:
-                reconstructions[i], losses[i] = self.reconstruct(feed_data[i], original_data[i])
-            else:
-                reconstructions[i], losses[i] = self.reconstruct(feed_data[i])
-
-        return reconstructions, losses, np.squeeze(feed_data), ids, np.squeeze(original_data)
-
+    
     def embedding_at_tensor(self, dataset, conf, feed_original=True, apply_augmentation=False, tensor_name='bottleneck'):
         '''
         Observation: the NN-neighborhoods seem more reasonable when we do not apply the augmentation.
@@ -300,3 +248,15 @@ class AutoEncoder(Neural_Net):
 
         embedding = np.vstack(embedding)
         return feed, embedding, ids
+    
+    def get_latent_codes(self, pclouds, batch_size=100):
+        ''' Convenience wrapper of self.transform to get the latent (bottle-neck) codes for a set of input point 
+        clouds.
+        Args:
+            pclouds (N, K, 3) numpy array of N point clouds with K points each.
+        '''
+        latent_codes = []
+        idx = np.arange(len(pclouds))
+        for b in iterate_in_chunks(idx, batch_size):
+            latent_codes.append(self.transform(pclouds[b]))
+        return np.vstack(latent_codes)
