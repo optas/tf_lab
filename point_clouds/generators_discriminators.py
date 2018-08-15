@@ -42,6 +42,7 @@ def point_cloud_generator(z, pc_dims, layer_sizes=[64, 128, 512, 1024], non_line
     
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm)
     out_signal = non_linearity(out_signal)
+    
     if dropout_prob is not None:
         out_signal = dropout(out_signal, dropout_prob)
 
@@ -84,19 +85,19 @@ def latent_code_discriminator(in_singnal, layer_sizes=[64, 128, 256, 256, 512], 
     return d_prob, d_logit
 
 
-def latent_code_discriminator_two_layers(in_singnal, layer_sizes=[256, 512], b_norm=[False], non_linearity=tf.nn.relu, reuse=False, scope=None):
-    ''' used in nips submission.
+def latent_code_discriminator_two_layers(in_signal, layer_sizes=[256, 512], b_norm=[False], non_linearity=tf.nn.relu, reuse=False, scope=None):
+    ''' Used in ICML-2018 publication.
     '''
     layer_sizes = layer_sizes + [1]
-    d_logit = decoder_with_fc_only(in_singnal, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm, reuse=reuse, scope=scope)
+    d_logit = decoder_with_fc_only(in_signal, layer_sizes=layer_sizes, non_linearity=non_linearity, b_norm=b_norm, reuse=reuse, scope=scope)
     d_prob = tf.nn.sigmoid(d_logit)
     return d_prob, d_logit
 
 
 def latent_code_generator_two_layers(z, out_dim, layer_sizes=[128], b_norm=[False]):
-    ''' used in nips submission.
+    ''' Used in ICML-2018 publication.
     '''
     layer_sizes = layer_sizes + out_dim
     out_signal = decoder_with_fc_only(z, layer_sizes=layer_sizes, b_norm=b_norm)
-    out_signal = tf.nn.relu(out_signal)  # I could have added batch-norm before relu here.
+    out_signal = tf.nn.relu(out_signal)
     return out_signal

@@ -20,7 +20,7 @@ from .. neural_net import Neural_Net, Neural_Net_Conf
 from .. neural_net import MODEL_SAVER_ID
 
 
-class Configuration(Neural_Net_Conf):
+class Configuration():
             
     def __init__(self, n_input, encoder, decoder, encoder_args={}, decoder_args={},
                  training_epochs=200, batch_size=10, learning_rate=0.001, is_denoising=False,
@@ -28,7 +28,7 @@ class Configuration(Neural_Net_Conf):
                  saver_max_to_keep=None, loss_display_step=1, spatial_trans=False, debug=False,
                  n_z=None, n_output=None, latent_vs_recon=1.0, consistent_io=None):
 
-        Neural_Net_Conf.__init__(self)
+        #Neural_Net_Conf.__init__(self)
         
         # Parameters for any AE
         self.n_input = n_input
@@ -66,7 +66,28 @@ class Configuration(Neural_Net_Conf):
 
     def exists_and_is_not_none(self, attribute):
         return hasattr(self, attribute) and getattr(self, attribute) is not None
+    
+    def __str__(self):
+        keys = list(iterkeys(self.__dict__))
+        vals = list(itervalues(self.__dict__))
+        index = np.argsort(keys)
+        res = ''
+        for i in index:
+            if callable(vals[i]):
+                v = vals[i].__name__
+            else:
+                v = str(vals[i])
+            res += '%30s: %s\n' % (str(keys[i]), v)
+        return res
 
+    def save(self, file_name):
+        pickle_data(file_name + '.pickle', self)
+        with open(file_name + '.txt', 'w') as fout:
+            fout.write(self.__str__())
+            
+    @staticmethod
+    def load(file_name):
+        return unpickle_data(file_name + '.pickle').next()
     
 class AutoEncoder(Neural_Net):
     '''Basis class for a Neural Network that implements an Auto-Encoder in TensorFlow.
