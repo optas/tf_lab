@@ -142,7 +142,8 @@ class NumpyDataset(object):
             return False
 
         for name in self.tensor_names:
-            if not np.all(np.sort(self.__getattribute__(name)) == np.sort(other_dataset.__getattribute__(name))):
+            if not np.all(np.sort(self.__getattribute__(name), axis=0) ==\
+                          np.sort(other_dataset.__getattribute__(name), axis=0)):
                 return False
         return True
 
