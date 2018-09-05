@@ -89,6 +89,13 @@ class NumpyDataset(object):
         self.__setattr__(tensor_name, new_tensor)
         self.tensor_names.append(tensor_name)
         return self
+    
+    def delete_tensor(self, tensor_name):
+        if tensor_name not in self.tensor_names:
+            raise ValueError('Tensor with this name doesn\'t exists.')
+        delattr(self, tensor_name)        
+        self.tensor_names.remove(tensor_name)
+        return self
 
     def next_batch(self, batch_size, tensor_names=None, seed=None):
         '''Return the next batch_size examples from this data set.
