@@ -19,11 +19,16 @@ MODEL_SAVER_ID = 'models.ckpt'
 
 class Neural_Net(object):
 
-    def __init__(self, name, graph):
+    def __init__(self, name, graph, seed=None):
         if graph is None:
             graph = tf.get_default_graph()
+        
         self.graph = graph
         self.name = name
+        
+        if seed is not None:        
+            tf.set_random_seed(seed)
+            
         with self.graph.as_default():
             with tf.variable_scope(name):
                 with tf.device('/cpu:0'):
