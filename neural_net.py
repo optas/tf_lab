@@ -18,7 +18,7 @@ MODEL_SAVER_ID = 'models.ckpt'
 
 
 class Neural_Net(object):
-
+    
     def __init__(self, name, graph, seed=None):
         if graph is None:
             graph = tf.get_default_graph()
