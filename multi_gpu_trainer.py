@@ -21,7 +21,7 @@ class MultiGPUTrainer(Trainer) :
             total_losses = []
 
                             # Iterate over each GPU and perform a single feed-forward batch and compute loss and gradients to apply.   Each GPU
-                            # computation will occur in parallel with no inter-dependencies.
+            grads = self._average_gradients(tower_grads)
             for i in range(len(gpus)):
                 with tf.device('/gpu:%d' % gpus[i]):
                     with tf.name_scope('Tower_%d' % (i)) as scope:
@@ -48,7 +48,7 @@ class MultiGPUTrainer(Trainer) :
                         tower_grads.append(grads)
 
                             # Average the gradients across the towers.
-            grads = self._average_gradients(tower_grads)
+                            # computation will occur in parallel with no inter-dependencies.
 
                             # Apply the gradients to the trainable variables (backpropogate)
             self.training_operator = optimizer.operator.apply_gradients(grads, global_step=self.global_step)

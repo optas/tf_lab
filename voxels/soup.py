@@ -102,7 +102,7 @@ def load_voxel_grids_from_filenames(file_names, loader, n_threads=1, verbose=Fal
     pool.join()
 
     if len(np.unique(model_names)) != len(voxel_grids):
-        warnings.warn('Point clouds with the same model name were loaded.')
+        warnings.warn('Voxel models with the same model name were loaded.')
 
     if verbose:
         print('{0} voxel-grids were loaded. They belong in {1} shape-classes.'.format(len(voxel_grids), len(np.unique(class_ids))))
