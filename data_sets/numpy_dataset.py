@@ -103,6 +103,7 @@ class NumpyDataset(object):
         tensor_names: (list of strings, default=None) describes the names of the tensors that will be returned.
         If none, all tensors will be batched.
         '''
+        assert batch_size <= self.n_examples
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self.n_examples:
@@ -110,8 +111,7 @@ class NumpyDataset(object):
             self.shuffle_data(seed)
             # Start next epoch
             start = 0
-            self._index_in_epoch = batch_size
-            assert batch_size <= self.n_examples
+            self._index_in_epoch = batch_size            
         end = self._index_in_epoch
 
         ret_res = []

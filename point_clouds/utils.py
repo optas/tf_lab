@@ -40,7 +40,7 @@ def pdist(A, B, epsilon=10e-9):
         B (batch_size x N x D)
     Returns (batch_size x M x N) dists
     '''
-    warn('Fix the diagonal elementas when A equals B.')
+    warn('Fix the diagonal elements when A equals B since sqrt 0 had no grad.')
     a_norms = tf.reduce_sum(tf.square(A), axis=-1, keep_dims=True)
     b_norms = tf.reduce_sum(tf.square(B), axis=-1, keep_dims=True)
     b_norms = tf.transpose(b_norms, [0, 2, 1])
