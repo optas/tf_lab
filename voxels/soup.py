@@ -24,9 +24,14 @@ from .. in_out.basics import Data_Splitter
 from .. data_sets.numpy_dataset import NumpyDataset
 from .. data_sets.shape_net import snc_category_to_synth_id
 
+# AT ICML you used another older version of below.
+# marching_cubes = measure.marching_cubes_lewiner
+marching_cubes = measure.marching_cubes_classic
+
+
 
 def plot_isosurface(voxel_grid, iso_val=0):
-    verts, faces, _, _ = measure.marching_cubes(voxel_grid, iso_val)
+    verts, faces, _, _ = marching_cubes(voxel_grid, iso_val)
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_subplot(111, projection='3d')
     # Fancy indexing: `verts[faces]` to generate a collection of triangles
@@ -51,9 +56,9 @@ def uniform_sampling_of_voxels(voxels_grids, n_points, iso_value, normalize=True
         max_g_val = np.max(voxels_grids[i])
         if max_g_val < iso_value:
             warnings.warn('iso_value bigger than max voxel_grid value.')
-            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], max_g_val / alter_iso)
+            verts, faces, _, _ = marching_cubes(voxels_grids[i], max_g_val / alter_iso)
         else:
-            verts, faces, _, _ = measure.marching_cubes(voxels_grids[i], iso_value)
+            verts, faces, _, _ = marching_cubes(voxels_grids[i], iso_value)
         recon_mesh = Mesh(vertices=verts, triangles=faces)
 
         if only_lcc:
