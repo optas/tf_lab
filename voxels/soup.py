@@ -114,7 +114,7 @@ def load_voxel_grids_from_filenames(file_names, loader, n_threads=1, verbose=Fal
         print('{0} voxel-grids were loaded. They belong in {1} shape-classes.'.format(len(voxel_grids), n_classes))
 
     return voxel_grids, model_names, class_ids
-TEST
+
 
 def read_shape_net_bin_vox(binvox_filename):
     tokens = binvox_filename.split('/')
