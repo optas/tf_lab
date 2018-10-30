@@ -28,8 +28,6 @@ from .. data_sets.shape_net import snc_category_to_synth_id
 marching_cubes = measure.marching_cubes_lewiner
 # marching_cubes = measure.marching_cubes_classic
 
-
-
 def plot_isosurface(voxel_grid, iso_val=0):
     verts, faces, _, _ = marching_cubes(voxel_grid, iso_val)
     fig = plt.figure(figsize=(5, 5))
@@ -78,7 +76,8 @@ def upsample_voxel_grid(in_grid, order=1):
     return zoom(in_grid, 2, prefilter=True, order=order)
 
 
-def read_bin_vox_file(binvox_filename, perm_axis=(0, 1, 2), expand_last_dim=True, dtype=np.float32):
+def read_bin_vox_file(binvox_filename, perm_axis=(0, 1, 2), 
+                      expand_last_dim=True, dtype=np.float32):
     with open(binvox_filename, 'rb') as f:
         vol = read_as_3d_array(f)
 
@@ -105,12 +104,14 @@ def load_voxel_grids_from_filenames(file_names, loader, n_threads=1, verbose=Fal
 
     pool.close()
     pool.join()
-
-    if len(np.unique(model_names)) != len(voxel_grids):
-        warnings.warn('Voxel models with the same model name were loaded.')
+    
+    n_classes = len(np.unique(class_ids))
+    if n_classes == 1:
+        if len(np.unique(model_names)) != len(voxel_grids):
+            warnings.warn('Voxel models with the same model name were loaded.')
 
     if verbose:
-        print('{0} voxel-grids were loaded. They belong in {1} shape-classes.'.format(len(voxel_grids), len(np.unique(class_ids))))
+        print('{0} voxel-grids were loaded. They belong in {1} shape-classes.'.format(len(voxel_grids), n_classes))
 
     return voxel_grids, model_names, class_ids
 
