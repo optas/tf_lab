@@ -14,8 +14,7 @@ from .. neural_net import Neural_Net
 
 class Generic_CLF(Neural_Net):
 
-    def __init__(self, name, in_signal, in_labels, logits, 
-                 learning_rate=0.0, 
+    def __init__(self, name, in_signal, in_labels, logits,                 
                  dataset_pl_names=['in_signal', 'in_labels'],
                  graph=None):
 
@@ -26,24 +25,25 @@ class Generic_CLF(Neural_Net):
         self.dataset_map[self.x] = dataset_pl_names[0]
         self.gt = in_labels        
         self.dataset_map[self.gt] = dataset_pl_names[1]
-        
         self.logits = logits
-        self.prediction = tf.argmax(self.logits, axis=1)
-        self.correct_pred = tf.equal(self.prediction, tf.cast(self.gt, tf.int64))
-        self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
-        self._add_loss_and_optimizer(learning_rate)
         
-        # Initializing the tensor flow variables
-        self.init = tf.global_variables_initializer()
+        with self.graph.as_default():
+            with tf.variable_scope(name):
+                self.prediction = tf.argmax(self.logits, axis=1)
+                self.correct_pred = tf.equal(self.prediction, tf.cast(self.gt, tf.int64))
+                self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
+                self._add_loss_and_optimizer()                
+                self.model_vars = [g for g in tf.global_variables() if g.name.startswith(name)]
+                self.init = tf.variables_initializer(self.model_vars)
+                
+                # Launch a session
+                config = tf.ConfigProto()
+                config.gpu_options.allow_growth = True
+                self.sess = tf.Session(config=config)
+                self.sess.run(self.init)
 
-        # Launch a session
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
-        self.sess.run(self.init)
-
-    def _add_loss_and_optimizer(self, learning_rate):
-        self.lr = tf.get_variable('learning_rate', trainable=False, initializer=learning_rate)
+    def _add_loss_and_optimizer(self):
+        self.lr = tf.get_variable('learning_rate', trainable=False, shape=())
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.gt)
         self.loss = tf.reduce_mean(loss)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.loss)
@@ -59,18 +59,20 @@ class Generic_CLF(Neural_Net):
         epoch_loss = 0.
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
-        try:
-            is_training(True, session=self.sess)
-            # Loop over all batches
-            for _ in xrange(n_batches):
-                batch_i, labels = train_data.next_batch(batch_size)
-                loss = self.partial_fit(batch_i, labels)                
-                epoch_loss += loss
-            is_training(False, session=self.sess)
-        except Exception:
-            raise
-        finally:
-            is_training(False, session=self.sess)
+        
+        with self.graph.as_default():
+            try:            
+                is_training(True, session=self.sess)
+                # Loop over all batches
+                for _ in xrange(n_batches):
+                    batch_i, labels = train_data.next_batch(batch_size)
+                    loss = self.partial_fit(batch_i, labels)                
+                    epoch_loss += loss
+                is_training(False, session=self.sess)
+            except Exception:
+                raise
+            finally:
+                is_training(False, session=self.sess)
         epoch_loss /= n_batches
         duration = time.time() - start_time
         return epoch_loss, duration
