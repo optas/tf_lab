@@ -4,16 +4,15 @@ Created on Feb 12, 2018
 @author: optas
 '''
 
-import time
-import numpy as np
 import tensorflow as tf
+import numpy as np
+import time
 from tflearn import is_training
-
 from general_tools.simpletons import iterate_in_chunks
 from .. neural_net import Neural_Net
 
 
-class General_CLF(Neural_Net):
+class Generic_CLF(Neural_Net):
 
     def __init__(self, name, in_signal, in_labels, logits, 
                  learning_rate=0.0, 
@@ -32,7 +31,7 @@ class General_CLF(Neural_Net):
         self.prediction = tf.argmax(self.logits, axis=1)
         self.correct_pred = tf.equal(self.prediction, tf.cast(self.gt, tf.int64))
         self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
-        self.create_loss_optimizer(learning_rate)
+        self._add_loss_and_optimizer(learning_rate)
         
         # Initializing the tensor flow variables
         self.init = tf.global_variables_initializer()
@@ -43,7 +42,7 @@ class General_CLF(Neural_Net):
         self.sess = tf.Session(config=config)
         self.sess.run(self.init)
 
-    def create_loss_optimizer(self, learning_rate):
+    def _add_loss_and_optimizer(self, learning_rate):
         self.lr = tf.get_variable('learning_rate', trainable=False, initializer=learning_rate)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.gt)
         self.loss = tf.reduce_mean(loss)
@@ -85,13 +84,20 @@ class General_CLF(Neural_Net):
             yield feed_dict, b
         
         
-    def evaluate_on_data(net, eval_tensors, dataset, batch_size=None):
+    def evaluate_on_data(self, eval_tensors, dataset, batch_size=None):
         if batch_size is None:
             batch_size = dataset.n_examples
         res = []
         idx = []
-        for feed, k in feed_dataset(net, dataset, batch_size):
-            r = net.sess.run(eval_tensors, feed)
+        for feed, k in self.feed_dataset(dataset, batch_size):
+            r = self.sess.run(eval_tensors, feed)
             res.append(r)
             idx.append(k)
         return res, idx
+    
+    def report_clf_accuracy(self, dataset, batch_size=None):        
+        scores, b_sizes = self.evaluate_on_data(self.avg_accuracy, dataset, batch_size=batch_size)
+        total_acc = 0.0
+        for s, b in zip(scores, b_sizes):
+            total_acc += (s * len(b))        
+        return total_acc / dataset.n_examples
