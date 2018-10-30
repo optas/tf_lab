@@ -25,8 +25,8 @@ from .. data_sets.numpy_dataset import NumpyDataset
 from .. data_sets.shape_net import snc_category_to_synth_id
 
 # AT ICML you used another older version of below.
-# marching_cubes = measure.marching_cubes_lewiner
-marching_cubes = measure.marching_cubes_classic
+marching_cubes = measure.marching_cubes_lewiner
+# marching_cubes = measure.marching_cubes_classic
 
 
 
