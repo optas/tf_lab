@@ -61,7 +61,7 @@ class Generic_CLF(Neural_Net):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         
-        with self.graph.as_default():
+        with self.graph.as_default():            
             try:            
                 is_training(True, session=self.sess)
                 # Loop over all batches
