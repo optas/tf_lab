@@ -34,39 +34,31 @@ def _prepare_io(data_top_dir, out_top_dir, synth_id, boot_n):
     return segs_top_dir, points_top_dir, original_density_dir, bstrapped_out_dir
 
 
-# def eric_annotated(data_top_dir, out_top_dir, synth_id, boot_n=2048, dtype=np.float32):
-#     ''' Writes out point clouds with a segmentation mask according to Eric's annotation.
-#     The point clouds are 1) the original point clouds that Eric sampled  2) a bootstrapped version of them.
-#     '''
-# 
-#     segs_top_dir, points_top_dir, original_density_dir, bstrapped_out_dir = _prepare_io(data_top_dir, out_top_dir, synth_id, boot_n)
-# 
-#     erics_seg_extension = '.seg'      # Extensions Eric used.
-#     erics_points_extension = '.pts'
-# 
-#     for file_name in glob.glob(osp.join(segs_top_dir, '*' + erics_seg_extension)):
-#         model_name = osp.basename(file_name)[:-len(erics_seg_extension)]
-#         pt_file = osp.join(points_top_dir, model_name + erics_points_extension)
-#         points = load_crude_point_cloud(pt_file, permute=[0, 2, 1])
-#         n_points = points.shape[0]
-# 
-#         pc = Point_Cloud(points=points.astype(dtype))
-# #         pc = pc.center_in_unit_sphere()
-#         pc, lex_index = pc.lex_sort()
-# 
-#         gt_seg = np.loadtxt(file_name, dtype=np.float32)
-#         gt_seg = gt_seg[lex_index]
-#         gt_seg = gt_seg.reshape((n_points, 1))
-#         seg_ids = np.unique(gt_seg)
-#         if seg_ids[0] == 0:
-#             seg_ids = seg_ids[1:]   # Zero is not a real segment.
-# 
-#         header_str = 'erics-annotated_segs\nseg_ids=%s' % (str(seg_ids.astype(np.int)).strip('[]'))
-#         out_data = np.hstack((pc.points, gt_seg))
-#         out_file = osp.join(original_density_dir, model_name + segs_ext)
-#         np.savetxt(out_file, out_data, header=header_str)
-#         boot_strap_lines_of_file(out_file, boot_n, osp.join(bstrapped_out_dir, model_name + segs_ext), skip_rows=2)
+def eric_original_density(eric_top_dir, out_top_dir, synth_id, dtype=np.float32, permute=[0, 2, 1]):
+    ''' Writes out point clouds with a segmentation mask according to Eric's annotation.
+    The point clouds are the original point clouds that Eric sampled, no normalization, neither
+    density control is performed'''
+    
+    points_top_dir = osp.join(eric_top_dir, synth_id, 'points')
+    segs_top_dir = osp.join(eric_top_dir, synth_id, 'expert_verified', 'points_label')
 
+    no_part = 0 # a segmentation mask equal to zero, should be ignored.
+    
+    for file_name in glob.glob(osp.join(segs_top_dir, '*' + erics_seg_extension)):
+        model_name = osp.basename(file_name)[:-len(erics_seg_extension)]
+        pt_file = osp.join(points_top_dir, model_name + erics_points_extension)
+        points = load_crude_point_cloud(pt_file, permute=permute).astype(dtype)
+        gt_seg = np.loadtxt(file_name, dtype=dtype)
+        if len(gt_seg) != len(points):
+            raise ValueError('Segmentation mask has different length than the points.')
+
+        good_points = gt_seg > 0
+        points = points[good_points]
+        gt_seg = np.expand_dims(gt_seg[good_points], 1)
+        out_data = np.hstack((points, gt_seg))
+        out_file = osp.join(original_density_dir, model_name)
+        np.save(out_file, out_data)    
+    
 
 def equisample_parts_via_bootstrap(data_top_dir, out_top_dir, synth_id, n_samples=2048, dtype=np.float32):
     ''' For each object in the synth_id extract the parts and bootstrap them into point-clouds with n_samples each.
@@ -79,6 +71,7 @@ def equisample_parts_via_bootstrap(data_top_dir, out_top_dir, synth_id, n_sample
         points = load_crude_point_cloud(pt_file, permute=[0, 2, 1], dtype=dtype)
         gt_seg = np.loadtxt(file_name, dtype=np.float32)
         seg_ids = np.unique(gt_seg)
+        
         if seg_ids[0] == 0:
             seg_ids = seg_ids[1:]   # Zero is not a real segment.
 
