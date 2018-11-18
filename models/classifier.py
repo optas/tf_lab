@@ -33,6 +33,9 @@ class Generic_CLF(Neural_Net):
                 self.correct_pred = tf.equal(self.prediction, tf.cast(self.gt, tf.int64))
                 self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
                 self.probabilities = tf.nn.softmax(self.logits)
+                max_logit = tf.reduce_max(self.logits, axis=-1)
+                self.saliency = tf.reduce_sum(tf.abs(tf.gradients(max_logit, self.x)[0]), -1)
+
                 self._add_loss_and_optimizer()                
                 self.model_vars = [g for g in tf.global_variables() if g.name.startswith(name)]
                 self.init = tf.variables_initializer(self.model_vars)
