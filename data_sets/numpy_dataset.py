@@ -9,6 +9,8 @@ import string
 import copy
 from six.moves import xrange
 
+from general_tools.simpletons import iterate_in_chunks
+
 
 def _all_tensors_have_same_rows(tensor_list):
     n = tensor_list[0].shape[0]
@@ -153,9 +155,35 @@ class NumpyDataset(object):
                           np.sort(other_dataset.__getattribute__(name), axis=0)):
                 return False
         return True
-
+    
+    def epoch_iterator(self, batch_size, tensor_names=None):
+        ''' Returns an iterator all tensors, or those specified in tensor_names, 
+        in chunks of batch_size (with the exception of the last one which can be smaller.)
+        doesn't use/effect any randomization.
+        '''
+        if tensor_names is not None:
+            tensors_to_look = tensor_names
+        else:
+            tensors_to_look = self.tensor_names     # I.e. use all of them.
+        
+        n_tensors = len(tensors_to_look)
+    
+        for chunk in iterate_in_chunks(np.arange(self.n_examples), batch_size):
+            ret_res = []
+            
+            for name in tensors_to_look:
+                ret_res.append(self.__getattribute__(name)[chunk])
+            
+            if n_tensors == 1:
+                yield ret_res[0]
+            else:
+                yield ret_res
+        
+    
     def all_data(self, shuffle=True, seed=None):
-        '''Returns a copy of the examples of the entire data set (i.e. an epoch's data), shuffled.
+        '''Returns a copy of the examples of the entire 
+        data set (i.e. an epoch's data), shuffled.
+        DEPRECATED.
         '''
 
         if shuffle and seed is not None:
