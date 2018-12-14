@@ -13,19 +13,16 @@ from .. neural_net import Neural_Net
 
 
 class Generic_CLF(Neural_Net):
-
+    
     def __init__(self, name, in_signal, in_labels, logits,                 
                  dataset_pl_names=['in_signal', 'in_labels'],
                  graph=None):
 
         Neural_Net.__init__(self, name, graph)
-        
-        self.dataset_map = dict()
-        self.x = in_signal
-        self.dataset_map[self.x] = dataset_pl_names[0]
-        self.gt = in_labels        
-        self.dataset_map[self.gt] = dataset_pl_names[1]
+        self.x = in_signal        
+        self.gt = in_labels                
         self.logits = logits
+        self._register_dataset(dataset_pl_names)
         
         with self.graph.as_default():
             with tf.variable_scope(name):
@@ -45,7 +42,14 @@ class Generic_CLF(Neural_Net):
                 config.gpu_options.allow_growth = True
                 self.sess = tf.Session(config=config)
                 self.sess.run(self.init)
-
+    
+    def _register_dataset(self, dataset_pl_names):
+        names = dataset_pl_names
+        self.dataset_map = dict()
+        self.dataset_map[self.x] = names[0]  # where to find input datum
+        self.dataset_map[self.gt] = names[1] # where to find input label
+        self.dataset_tensor_names = [names[0], names[1]] 
+        
     def _add_loss_and_optimizer(self):
         self.lr = tf.get_variable('learning_rate', trainable=False, shape=())
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.gt)
@@ -64,12 +68,12 @@ class Generic_CLF(Neural_Net):
         n_batches = int(n_examples / batch_size)
         start_time = time.time()
         
-        with self.graph.as_default():            
+        with self.graph.as_default():
             try:            
                 is_training(True, session=self.sess)
                 # Loop over all batches
                 for _ in xrange(n_batches):
-                    batch_i, labels = train_data.next_batch(batch_size)
+                    batch_i, labels = train_data.next_batch(batch_size, self.dataset_tensor_names)
                     loss = self.partial_fit(batch_i, labels)                
                     epoch_loss += loss
                 is_training(False, session=self.sess)

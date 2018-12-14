@@ -202,7 +202,15 @@ class NumpyDataset(object):
         self.epochs_completed = 0
 
         for name in self.tensor_names:
-            merged_prop = np.vstack([self.__getattribute__(name), other_data_set.__getattribute__(name)])
+            p_self = self.__getattribute__(name)
+            p_other = other_data_set.__getattribute__(name)
+            
+            if p_self.ndim == 1:
+                merger = np.hstack
+            else:
+                merger = np.vstack
+            
+            merged_prop = merger([p_self, p_other])
             self.__setattr__(name, merged_prop)
 
         self.n_examples = self.n_examples + other_data_set.n_examples
