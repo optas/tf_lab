@@ -1,6 +1,8 @@
 '''
 Wrapping VGG (Image-CNN).
 VGG paper for more details: https://arxiv.org/pdf/1409.1556.pdf
+Pre-processing:
+https://github.com/tensorflow/models/blob/master/research/slim/preprocessing/vgg_preprocessing.py
 '''
 
 import tensorflow as tf
@@ -16,21 +18,12 @@ from .. data_sets.image_net import mean_rgb as img_net_rgb
  
  
 # 1. What happens when you use the tf.variable_scope twice in __init__? 
-#
+# 2. Model-variables.
 #
 
-class VGG_Dataset():
-    def __init__(self, input_dims=[224, 224, 3], 
-                 input_dtype=tf.float32, name='vgg_16', graph=None):
-        
-        self.img_pl = tf.placeholder(input_dtype, [None] + input_dims, 'img_pl')
-        self.label_pl = tf.placeholder(tf.int32, [None], 'label_pl')
-        
-        
-        
 class VGG_Net(Neural_Net):    
     
-    imagenet_rgb = img_net_rgb # Tensorflow-official model was trained with image_net.
+    imagenet_rgb = img_net_rgb # Tensorflow's-official model was trained with image_net.
         
     def __init__(self, in_img, in_label, vgg_type=16, n_classes=1000, name='vgg_16', graph=None):
         
@@ -38,7 +31,7 @@ class VGG_Net(Neural_Net):
         
         with self.graph.as_default():
             # Add the basic building blocks of  the network in the graph.
-            with tf.variable_scope(name) as scope:                
+            with tf.variable_scope(name) as scope:
                 net_builder = select_vgg_type(vgg_type)
                 self.in_img = in_img
                 self.in_label = in_label
@@ -50,14 +43,42 @@ class VGG_Net(Neural_Net):
     
             with slim.arg_scope(vgg.vgg_arg_scope(weight_decay=self.weight_decay)):            
                 self.logits, self.end_points = net_builder(self.in_img, 
-                                                           num_classes=n_classes, 
+                                                           num_classes=n_classes,
                                                            is_training=self.is_training,
                                                            dropout_keep_prob=self.dropout_keep_prob,
                                                            scope=scope)
     
+    
+    def make_pre_trained_var_init(self, checkpoint, include=None, exclude=None):
+        self.pre_trained_vars = tf.contrib.framework.get_variables_to_restore(include=include, exclude=exclude)
+        # Calling function `self.init_pretrain(sess)` will load all the pre-trained weights.
+        self.init_pretrain = tf.contrib.framework.assign_from_checkpoint_fn(checkpoint, self.pre_trained_vars)
+        
+    def make_fine_tune_var_init(self, var_names=[]):
+        var_list = []
+        for name in var_names:
+            var_list.extend(tf.contrib.framework.get_variables(name))
+        
+        self.ft_vars = var_list
+        self.init_finetune = tf.variables_initializer(self.ft_vars)
+    
+    def add_x_entropy_loss(self):
+        # Using tf.losses, any loss is added to the tf.GraphKeys.LOSSES collection        
+        tf.losses.sparse_softmax_cross_entropy(labels=self.in_label, logits=self.logits)
+        # We can then call the total loss easily (it adds all tf.GraphKeys.LOSSES)
+        self.loss = tf.losses.get_total_loss()
+    
+    def create_optimizer(self, full_lr, ft_lr=0):
+        if len(self.ft_vars) > 0:
+            self.ft_optimizer = tf.train.GradientDescentOptimizer(ft_lr)
+            self.ft_train_step = self.ft_optimizer.minimize(self.loss, var_list=self.ft_vars)
+                
+        self.full_optimizer = tf.train.GradientDescentOptimizer(full_lr)
+        self.full_train_step = self.full_optimizer.minimize(self.loss)
+                        
     def add_standard_clf_ops(self):
         self.prediction = tf.to_int32(tf.argmax(self.logits, 1))
-        self.correct_prediction = tf.equal(self.prediction, self.label_pl)
+        self.correct_prediction = tf.equal(self.prediction, self.in_label)
         self.avg_accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         self.probabilities = tf.nn.softmax(self.logits)
     
@@ -71,53 +92,112 @@ class VGG_Net(Neural_Net):
             saliency /= norms
         self.saliency = saliency
         
-    def restore_pre_trained_variables(self, checkpoint, include=None, exclude=None):
-        variables_to_restore = tf.contrib.framework.get_variables_to_restore(include=include, exclude=exclude)
-        # Calling function `self.init_pretrain(sess)` will load all the pre-trained weights.
-        self.init_pretrain = tf.contrib.framework.assign_from_checkpoint_fn(checkpoint, variables_to_restore)    
         
-    def evaluate_tensor(self, in_img, in_label, tensor):
+    def evaluate_tensor(self, tensor, in_img=None, in_label=None):
         ''' in_img, in_label = some_iterator.next()
         '''
         result = []
+        
+        if in_img is not None or in_label is not None:
+            raise ValueError('Initialize the vgg-data-iterator with your data! or make anotehr method' )
+            
         while True:
             try:
-                feed_dict = {self.in_img: in_img, self.in_labels: in_label}
-                res = self.sess.run(tensor, feed_dict)
+                feed_dict = {}
+                
+#                 if in_img is not None:
+#                     feed_dict[self.in_img] = in_img
+                
+#                 if in_label is not None:
+#                     feed_dict[self.in_label] = in_label
+                
+                res = self.sess.run(tensor, feed_dict)                
                 result.append(res)
             except tf.errors.OutOfRangeError:
                 break
-        result = np.vstack(result)
+        try:
+            result = np.vstack(result)
+        except:
+            result = np.hstack(result)
+        
         return result
 
-    def extract_features(self, in_img, in_label, end_point='vgg_16/fc7'):
+    def extract_features(self, in_img=None, in_label=None, end_point='vgg_16/fc7'):
         feat_layer = self.end_points[end_point]
-        result = self.evaluate_tensor(self, in_img, in_label, feat_layer)
+        result = self.evaluate_tensor(feat_layer, in_img, in_label)
         result = np.squeeze(result).astype(np.float32)
         return result
     
+    def clf_accuracy(self):
+        num_correct, num_samples = 0, 0
+        while True:
+            try:
+                correct_pred = self.sess.run(self.correct_prediction, {self.is_training: False})
+                num_correct += correct_pred.sum()
+                num_samples += correct_pred.shape[0]
+            except tf.errors.OutOfRangeError:
+                break
+        # Return the fraction of datapoints that were correctly classified
+        acc = float(num_correct) / num_samples
+        return acc
+        
+    def train_ft(self, n_epochs, train_iter_init):
+        for epoch in range(n_epochs):
+            # Run an epoch over the training data.
+            print('Starting epoch %d / %d' % (epoch + 1, n_epochs))
+            # Here we initialize the iterator with the training set.
+            # This means that we can go through an entire epoch until the iterator becomes empty.   
+            self.sess.run(train_iter_init)
+            while True:
+                try:
+                    self.sess.run(self.ft_train_step, {self.is_training: True})
+                except tf.errors.OutOfRangeError:
+                    break
+            
+            # Check accuracy on the train sets every epoch.
+            self.sess.run(train_iter_init)
+            train_acc = self.clf_accuracy()
+            print('Train accuracy: %f' % train_acc)           
+            
+    def train_all(self, n_epochs, train_iter_init):
+        for epoch in range(n_epochs):
+            print('Starting epoch %d / %d' % (epoch + 1, n_epochs))
+            self.sess.run(train_iter_init)
+            while True:
+                try:
+                    self.sess.run(self.full_train_step, {self.is_training: True})
+                except tf.errors.OutOfRangeError:
+                    break
+            
+            # Check accuracy on the train sets every epoch.
+            self.sess.run(train_iter_init)
+            train_acc = self.clf_accuracy()
+            print('Train accuracy: %f' % train_acc)
+            
     
 def make_dataset_from_filenames(img_files, img_labels, batch_size, image_loader, 
                                 preprocess_func=None,
-                                shuffle=False, img_channels=3, shuffle_buffer=10000):
-    
+                                shuffle=False, img_channels=3, num_parallel_calls=6, shuffle_buffer=10000):
+    '''
+    TODO: read effect of shuffle_buffer size.
+    '''
     filenames = tf.constant(img_files)
     labels = tf.constant(img_labels)
     dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    parse_func = image_loader
-    dataset = dataset.map(parse_func)
     
-    if preprocess_func is not None:
-        dataset = dataset.map(preprocess_func)
-        
     if shuffle:
         dataset = dataset.shuffle(buffer_size=shuffle_buffer)
+
+    dataset = dataset.map(image_loader, num_parallel_calls=num_parallel_calls)
+    
+    if preprocess_func is not None:
+        dataset = dataset.map(preprocess_func, num_parallel_calls=num_parallel_calls)
         
     dataset = dataset.batch(batch_size)
-    iterator = tf.data.Iterator.from_structure(dataset.output_types, dataset.output_shapes)
-    return dataset, iterator
-    
+    dataset = dataset.prefetch(batch_size)
+    return dataset
 
+    
 def select_vgg_type(vgg_type):
     if vgg_type == 16:
         net = vgg.vgg_16
@@ -128,33 +208,8 @@ def select_vgg_type(vgg_type):
     return net
 
 
-
-def traditional_vgg_image_scale(image, smallest_side=256.0):
-    ''' Input transformation applied in all image-net images.
-    '''
-    height, width = tf.shape(image)[0], tf.shape(image)[1]
-    height = tf.to_float(height)
-    width = tf.to_float(width)
-
-    scale = tf.cond(tf.greater(height, width),
-                    lambda: smallest_side / width,
-                    lambda: smallest_side / height)
-    new_height = tf.to_int32(height * scale)
-    new_width = tf.to_int32(width * scale)
-
-    resized_image = tf.image.resize_images(image, [new_height, new_width])
-    return resized_image
-
-
-def load_image_from_drive(image_file, label, channels=3, traditional_vgg_scaling=False):
-    '''
-    Standard preprocessing for VGG on ImageNet taken from here:
-        # https://github.com/tensorflow/models/blob/master/research/slim/preprocessing/vgg_preprocessing.py        
-        # Preprocessing (for both training and validation):
-        # (1) Decode the image from PNG format
-        # (2) Resize the image so its smaller side is 256 pixels long
-        
-    We apply (2) if `traditional_vgg_scaling` is True.
+def load_image_from_drive(image_file, label, channels=3):
+    '''Decode the image from PNG format.
     '''
     
     image_string = tf.read_file(image_file)   
@@ -166,18 +221,17 @@ def load_image_from_drive(image_file, label, channels=3, traditional_vgg_scaling
     image = tf.cast(image_decoded, tf.float32)
     if channels == 1: # input image is gray-scale, turn to pseudo-RGB        
         image = tf.tile(image, [1, 1, 3])
-        
-    if traditional_vgg_scaling:
-        image = traditional_vgg_image_scale(image)
-        
+                
     return image, label
-
 
 
 def preprocess_image(image, label, subtract_mean=True, crop=None, 
                      horizontal_flip=False,
-                     random_crop=False):
+                     random_crop=False, rescaler=None):
     
+    if rescaler is not None:
+        image = rescaler(image)
+        
     if crop is not None:
         if random_crop:
             image = tf.random_crop(image, [crop[0], crop[1], 3])
@@ -192,23 +246,37 @@ def preprocess_image(image, label, subtract_mean=True, crop=None,
         image -= means
         
     return image, label
- 
 
-
-def traditional_vgg_preprocess_func(training=True):
     
-    ''' If training:
-        (1) Take a random 224x224 crop to the scaled image
-        (2) Horizontally flip the image with probability 1/2
-        (3) Subtract the per color mean `img_net` mean        
+def standard_vgg_preprocess_func(training=True):
+    ''' Standard preprocessing for VGG on ImageNet taken from here:
+    https://github.com/tensorflow/models/blob/master/research/slim/preprocessing/vgg_preprocessing.py  
+    
+    If training:
+        (1) Resize the image so its smaller side is 256 pixels long
+        (2) Take a random 224x224 crop of the scaled image
+        (3) Horizontally flip the image with probability 1/2
+        (4) Subtract the per color mean `img_net` mean
     '''
+    rescaler = standard_vgg_image_scale
     if training:
-        return partial(preprocess_image, subtract_mean=True, crop=[224, 224], horizontal_flip=True, random_crop=True)    
+        return partial(preprocess_image, subtract_mean=True, crop=[224, 224], horizontal_flip=True, random_crop=True, rescaler=rescaler)
     else:
         return partial(preprocess_image, subtract_mean=True, crop=[224, 224], horizontal_flip=False, random_crop=False)
-        
+
     
-    
-    
-    
-     
+def standard_vgg_image_scale(image, smallest_side=256.0):
+    ''' Input transformation applied in all image-net images.
+    '''
+    height, width = tf.shape(image)[0], tf.shape(image)[1]
+    height = tf.to_float(height)
+    width = tf.to_float(width)
+
+    scale = tf.cond(tf.greater(height, width),
+                    lambda: smallest_side / width,
+                    lambda: smallest_side / height)
+    new_height = tf.to_int32(height * scale)
+    new_width = tf.to_int32(width * scale)
+
+    resized_image = tf.image.resize_images(image, [new_height, new_width])
+    return resized_image
