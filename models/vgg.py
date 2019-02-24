@@ -12,7 +12,8 @@ from functools import partial
 import tensorflow.contrib.slim as slim
 from tensorflow.contrib.slim.python.slim.nets import vgg
 
-
+from general_tools.simpletons import iterate_in_chunks
+        
 from .. neural_net import Neural_Net
 from .. data_sets.image_net import mean_rgb as img_net_rgb
  
@@ -91,27 +92,29 @@ class VGG_Net(Neural_Net):
             norms = tf.reduce_sum(saliency, [1, 2], keep_dims=True) + 10e-12
             saliency /= norms
         self.saliency = saliency
-        
-        
-    def evaluate_tensor(self, tensor, in_img=None, in_label=None):
+            
+    def evaluate_tensor_with_placeholders(self, tensor, in_img, in_label=None, batch_size=128):
+        ''' TODO:make a tf.dataset from the placeholders'''
+        result = []
+        for b in iterate_in_chunks(np.arange(len(in_img)), batch_size):
+            feed_dict = {self.in_img: in_img[b]} # Copying can be replaced with view. 
+            if in_label is not None:
+                feed_dict[self.in_label] = in_label[b]
+            res = self.sess.run(tensor, feed_dict)
+            result.append(res)
+        try:
+            result = np.vstack(result)
+        except:
+            result = np.hstack(result)
+        return result
+    
+    def evaluate_tensor(self, tensor):
         ''' in_img, in_label = some_iterator.next()
         '''
-        result = []
-        
-        if in_img is not None or in_label is not None:
-            raise ValueError('Initialize the vgg-data-iterator with your data! or make anotehr method' )
-            
+        result = []       
         while True:
             try:
-                feed_dict = {}
-                
-#                 if in_img is not None:
-#                     feed_dict[self.in_img] = in_img
-                
-#                 if in_label is not None:
-#                     feed_dict[self.in_label] = in_label
-                
-                res = self.sess.run(tensor, feed_dict)                
+                res = self.sess.run(tensor)
                 result.append(res)
             except tf.errors.OutOfRangeError:
                 break
