@@ -127,7 +127,7 @@ class VGG_Net(Neural_Net):
 
     def extract_features(self, in_img=None, in_label=None, end_point='vgg_16/fc7'):
         feat_layer = self.end_points[end_point]
-        result = self.evaluate_tensor(feat_layer, in_img, in_label)
+        result = self.evaluate_tensor(feat_layer)
         result = np.squeeze(result).astype(np.float32)
         return result
     
