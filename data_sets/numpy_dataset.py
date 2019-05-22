@@ -63,6 +63,9 @@ class NumpyDataset(object):
         for name in self.tensor_names:
             res += name + ' ' + str(self.__getattribute__(name).shape) + '\n'
         return res
+    
+    def __len__(self):
+        return self.n_examples
 
     def __getitem__(self, key):
         return getattr(self, key)
