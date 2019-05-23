@@ -126,14 +126,14 @@ class Data_Splitter():
             te = self.load_splits(osp.join(top_out_dir, 'test.txt'), False)
             val = self.load_splits(osp.join(top_out_dir, 'val.txt'), False)
 
-            print 'are disjoint sets?', are_disjoint_sets([set(tr), set(te), set(val)])
+            print('are disjoint sets?', are_disjoint_sets([set(tr), set(te), set(val)]))
 
-            print 'distributions'
+            print('distributions')
             for d, l in zip([tr, te, val], ['train', 'test', 'val']):
                 cnt = Counter()
                 temp = [i.split('_') for i in d]
                 for w in temp:
                     cnt[w[0]] += 1
-                print l, cnt
+                print(l, cnt)
 
-            print 'are unique?', len(set(tr)) == len(tr) and len(set(val)) == len(val) and len(set(te)) == len(te)
+            print('are unique?', len(set(tr)) == len(tr) and len(set(val)) == len(val) and len(set(te)) == len(te))

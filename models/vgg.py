@@ -211,17 +211,20 @@ def select_vgg_type(vgg_type):
     return net
 
 
-def load_image_from_drive(image_file, label, channels=3):
+def load_image_from_drive(image_file, label, img_types='png', channels=3):
     '''Decode the image from PNG format.
-    '''
+    '''    
+    image_string = tf.read_file(image_file)
     
-    image_string = tf.read_file(image_file)   
-    
-    # If needed, the PNG-encoded image is transformed to match the requested number 
-    # of color channels.
-    image_decoded = tf.image.decode_png(image_string, channels=channels)
+    if img_types == 'png':
+        # If needed, the PNG-encoded image is transformed to match the requested number 
+        # of color channels.
+        image_decoded = tf.image.decode_png(image_string, channels=channels)
+    elif img_types == 'jpeg':
+        image_decoded = tf.image.decode_jpeg(image_string, channels=channels)
     
     image = tf.cast(image_decoded, tf.float32)
+    
     if channels == 1: # input image is gray-scale, turn to pseudo-RGB        
         image = tf.tile(image, [1, 1, 3])
                 
@@ -245,9 +248,9 @@ def preprocess_image(image, label, subtract_mean=True, crop=None,
         image = tf.image.random_flip_left_right(image)
     
     if subtract_mean:
-        means = tf.reshape(tf.constant(img_net_rgb), [1, 1, 3])        
+        means = tf.reshape(tf.constant(img_net_rgb), [1, 1, 3])
         image -= means
-        
+            
     return image, label
 
     
@@ -263,9 +266,12 @@ def standard_vgg_preprocess_func(training=True):
     '''
     rescaler = standard_vgg_image_scale
     if training:
-        return partial(preprocess_image, subtract_mean=True, crop=[224, 224], horizontal_flip=True, random_crop=True, rescaler=rescaler)
+        return partial(preprocess_image, subtract_mean=True, crop=[224, 224], 
+                       horizontal_flip=True, random_crop=True, rescaler=rescaler)
     else:
-        return partial(preprocess_image, subtract_mean=True, crop=[224, 224], horizontal_flip=False, random_crop=False)
+        return partial(preprocess_image, subtract_mean=True, 
+                       crop=[224, 224], horizontal_flip=False, 
+                       random_crop=False)
 
     
 def standard_vgg_image_scale(image, smallest_side=256.0):

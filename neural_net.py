@@ -10,7 +10,7 @@ import warnings
 import os.path as osp
 from six import itervalues, iterkeys
 
-from fundamentals.inspect import count_trainable_parameters
+from . fundamentals.inspect import count_trainable_parameters
 from general_tools.in_out.basics import pickle_data, unpickle_data
 
 
