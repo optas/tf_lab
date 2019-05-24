@@ -11,3 +11,4 @@ external/Chamfer_EMD_tf1plus/*.so
 external/Chamfer_EMD_tf1plus/*.o
 *.so
 *.o
+.idea/*
