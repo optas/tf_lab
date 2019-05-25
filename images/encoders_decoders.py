@@ -25,7 +25,7 @@ def conv_encoder_params(version):
     return filter_sizes, n_filters, strides, pool_kernels, pool_strides
 
 
-def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=True, 
+def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=[True], 
                        non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                        pool=max_pool_2d, pool_kernels=None, pool_strides=None, scope=None,
                        reuse=False, padding='same', verbose=False, conv_op=conv_2d):
