@@ -37,6 +37,7 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=[
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
     b_norm = replicate_parameter_for_all_layers(b_norm, n_layers)
+    pool_kernels = replicate_parameter_for_all_layers(pool_kernels, n_layers)
     
     container = []
 
