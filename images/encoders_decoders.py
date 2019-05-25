@@ -7,9 +7,11 @@ import numpy as np
 import tensorflow as tf
 
 from tflearn.layers.conv import conv_2d, max_pool_2d, conv_2d_transpose
-from tf_lab.point_clouds.encoders_decoders import decoder_with_fc_only
-from tf_lab.fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 from tflearn.layers.normalization import batch_normalization
+
+from .. point_clouds.encoders_decoders import decoder_with_fc_only
+from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
+
 
 
 def conv_encoder_params(version):
@@ -34,6 +36,8 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=T
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
     strides = replicate_parameter_for_all_layers(strides, n_layers)
+    b_norm = replicate_parameter_for_all_layers(b_norm, n_layers)
+    
     container = []
 
     if n_layers < 2:
@@ -52,12 +56,14 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=T
         if verbose:
             print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
-        if b_norm:
+
+        if b_norm[i]:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
             if verbose:
-                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
+                print('bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list()))
+                        
 
         if non_linearity is not None:
             layer = non_linearity(layer)
