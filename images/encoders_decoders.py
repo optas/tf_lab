@@ -27,7 +27,7 @@ def conv_encoder_params(version):
 
 def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=[True], 
                        non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
-                       pool=max_pool_2d, pool_kernels=None, pool_strides=None, scope=None,
+                       pool=max_pool_2d, pool_kernels=None, scope=None,
                        reuse=False, padding='same', verbose=False, conv_op=conv_2d):
     
     if verbose:
@@ -70,7 +70,7 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=[
 
         if pool is not None and pool_kernels is not None:
             if pool_kernels[i] is not None:
-                layer = pool(layer, kernel_size=pool_kernels[i], strides=pool_strides[i])
+                layer = pool(layer, kernel_size=pool_kernels[i])
 
         if verbose:
             print layer
