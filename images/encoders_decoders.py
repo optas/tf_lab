@@ -3,9 +3,6 @@ Created on Feb 12, 2018
 
 @author: optas
 '''
-from __future__ import print_function
-from builtins import str
-from builtins import range
 import numpy as np
 import tensorflow as tf
 
@@ -26,13 +23,13 @@ def conv_encoder_params(version):
     return filter_sizes, n_filters, strides, pool_kernels, pool_strides
 
 
-def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=True, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
+def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=True, 
+                       non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
                        pool=max_pool_2d, pool_kernels=None, pool_strides=None, scope=None,
                        reuse=False, padding='same', verbose=False, conv_op=conv_2d):
-    # TODO add drop-out
-
+    
     if verbose:
-        print('Building Encoder')
+        print 'Building Encoder'
 
     n_layers = len(n_filters)
     filter_sizes = replicate_parameter_for_all_layers(filter_sizes, n_layers)
@@ -42,24 +39,25 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=T
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
 
-    for i in range(n_layers):
+    for i in xrange(n_layers):
         if i == 0:
             layer = in_signal
 
         name = 'encoder_conv_layer_' + str(i)
         scope_i = expand_scope_by_name(scope, name)
-        layer = conv_op(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], regularizer=regularizer,
-                        weight_decay=weight_decay, name=name, reuse=reuse, scope=scope_i, padding=padding)
+        layer = conv_op(layer, nb_filter=n_filters[i], filter_size=filter_sizes[i], strides=strides[i], 
+                        regularizer=regularizer, weight_decay=weight_decay, 
+                        name=name, reuse=reuse, scope=scope_i, padding=padding)
 
         if verbose:
-            print(name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()), end=' ')
+            print name, 'conv params = ', np.prod(layer.W.get_shape().as_list()) + np.prod(layer.b.get_shape().as_list()),
 
         if b_norm:
             name += '_bnorm'
             scope_i = expand_scope_by_name(scope, name)
             layer = batch_normalization(layer, name=name, reuse=reuse, scope=scope_i)
             if verbose:
-                print('bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list()))
+                print 'bnorm params = ', np.prod(layer.beta.get_shape().as_list()) + np.prod(layer.gamma.get_shape().as_list())
 
         if non_linearity is not None:
             layer = non_linearity(layer)
@@ -69,8 +67,8 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=T
                 layer = pool(layer, kernel_size=pool_kernels[i], strides=pool_strides[i])
 
         if verbose:
-            print(layer)
-            print('output size:', np.prod(layer.get_shape().as_list()[1:]), '\n')
+            print layer
+            print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
 
         container.append(layer)
     return container[-1], container
