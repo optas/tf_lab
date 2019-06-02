@@ -60,15 +60,15 @@ def euclidean_k_neighbors_with_place_holders(n_dims, k):
     """    
     pl_a = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_a')
     pl_b = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_b')        
-    euclidean_k_neighbors(feat_a, feat_b, k)        
-    return euclid_sq_dist, indices, A_pl, B_pl
+    euclid_sq_dist, indices = euclidean_k_neighbors(pl_a, pl_b, k)        
+    return euclid_sq_dist, indices, pl_a, pl_b
 
 
 def euclidean_k_neighbors(feat_a, feat_b, k):
-    """ Compute the euclidena k-nearest-neighborsof each feat_a among all feat_b.
+    """ Compute the euclidean k-nearest-neighbors of each feat_a among all feat_b.
         Args:
-            feat_a (tf.Tensor): (Ma, N) matrix containing Ma, N-dimensional deatures.
-            feat_b (tf.Tensor): (Mb, N) matrix containing Mb, N-dimensional deatures.
+            feat_a (tf.Tensor): (Ma, N) matrix containing Ma, N-dimensional features.
+            feat_b (tf.Tensor): (Mb, N) matrix containing Mb, N-dimensional features.
             k (int): number of nearest neighbors
         Returns:
             euclid_sq_dist: (Ma x k) square-euclidean distances of knn.
@@ -82,4 +82,3 @@ def euclidean_k_neighbors(feat_a, feat_b, k):
     sims, indices = tf.nn.top_k(euclid_sq_sim, k=k)
     euclid_sq_dist = tf.negative(sims)
     return euclid_sq_dist, indices
-
