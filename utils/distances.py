@@ -39,7 +39,6 @@ def compute_k_neighbors(a_feat, b_feat, sim_op, knn_op, a_pl, b_pl,
     return np.vstack(s), np.vstack(i)
 
 
-
 def cosine_k_neighbors(n_dims, k):
     """
     Use with ```tf.make_template``` to have access to place-holders - operations to compute
@@ -54,18 +53,33 @@ def cosine_k_neighbors(n_dims, k):
     return sims, indices, A_pl, B_pl
 
 
-def euclidean_k_neighbors(n_dims, k):
+def euclidean_k_neighbors_with_place_holders(n_dims, k):
     """
     Use with ```tf.make_template``` to have access to place-holders - operations to compute
     the Euclidean knn among features, that are (batch_size x n_dims).  
     """    
-    A_pl = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_a')
-    B_pl = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_b')        
-    inner_prod = tf.matmul(A_pl, B_pl, transpose_b=True)
-    a_norm_sq = tf.maximum(tf.reduce_sum(A_pl * A_pl, 1), 0.0)
-    b_norm_sq = tf.maximum(tf.reduce_sum(B_pl * B_pl, 1), 0.0)
-    euclid_sq_dist = tf.expand_dims(a_norm_sq, 1) - 2.0 * inner_prod + tf.expand_dims(b_norm_sq, 0)        
-    euclid_sq_sim = tf.negative(tf.maximum(euclid_sq_dist, 0.0))    
+    pl_a = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_a')
+    pl_b = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_b')        
+    euclidean_k_neighbors(feat_a, feat_b, k)        
+    return euclid_sq_dist, indices, A_pl, B_pl
+
+
+def euclidean_k_neighbors(feat_a, feat_b, k):
+    """ Compute the euclidena k-nearest-neighborsof each feat_a among all feat_b.
+        Args:
+            feat_a (tf.Tensor): (Ma, N) matrix containing Ma, N-dimensional deatures.
+            feat_b (tf.Tensor): (Mb, N) matrix containing Mb, N-dimensional deatures.
+            k (int): number of nearest neighbors
+        Returns:
+            euclid_sq_dist: (Ma x k) square-euclidean distances of knn.
+            indices: (Ma x k)
+    """
+    inner_prod = tf.matmul(feat_a, feat_b, transpose_b=True)
+    a_norm_sq = tf.maximum(tf.reduce_sum(feat_a * feat_a, 1), 0.0)
+    b_norm_sq = tf.maximum(tf.reduce_sum(feat_b * feat_b, 1), 0.0)
+    euclid_sq_dist = tf.expand_dims(a_norm_sq, 1) - 2.0 * inner_prod + tf.expand_dims(b_norm_sq, 0)
+    euclid_sq_sim = tf.negative(tf.maximum(euclid_sq_dist, 0.0))
     sims, indices = tf.nn.top_k(euclid_sq_sim, k=k)
     euclid_sq_dist = tf.negative(sims)
-    return euclid_sq_dist, indices, A_pl, B_pl
+    return euclid_sq_dist, indices
+
