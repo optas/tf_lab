@@ -10,6 +10,19 @@ from tensorflow.contrib.layers import xavier_initializer_conv2d
 from tensorflow import random_uniform_initializer, truncated_normal_initializer
 
 
+def initialize_uninitialized(sess):
+    """ Finds all global variables that are not initialized and initializes them.
+    """
+    global_vars = tf.global_variables()
+    is_not_initialized = sess.run([tf.is_variable_initialized(var) for var in global_vars])
+    not_initialized_vars = [v for (v, f) in zip(global_vars, is_not_initialized) if not f]
+    print [str(i.name) for i in not_initialized_vars] # only for testing
+    if len(not_initialized_vars):
+        sess.run(tf.variables_initializer(not_initialized_vars))
+        
+        
+        
+
 def initializer(options, shape=None):
     options = copy.deepcopy(options)
     init_type = options.pop('type')
