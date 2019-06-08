@@ -25,6 +25,7 @@ from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_
 from with_others.million_geometries.src.rotations import octahedral_rotation_group, rotation_from_degrees
 from with_others.million_geometries.src.hacks import bulb_pooling
     
+import pdb
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],
                                         b_norm=[False], spn=False, non_linearity=tf.nn.relu, regularizer=None, weight_decay=0.001,
@@ -40,7 +41,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     strides = replicate_parameter_for_all_layers(strides, n_layers)
     b_norm = replicate_parameter_for_all_layers(b_norm, n_layers)
     dropout_prob = replicate_parameter_for_all_layers(dropout_prob, n_layers)
-
+    pdb.set_trace()
     if n_layers < 2:
         raise ValueError('More than 1 layers are expected.')
 
