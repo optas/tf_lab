@@ -43,12 +43,11 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
 
     if spn:
         print 'Spatial transformer will be used.'
-        raise ValueError()
+        raise ValueError('Need to check the implementation.')
         with tf.variable_scope('spn') as sub_scope:
             pool_size = 20  # how many points in each pool
             n_rotations = len(octahedral_rotation_group())
             R = pc_rotation_predictor(in_signal, pool_size, n_rotations, container=container)
-            
             #in_signal = tf.matmul(in_signal, R)
             if container is not None:
                 container['signal_transformed'] = tf.matmul(in_signal, R)
@@ -85,7 +84,10 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
         if verbose:
             print layer
             print 'output size:', np.prod(layer.get_shape().as_list()[1:]), '\n'
-
+        
+        if container is not None:
+            container.append(layer)
+            
     if symmetry is not None:
         layer = symmetry(layer, axis=1)
         if verbose:
@@ -94,7 +96,7 @@ def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], f
     if closing is not None:
         layer = closing(layer)
         print layer
-
+    
     return layer
 
 
