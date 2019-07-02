@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 from general_tools import iterate_in_chunks
 
+
 def compute_k_neighbors(a_feat, b_feat, sim_op, knn_op, a_pl, b_pl,  
                         sess, batch_size=512):
     """ Input:
