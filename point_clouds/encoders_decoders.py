@@ -19,8 +19,11 @@ from .. fundamentals.layers import conv_1d_tranpose
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
 # For rotation transformers:
-from with_others.million_geometries.src.rotations import octahedral_rotation_group, rotation_from_degrees
-from with_others.million_geometries.src.hacks import bulb_pooling
+try:
+    from with_others.million_geometries.src.rotations import octahedral_rotation_group, rotation_from_degrees
+    from with_others.million_geometries.src.hacks import bulb_pooling
+except:
+    print('Cannot load `million_geometries` package.')
     
 
 def encoder_with_convs_and_symmetry(in_signal, n_filters=[64, 128, 256, 1024], filter_sizes=[1], strides=[1],

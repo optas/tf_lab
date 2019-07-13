@@ -9,6 +9,6 @@ except:
 try:
     from . neural_net import Neural_Net    
 except:
-    warnings.warn('Neural_Net')
+    warnings.warn('Cannot load Neural_Net class of tf_lab.')
 
     
