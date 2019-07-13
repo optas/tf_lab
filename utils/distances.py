@@ -61,7 +61,7 @@ def euclidean_k_neighbors_with_place_holders(n_dims, k):
     """    
     pl_a = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_a')
     pl_b = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_b')        
-    euclid_sq_dist, indices = euclidean_k_neighbors(pl_a, pl_b, k)        
+    euclid_sq_dist, indices = euclidean_k_neighbors(pl_a, pl_b, k)
     return euclid_sq_dist, indices, pl_a, pl_b
 
 
