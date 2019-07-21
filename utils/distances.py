@@ -65,12 +65,13 @@ def euclidean_k_neighbors_with_place_holders(n_dims, k):
     return euclid_sq_dist, indices, pl_a, pl_b
 
 
-def euclidean_k_neighbors(feat_a, feat_b, k):
+def euclidean_k_neighbors(feat_a, feat_b, k, identities=None):
     """ Compute the euclidean k-nearest-neighbors of each feat_a among all feat_b.
         Args:
             feat_a (tf.Tensor): (Ma, N) matrix containing Ma, N-dimensional features.
             feat_b (tf.Tensor): (Mb, N) matrix containing Mb, N-dimensional features.
             k (int): number of nearest neighbors
+	    identities (tf.Tensor): (Ma,) the distance (feat_a[m], feat_b[identity[m]]) will be maximal so to be excluded.
         Returns:
             euclid_sq_dist: (Ma x k) square-euclidean distances of knn.
             indices: (Ma x k)
@@ -79,6 +80,14 @@ def euclidean_k_neighbors(feat_a, feat_b, k):
     a_norm_sq = tf.maximum(tf.reduce_sum(feat_a * feat_a, 1), 0.0)
     b_norm_sq = tf.maximum(tf.reduce_sum(feat_b * feat_b, 1), 0.0)
     euclid_sq_dist = tf.expand_dims(a_norm_sq, 1) - 2.0 * inner_prod + tf.expand_dims(b_norm_sq, 0)
+    if identities is not None:
+        batch_size = tf.shape(identities)[0]
+        indices = tf.stack([tf.range(batch_size), indices], 1)
+        updates = tf.reduce_max(euclid_sq_dist) + 1
+        updates = tf.tile(tf.expand_dims(updates, -1), [batch_size])
+        shape = tf.shape(euclid_sq_dist)
+        canceling = tf.scatter_nd(indices, updates, shape)
+        euclid_sq_dist += canceling 
     euclid_sq_sim = tf.negative(tf.maximum(euclid_sq_dist, 0.0))
     sims, indices = tf.nn.top_k(euclid_sq_sim, k=k)
     euclid_sq_dist = tf.negative(sims)
