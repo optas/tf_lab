@@ -82,7 +82,7 @@ def euclidean_k_neighbors(feat_a, feat_b, k, identities=None):
     euclid_sq_dist = tf.expand_dims(a_norm_sq, 1) - 2.0 * inner_prod + tf.expand_dims(b_norm_sq, 0)
     if identities is not None:
         batch_size = tf.shape(identities)[0]
-        indices = tf.stack([tf.range(batch_size), indices], 1)
+        indices = tf.stack([tf.range(batch_size), identities], 1)
         updates = tf.reduce_max(euclid_sq_dist) + 1
         updates = tf.tile(tf.expand_dims(updates, -1), [batch_size])
         shape = tf.shape(euclid_sq_dist)
