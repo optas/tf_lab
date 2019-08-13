@@ -12,7 +12,7 @@ from general_tools import iterate_in_chunks
 
 
 def compute_k_neighbors(a_feat, b_feat, sim_op, knn_op, a_pl, b_pl,  
-                        sess, batch_size=512):
+                        sess, batch_size=512, a_identities=None, identities_pl=None):
     """ Input:
               a_feat: (N1 x feat_dim) numpy array
               b_feat: (N2 x feat_dim) numpy array
@@ -24,17 +24,24 @@ def compute_k_neighbors(a_feat, b_feat, sim_op, knn_op, a_pl, b_pl,
         x = np.random(100, 4096)
         y = np.random(100, 4096)
         compute_k_neighbors(x, y, sim_op, knn_op, a_pl, b_pl)               
+    Note: assumes, b_feat fits entirely in GPU.
     """
     
     n_a, n_dims = a_feat.shape
     _, dummy = b_feat.shape
     assert(n_dims == dummy)
     
+    if a_identities is not None:
+        assert (len(a_identities) == len(a_feat))
+        
     s = []  # similarities
     i = []  # neighbors
     
-    for idx in iterate_in_chunks(np.arange(n_a), batch_size):        
-        r = sess.run([sim_op, knn_op], feed_dict={a_pl:a_feat[idx], b_pl:b_feat})
+    for idx in iterate_in_chunks(np.arange(n_a), batch_size):               
+        feed_dict = {a_pl:a_feat[idx], b_pl:b_feat}
+        if a_identities is not None:
+            feed_dict[identities_pl] = a_identities[idx]            
+        r = sess.run([sim_op, knn_op], feed_dict)
         s.append(r[0])
         i.append(r[1])
     return np.vstack(s), np.vstack(i)
@@ -54,14 +61,14 @@ def cosine_k_neighbors(n_dims, k):
     return sims, indices, A_pl, B_pl
 
 
-def euclidean_k_neighbors_with_place_holders(n_dims, k):
+def euclidean_k_neighbors_with_place_holders(n_dims, k, identities=None):
     """
     Use with ```tf.make_template``` to have access to place-holders - operations to compute
     the Euclidean knn among features, that are (batch_size x n_dims).  
     """    
     pl_a = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_a')
     pl_b = tf.placeholder(tf.float32, [None, n_dims], 'euclidean_k_neighbors_feats_b')        
-    euclid_sq_dist, indices = euclidean_k_neighbors(pl_a, pl_b, k)
+    euclid_sq_dist, indices = euclidean_k_neighbors(pl_a, pl_b, k, identities=identities)
     return euclid_sq_dist, indices, pl_a, pl_b
 
 

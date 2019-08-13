@@ -12,8 +12,6 @@ from tflearn.layers.normalization import batch_normalization
 from .. point_clouds.encoders_decoders import decoder_with_fc_only
 from .. fundamentals.utils import expand_scope_by_name, replicate_parameter_for_all_layers
 
-
-
 def conv_encoder_params(version):
     if version == 1:
         # Preliminary for geometric-images.
