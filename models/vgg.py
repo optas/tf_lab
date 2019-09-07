@@ -212,8 +212,8 @@ def select_vgg_type(vgg_type):
 
 
 def load_image_from_drive(image_file, label, img_types='png', channels=3):
-    '''Decode the image from PNG format.
-    '''    
+    """Load and decode an image file.
+    """
     image_string = tf.read_file(image_file)
     
     if img_types == 'png':
@@ -222,10 +222,13 @@ def load_image_from_drive(image_file, label, img_types='png', channels=3):
         image_decoded = tf.image.decode_png(image_string, channels=channels)
     elif img_types == 'jpeg':
         image_decoded = tf.image.decode_jpeg(image_string, channels=channels)
-    
+
+    elif img_types is 'mixed':
+        image_decoded = tf.image.decode_image(image_string, channels=channels)[0]
+
     image = tf.cast(image_decoded, tf.float32)
     
-    if channels == 1: # input image is gray-scale, turn to pseudo-RGB        
+    if channels == 1:   # input image is gray-scale, turn to pseudo-RGB
         image = tf.tile(image, [1, 1, 3])
                 
     return image, label
