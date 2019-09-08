@@ -222,9 +222,8 @@ def load_image_from_drive(image_file, label, img_types='png', channels=3):
         image_decoded = tf.image.decode_png(image_string, channels=channels)
     elif img_types == 'jpeg':
         image_decoded = tf.image.decode_jpeg(image_string, channels=channels)
-
-    elif img_types is 'mixed':
-        image_decoded = tf.image.decode_image(image_string, channels=channels)[0]
+    else:
+        raise ValueError('bad img-input spec.')
 
     image = tf.cast(image_decoded, tf.float32)
     
