@@ -5,6 +5,7 @@ Created on Feb 12, 2018
 '''
 import numpy as np
 import tensorflow as tf
+import warnings
 
 from tflearn.layers.conv import conv_2d, max_pool_2d, conv_2d_transpose
 from tflearn.layers.normalization import batch_normalization
@@ -40,7 +41,7 @@ def conv_based_encoder(in_signal, n_filters, filter_sizes, strides=[1], b_norm=[
     container = []
 
     if n_layers < 2:
-        raise ValueError('More than 1 layers are expected.')
+        warnings.warn('Using one layer-deep only (why not simply call conv2d).')
 
     for i in xrange(n_layers):
         if i == 0:
