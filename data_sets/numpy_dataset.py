@@ -25,10 +25,11 @@ num2alpha = dict(enumerate(string.ascii_lowercase, 0))
 class NumpyDataset(object):
 
     def __init__(self, tensor_list, tensor_names=None, copy=True, init_shuffle=True):
-        '''
-        Constructor
-        TODO: copy False, is not working, we still get new data.
-        '''
+        """ Handy class for working with data that can fit in memory and which can be represented
+            via numpy tensors. It was created to play well with Tensorflow before the introduciton
+            of the Dataset class (around 2018).
+            TODO: copy False, is not working, we still get new data.
+        """
         if tensor_names is not None and len(tensor_names) != len(tensor_list):
             raise ValueError('Each tensor must have a name or none of them has.')
 
