@@ -6,10 +6,8 @@ from multiprocessing import Pool
 from ..in_out.basics import make_train_validate_test_split 
 from geo_tool import Mesh, Point_Cloud
 from geo_tool.in_out.soup import load_crude_point_cloud, load_crude_point_cloud_with_normals
-from geo_tool.in_out.soup import load_mesh_from_file
-
 from general_tools.rla.three_d_transforms import rand_rotation_matrix
-from general_tools.in_out.basics import files_in_subdirs
+
 
 blensor_search_pattern = '0_noisy00000.txt'
 

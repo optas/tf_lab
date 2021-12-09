@@ -16,7 +16,10 @@ import geo_tool.solids.mesh_cleaning as cleaning
 from geo_tool.in_out.soup import load_crude_point_cloud
 from general_tools.in_out.basics import files_in_subdirs, create_dir
 
-from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
+try:
+    from .. point_clouds.in_out import load_point_clouds_from_filenames, PointCloudDataSet
+except:
+    print('Limited Utilities are loaded, check your dependencies, e.g., TensorFlow.')
 
 snc_synth_id_to_category = {
     '02691156': 'airplane',  '02773838': 'bag',        '02801938': 'basket',
